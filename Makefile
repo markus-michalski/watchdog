@@ -22,7 +22,7 @@ stage-up: ## Start stage containers in background
 	$(DC) up -d
 	$(DC) exec app php bin/console doctrine:migrations:migrate --no-interaction
 	@echo "App     → http://localhost:8087"
-	@echo "Mailpit → http://localhost:8025"
+	@echo "Mailpit → http://localhost:8128"
 
 .PHONY: stage-down
 stage-down: ## Stop stage containers
