@@ -2,6 +2,15 @@
 framework:
     secret: '%env(APP_SECRET)%'
 
+    # Trust X-Forwarded-Proto from reverse proxy — FrankenPHP/Caddy doesn't have SetEnvIf
+    trusted_proxies: '%env(default::TRUSTED_PROXIES)%'
+    trusted_headers:
+        - x-forwarded-for
+        - x-forwarded-host
+        - x-forwarded-proto
+        - x-forwarded-port
+        - x-forwarded-prefix
+
     # Note that the session will be started ONLY if you read or write from it.
     session: true
 

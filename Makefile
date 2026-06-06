@@ -23,6 +23,7 @@ help: ## Show this help
 stage-update: ## Rebuild image + restart stage (normal deploy: git pull && make stage-update)
 	$(DC) build app worker scheduler
 	$(DC) up -d --no-deps app worker scheduler
+	@sleep 3
 	$(DC) exec app php bin/console cache:clear --no-warmup
 	$(DC) exec app php bin/console cache:warmup
 	$(DC) exec app php bin/console doctrine:migrations:migrate --no-interaction
@@ -90,6 +91,7 @@ live-down: ## Stop live containers
 live-update: ## Rebuild + redeploy live without downtime, then migrate
 	$(DC_LIVE) build app worker scheduler
 	$(DC_LIVE) up -d --no-deps app worker scheduler
+	@sleep 3
 	$(DC_LIVE) exec app php bin/console cache:clear --no-warmup
 	$(DC_LIVE) exec app php bin/console cache:warmup
 	$(DC_LIVE) exec app php bin/console doctrine:migrations:migrate --no-interaction
