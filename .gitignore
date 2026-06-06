@@ -8,6 +8,8 @@
 /.env.local
 /.env.local.php
 /.env.*.local
+/.env.stage
+/.env.live
 /config/secrets/prod/prod.decrypt.private.php
 /public/bundles/
 /var/

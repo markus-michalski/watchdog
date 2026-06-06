@@ -4,10 +4,8 @@ services:
       context: .
       target: prod
     container_name: watchdog-stage-app
-    env_file: .env.local
+    env_file: .env.stage
     environment:
-      APP_ENV: prod
-      APP_DEBUG: '0'
       SERVER_NAME: ":80"
       TZ: Europe/Berlin
     ports:
@@ -23,10 +21,8 @@ services:
       target: prod
     container_name: watchdog-stage-worker
     command: php bin/console messenger:consume async notifications --time-limit=3600 --memory-limit=128M -vv
-    env_file: .env.local
+    env_file: .env.stage
     environment:
-      APP_ENV: prod
-      APP_DEBUG: '0'
       TZ: Europe/Berlin
     group_add:
       - "${DOCKER_GID:-995}"
@@ -44,10 +40,8 @@ services:
       target: prod
     container_name: watchdog-stage-scheduler
     command: php bin/console scheduler:run checks --no-interaction
-    env_file: .env.local
+    env_file: .env.stage
     environment:
-      APP_ENV: prod
-      APP_DEBUG: '0'
       TZ: Europe/Berlin
     volumes:
       - watchdog_stage_data:/app/var
