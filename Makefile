@@ -2,8 +2,8 @@
 #
 # Usage:
 #   make help          — list all targets
-#   make stage-up      — start stage containers (server, compose.stage.yml)
-#   make live-up       — start live containers
+#   make stage-update  — rebuild image + restart stage (the normal deploy command)
+#   make live-update   — rebuild image + restart live without downtime
 #   make local-up      — start local dev containers (docker-compose.yml, with code mount)
 
 SHELL := /bin/bash
@@ -19,8 +19,15 @@ help: ## Show this help
 
 ## -- Stage containers ---------------------------------------------------------
 
+.PHONY: stage-update
+stage-update: ## Rebuild image + restart stage (normal deploy: git pull && make stage-update)
+	$(DC) build app worker scheduler
+	$(DC) up -d --no-deps app worker scheduler
+	$(DC) exec app php bin/console doctrine:migrations:migrate --no-interaction
+	@echo "Stage updated → http://localhost:8087"
+
 .PHONY: stage-up
-stage-up: ## Start stage containers in background (always run stage-build first)
+stage-up: ## Start stage containers (does NOT rebuild — use stage-update for deploys)
 	$(DC) up -d
 	$(DC) exec app php bin/console doctrine:migrations:migrate --no-interaction
 	@echo "App     → http://localhost:8087"
@@ -37,13 +44,17 @@ stage-restart: stage-down stage-up ## Restart stage containers
 stage-logs: ## Tail all stage container logs
 	$(DC) logs -f
 
+.PHONY: stage-app-logs
+stage-app-logs: ## Tail stage app container logs only
+	$(DC) logs -f app
+
 .PHONY: stage-shell
 stage-shell: ## Open shell in stage app container
-	$(DC) exec watchdog-stage-app sh
+	$(DC) exec app sh
 
 .PHONY: stage-build
-stage-build: ## Rebuild stage image (no cache)
-	$(DC) build --no-cache app
+stage-build: ## Rebuild stage image (no cache) — use stage-update for normal deploys
+	$(DC) build --no-cache app worker scheduler
 
 ## -- Local dev (docker-compose.yml, code mount) --------------------------------
 
@@ -64,7 +75,7 @@ local-shell: ## Open shell in local app container
 ## -- Live containers ----------------------------------------------------------
 
 .PHONY: live-up
-live-up: ## Start live containers (always run live-build first on first deploy)
+live-up: ## Start live containers (does NOT rebuild — use live-update for deploys)
 	$(DC_LIVE) up -d
 	$(DC_LIVE) exec app php bin/console doctrine:migrations:migrate --no-interaction
 	@echo "Live app → http://127.0.0.1:8086"
@@ -81,8 +92,8 @@ live-update: ## Rebuild + redeploy live without downtime, then migrate
 	@echo "Live updated."
 
 .PHONY: live-build
-live-build: ## Build live image (no cache)
-	$(DC_LIVE) build --no-cache app
+live-build: ## Rebuild live image (no cache) — use live-update for normal deploys
+	$(DC_LIVE) build --no-cache app worker scheduler
 
 .PHONY: live-logs
 live-logs: ## Tail live container logs
@@ -90,7 +101,7 @@ live-logs: ## Tail live container logs
 
 .PHONY: live-shell
 live-shell: ## Open shell in live app container
-	$(DC_LIVE) exec watchdog-live-app sh
+	$(DC_LIVE) exec app sh
 
 ## -- Symfony ------------------------------------------------------------------
 
