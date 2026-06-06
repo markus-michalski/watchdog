@@ -8,7 +8,7 @@ services:
     environment:
       SERVER_NAME: ":80"
       TZ: Europe/Berlin
-      TRUSTED_PROXIES: "127.0.0.1"
+      TRUSTED_PROXIES: "REMOTE_ADDR"
     ports:
       - "127.0.0.1:8087:80"
     volumes:

@@ -26,6 +26,8 @@ stage-update: ## Rebuild image + restart stage (normal deploy: git pull && make 
 	@sleep 3
 	$(DC) exec app php bin/console cache:clear --no-warmup
 	$(DC) exec app php bin/console cache:warmup
+	$(DC) exec app php bin/console tailwind:build --minify
+	$(DC) exec app php bin/console asset-map:compile
 	$(DC) exec app php bin/console doctrine:migrations:migrate --no-interaction
 	@echo "Stage updated → http://localhost:8087"
 
