@@ -25,6 +25,8 @@ services:
     environment:
       APP_ENV: prod
       TZ: Europe/Berlin
+    group_add:
+      - "${DOCKER_GID:-995}"
     volumes:
       - watchdog_data:/app/var
       - /var/run/docker.sock:/var/run/docker.sock:ro
