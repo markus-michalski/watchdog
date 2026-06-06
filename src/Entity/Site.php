@@ -36,9 +36,6 @@ class Site
     private bool $isActive = true;
 
     #[ORM\Column]
-    private int $checkIntervalMinutes = 5;
-
-    #[ORM\Column]
     private \DateTimeImmutable $createdAt;
 
     #[ORM\Column]
@@ -125,18 +122,6 @@ class Site
     public function setIsActive(bool $isActive): static
     {
         $this->isActive = $isActive;
-
-        return $this;
-    }
-
-    public function getCheckIntervalMinutes(): int
-    {
-        return $this->checkIntervalMinutes;
-    }
-
-    public function setCheckIntervalMinutes(int $checkIntervalMinutes): static
-    {
-        $this->checkIntervalMinutes = $checkIntervalMinutes;
 
         return $this;
     }

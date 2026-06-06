@@ -19,6 +19,7 @@ class SiteCheckRepository extends ServiceEntityRepository
     }
 
     /** @return SiteCheck[] */
+    /** @return SiteCheck[] */
     public function findAllActiveWithSites(): array
     {
         return $this->createQueryBuilder('c')

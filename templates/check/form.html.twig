@@ -25,6 +25,15 @@
             {{ form_errors(form.configJson) }}
         </div>
 
+        <div>
+            {{ form_label(form.checkIntervalMinutes, null, {label_attr: {class: 'block text-sm font-medium text-gray-700 mb-1'}}) }}
+            <div class="flex items-center gap-2">
+                {{ form_widget(form.checkIntervalMinutes, {attr: {class: 'border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 w-24'}}) }}
+                <span class="text-sm text-gray-500">minutes (e.g. 5, 60, 1440)</span>
+            </div>
+            {{ form_errors(form.checkIntervalMinutes) }}
+        </div>
+
         <div class="flex items-center gap-2">
             {{ form_widget(form.isActive) }}
             {{ form_label(form.isActive, null, {label_attr: {class: 'text-sm text-gray-700'}}) }}

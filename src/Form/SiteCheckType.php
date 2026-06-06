@@ -9,6 +9,7 @@ use App\Entity\SiteCheck;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\CheckboxType;
 use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
+use Symfony\Component\Form\Extension\Core\Type\IntegerType;
 use Symfony\Component\Form\Extension\Core\Type\TextareaType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\Form\FormEvent;
@@ -28,6 +29,11 @@ class SiteCheckType extends AbstractType
                 'label' => 'Check type',
                 'choices' => $this->checkRegistry->getTypeChoices(),
                 'attr' => ['class' => 'form-input'],
+            ])
+            ->add('checkIntervalMinutes', IntegerType::class, [
+                'label' => 'Interval (minutes)',
+                'constraints' => [new \Symfony\Component\Validator\Constraints\GreaterThan(0)],
+                'attr' => ['class' => 'form-input', 'min' => 1],
             ])
             ->add('isActive', CheckboxType::class, [
                 'label' => 'Active',

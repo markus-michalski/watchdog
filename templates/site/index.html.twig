@@ -22,7 +22,6 @@
                     <th class="px-4 py-3 text-left">Name</th>
                     <th class="px-4 py-3 text-left">URL</th>
                     <th class="px-4 py-3 text-center">Checks</th>
-                    <th class="px-4 py-3 text-center">Interval</th>
                     <th class="px-4 py-3 text-center">Status</th>
                     <th class="px-4 py-3 text-right">Actions</th>
                 </tr>
@@ -37,7 +36,6 @@
                     </td>
                     <td class="px-4 py-3 text-gray-600 truncate max-w-xs">{{ site.url }}</td>
                     <td class="px-4 py-3 text-center text-gray-600">{{ site.checks|length }}</td>
-                    <td class="px-4 py-3 text-center text-gray-600">{{ site.checkIntervalMinutes }}m</td>
                     <td class="px-4 py-3 text-center">
                         <span class="px-2 py-0.5 rounded text-xs {% if site.isActive %}bg-green-100 text-green-700{% else %}bg-gray-100 text-gray-500{% endif %}">
                             {{ site.isActive ? 'Active' : 'Inactive' }}

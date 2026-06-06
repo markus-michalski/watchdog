@@ -7,7 +7,6 @@ namespace App\Form;
 use App\Entity\Site;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\CheckboxType;
-use Symfony\Component\Form\Extension\Core\Type\IntegerType;
 use Symfony\Component\Form\Extension\Core\Type\PasswordType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\Extension\Core\Type\UrlType;
@@ -29,12 +28,6 @@ class SiteType extends AbstractType
                 'label' => 'URL',
                 'constraints' => [new Assert\NotBlank(), new Assert\Url()],
                 'attr' => ['class' => 'form-input', 'placeholder' => 'https://example.com'],
-            ])
-            ->add('checkIntervalMinutes', IntegerType::class, [
-                'label' => 'Check interval (minutes)',
-                'constraints' => [new Assert\GreaterThan(0)],
-                'data' => 5,
-                'attr' => ['class' => 'form-input', 'min' => 1],
             ])
             ->add('isActive', CheckboxType::class, [
                 'label' => 'Active',

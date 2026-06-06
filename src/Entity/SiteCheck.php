@@ -32,6 +32,9 @@ class SiteCheck
     #[ORM\Column]
     private bool $isActive = true;
 
+    #[ORM\Column]
+    private int $checkIntervalMinutes = 5;
+
     #[ORM\OneToMany(mappedBy: 'check', targetEntity: CheckResult::class, cascade: ['remove'], orphanRemoval: true)]
     #[ORM\OrderBy(['checkedAt' => 'DESC'])]
     private Collection $results;
@@ -97,6 +100,18 @@ class SiteCheck
         return $this;
     }
 
+    public function getCheckIntervalMinutes(): int
+    {
+        return $this->checkIntervalMinutes;
+    }
+
+    public function setCheckIntervalMinutes(int $checkIntervalMinutes): static
+    {
+        $this->checkIntervalMinutes = $checkIntervalMinutes;
+
+        return $this;
+    }
+
     /** @return Collection<int, CheckResult> */
     public function getResults(): Collection
     {
@@ -127,7 +142,7 @@ class SiteCheck
     {
         return match ($this->type) {
             'http' => 'HTTP Reachability',
-            'docker' => sprintf('Docker: %s', $this->config['container_name'] ?? 'unknown'),
+            'docker' => sprintf('Docker Container Health: %s', $this->config['container_name'] ?? 'unknown'),
             default => ucfirst($this->type),
         };
     }
