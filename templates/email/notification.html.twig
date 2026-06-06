@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <title>Watchdog Alert</title>
+</head>
+<body style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; color: #333;">
+
+<div style="background: {% if action == 'failure' %}#fee2e2{% else %}#dcfce7{% endif %}; border-left: 4px solid {% if action == 'failure' %}#dc2626{% else %}#16a34a{% endif %}; padding: 16px; border-radius: 4px; margin-bottom: 20px;">
+    <h2 style="margin: 0 0 8px 0; font-size: 18px; color: {% if action == 'failure' %}#dc2626{% else %}#16a34a{% endif %};">
+        {% if action == 'failure' %}FAIL{% else %}RECOVERED{% endif %}: {{ site.name }}
+    </h2>
+    <p style="margin: 0; font-size: 14px;">{{ check.label }}</p>
+</div>
+
+<table style="width: 100%; border-collapse: collapse; font-size: 14px;">
+    <tr>
+        <td style="padding: 8px 0; color: #666; width: 140px;">Site</td>
+        <td style="padding: 8px 0; font-weight: bold;">{{ site.name }}</td>
+    </tr>
+    <tr>
+        <td style="padding: 8px 0; color: #666;">URL</td>
+        <td style="padding: 8px 0;"><a href="{{ site.url }}" style="color: #2563eb;">{{ site.url }}</a></td>
+    </tr>
+    <tr>
+        <td style="padding: 8px 0; color: #666;">Check</td>
+        <td style="padding: 8px 0;">{{ check.label }}</td>
+    </tr>
+    <tr>
+        <td style="padding: 8px 0; color: #666;">Status</td>
+        <td style="padding: 8px 0; font-weight: bold; color: {% if result.isOk %}#16a34a{% else %}#dc2626{% endif %};">
+            {{ result.status.label() }}
+        </td>
+    </tr>
+    {% if result.statusCode %}
+    <tr>
+        <td style="padding: 8px 0; color: #666;">HTTP Code</td>
+        <td style="padding: 8px 0;">{{ result.statusCode }}</td>
+    </tr>
+    {% endif %}
+    {% if result.message %}
+    <tr>
+        <td style="padding: 8px 0; color: #666;">Message</td>
+        <td style="padding: 8px 0; font-family: monospace; font-size: 12px;">{{ result.message }}</td>
+    </tr>
+    {% endif %}
+    <tr>
+        <td style="padding: 8px 0; color: #666;">Time</td>
+        <td style="padding: 8px 0;">{{ result.checkedAt|date('d.m.Y H:i:s') }}</td>
+    </tr>
+</table>
+
+<hr style="border: none; border-top: 1px solid #e5e7eb; margin: 24px 0;">
+<p style="font-size: 12px; color: #9ca3af; margin: 0;">Watchdog Monitoring</p>
+
+</body>
+</html>

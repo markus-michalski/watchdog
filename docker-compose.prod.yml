@@ -1,0 +1,49 @@
+services:
+  app:
+    build:
+      context: .
+      target: prod
+    env_file: .env.local
+    environment:
+      APP_ENV: prod
+      SERVER_NAME: ":80"
+      TZ: Europe/Berlin
+    ports:
+      - "8086:80"
+    volumes:
+      - watchdog_data:/app/var
+    restart: unless-stopped
+
+  worker:
+    build:
+      context: .
+      target: prod
+    command: php bin/console messenger:consume async notifications --time-limit=3600 --memory-limit=128M
+    env_file: .env.local
+    environment:
+      APP_ENV: prod
+      TZ: Europe/Berlin
+    volumes:
+      - watchdog_data:/app/var
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    restart: unless-stopped
+    depends_on:
+      - app
+
+  scheduler:
+    build:
+      context: .
+      target: prod
+    command: php bin/console scheduler:run checks --no-interaction
+    env_file: .env.local
+    environment:
+      APP_ENV: prod
+      TZ: Europe/Berlin
+    volumes:
+      - watchdog_data:/app/var
+    restart: unless-stopped
+    depends_on:
+      - app
+
+volumes:
+  watchdog_data:

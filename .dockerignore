@@ -1,0 +1,49 @@
+# Git
+.git
+.gitignore
+.gitattributes
+
+# IDE
+.idea
+.vscode
+*.swp
+*.swo
+
+# Docker
+docker-compose*.yml
+compose*.yaml
+Dockerfile*
+
+# Documentation
+README.md
+CHANGELOG.md
+docs/
+
+# Dependencies (installed in container)
+vendor/
+
+# Symfony cache and logs
+var/cache/
+var/log/
+var/sessions/
+
+# Environment files
+.env.local
+.env.*.local
+
+# Test artifacts
+.phpunit.result.cache
+phpunit.xml
+.phpunit.cache/
+
+# Build artifacts
+*.log
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Security
+*.pem
+*.key
+*.crt

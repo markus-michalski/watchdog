@@ -1,0 +1,55 @@
+services:
+  app:
+    build:
+      context: .
+      target: dev
+    ports:
+      - "8087:80"
+    volumes:
+      - .:/app
+      - watchdog_data:/app/var
+    environment:
+      APP_ENV: dev
+      SERVER_NAME: ":80"
+      TZ: Europe/Berlin
+    restart: unless-stopped
+
+  worker:
+    build:
+      context: .
+      target: dev
+    command: php bin/console messenger:consume async notifications --time-limit=3600 --memory-limit=128M -vv
+    volumes:
+      - .:/app
+      - watchdog_data:/app/var
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    environment:
+      APP_ENV: dev
+      TZ: Europe/Berlin
+    restart: unless-stopped
+    depends_on:
+      - app
+
+  scheduler:
+    build:
+      context: .
+      target: dev
+    command: php bin/console scheduler:run checks --no-interaction
+    volumes:
+      - .:/app
+      - watchdog_data:/app/var
+    environment:
+      APP_ENV: dev
+      TZ: Europe/Berlin
+    restart: unless-stopped
+    depends_on:
+      - app
+
+  mailpit:
+    image: axllent/mailpit:latest
+    ports:
+      - "8025:8025"
+    restart: unless-stopped
+
+volumes:
+  watchdog_data:

@@ -1,0 +1,45 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ title }} — Watchdog{% endblock %}
+
+{% block body %}
+<div class="max-w-lg">
+    <div class="flex items-center gap-3 mb-6">
+        <a href="{{ path('site_show', {id: site.id}) }}" class="text-gray-500 hover:text-gray-700 text-sm">← {{ site.name }}</a>
+        <h1 class="text-2xl font-bold text-gray-800">{{ title }}</h1>
+    </div>
+
+    <div class="bg-white rounded-lg shadow p-6">
+        {{ form_start(form, {attr: {class: 'space-y-4'}}) }}
+
+        <div>
+            {{ form_label(form.type, null, {label_attr: {class: 'block text-sm font-medium text-gray-700 mb-1'}}) }}
+            {{ form_widget(form.type, {attr: {class: 'w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500'}}) }}
+            {{ form_errors(form.type) }}
+        </div>
+
+        <div>
+            {{ form_label(form.configJson, null, {label_attr: {class: 'block text-sm font-medium text-gray-700 mb-1'}}) }}
+            <p class="text-xs text-gray-400 mb-1">HTTP check: leave empty for defaults. Docker check: <code>{"container_name": "my-app"}</code></p>
+            {{ form_widget(form.configJson, {attr: {class: 'w-full border border-gray-300 rounded px-3 py-2 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-blue-500'}}) }}
+            {{ form_errors(form.configJson) }}
+        </div>
+
+        <div class="flex items-center gap-2">
+            {{ form_widget(form.isActive) }}
+            {{ form_label(form.isActive, null, {label_attr: {class: 'text-sm text-gray-700'}}) }}
+        </div>
+
+        <div class="flex gap-3 pt-2">
+            <button type="submit" class="bg-blue-600 text-white px-5 py-2 rounded hover:bg-blue-700 text-sm font-medium">
+                Save
+            </button>
+            <a href="{{ path('site_show', {id: site.id}) }}" class="text-gray-600 hover:text-gray-800 px-3 py-2 text-sm">
+                Cancel
+            </a>
+        </div>
+
+        {{ form_end(form) }}
+    </div>
+</div>
+{% endblock %}

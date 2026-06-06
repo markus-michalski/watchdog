@@ -1,0 +1,56 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Check;
+
+use Symfony\Component\DependencyInjection\Attribute\AutowireIterator;
+
+class CheckRegistry
+{
+    /** @var array<string, CheckInterface> */
+    private array $checks = [];
+
+    /**
+     * @param iterable<CheckInterface> $checks
+     */
+    public function __construct(
+        #[AutowireIterator('watchdog.check')]
+        iterable $checks,
+    ) {
+        foreach ($checks as $check) {
+            $this->checks[$check->getType()] = $check;
+        }
+    }
+
+    public function get(string $type): CheckInterface
+    {
+        if (!isset($this->checks[$type])) {
+            throw new \InvalidArgumentException(sprintf('No check registered for type "%s". Available: %s', $type, implode(', ', array_keys($this->checks))));
+        }
+
+        return $this->checks[$type];
+    }
+
+    public function has(string $type): bool
+    {
+        return isset($this->checks[$type]);
+    }
+
+    /** @return array<string, CheckInterface> */
+    public function all(): array
+    {
+        return $this->checks;
+    }
+
+    /** @return array<string, string> type => label */
+    public function getTypeChoices(): array
+    {
+        $choices = [];
+        foreach ($this->checks as $type => $check) {
+            $choices[$check->getLabel()] = $type;
+        }
+
+        return $choices;
+    }
+}
