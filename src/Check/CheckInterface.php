@@ -20,4 +20,13 @@ interface CheckInterface
 
     /** Human-readable label for the UI */
     public function getLabel(): string;
+
+    /**
+     * Declare config fields for the UI form.
+     * Each entry: ['name'=>string, 'label'=>string, 'type'=>'text'|'number', 'required'=>bool, 'default'=>mixed, 'placeholder'=>string, 'help'=>string]
+     * Return [] if the check needs no configuration (e.g. uses site URL directly).
+     *
+     * @return array<int, array{name: string, label: string, type: string, required: bool, default: mixed, placeholder: string, help: string}>
+     */
+    public function getConfigSchema(): array;
 }

@@ -53,4 +53,15 @@ class CheckRegistry
 
         return $choices;
     }
+
+    /** @return array<string, array> type => config schema */
+    public function getAllSchemas(): array
+    {
+        $schemas = [];
+        foreach ($this->checks as $type => $check) {
+            $schemas[$type] = $check->getConfigSchema();
+        }
+
+        return $schemas;
+    }
 }

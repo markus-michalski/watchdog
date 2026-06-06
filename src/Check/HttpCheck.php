@@ -35,6 +35,30 @@ final class HttpCheck implements CheckInterface
         ];
     }
 
+    public function getConfigSchema(): array
+    {
+        return [
+            [
+                'name' => 'timeout',
+                'label' => 'Timeout (seconds)',
+                'type' => 'number',
+                'required' => false,
+                'default' => 10,
+                'placeholder' => '10',
+                'help' => '',
+            ],
+            [
+                'name' => 'expected_status_codes',
+                'label' => 'Expected status codes',
+                'type' => 'text',
+                'required' => false,
+                'default' => '200,201,301,302',
+                'placeholder' => '200,201,301,302',
+                'help' => 'Comma-separated. Leave empty to use defaults.',
+            ],
+        ];
+    }
+
     public function run(SiteCheck $check): CheckResult
     {
         $site = $check->getSite();

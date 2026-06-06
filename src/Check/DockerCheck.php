@@ -31,6 +31,21 @@ final class DockerCheck implements CheckInterface
         ];
     }
 
+    public function getConfigSchema(): array
+    {
+        return [
+            [
+                'name' => 'container_name',
+                'label' => 'Container name',
+                'type' => 'text',
+                'required' => true,
+                'default' => '',
+                'placeholder' => 'my-app',
+                'help' => 'Exact name of the Docker container (docker ps --format "{{.Names}}").',
+            ],
+        ];
+    }
+
     public function run(SiteCheck $check): CheckResult
     {
         $result = new CheckResult();

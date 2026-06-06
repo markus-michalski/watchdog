@@ -34,16 +34,7 @@ class SiteCheckController extends AbstractController
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
-            $configJson = $form->get('configJson')->getData();
-            if (!empty($configJson)) {
-                $config = json_decode($configJson, true) ?? [];
-            } else {
-                $config = $registry->has($check->getType())
-                    ? $registry->get($check->getType())->getDefaultConfig()
-                    : [];
-            }
-            $check->setConfig($config);
-
+            $check->setConfig($this->buildConfig($request, $check->getType(), $registry));
             $em->persist($check);
             $em->flush();
             $this->addFlash('success', sprintf('Check "%s" added.', $check->getLabel()));
@@ -56,6 +47,7 @@ class SiteCheckController extends AbstractController
             'site' => $site,
             'check' => $check,
             'title' => 'Add Check',
+            'schemas' => $registry->getAllSchemas(),
         ]);
     }
 
@@ -65,16 +57,13 @@ class SiteCheckController extends AbstractController
         #[MapEntity(id: 'siteId')] Site $site,
         #[MapEntity(id: 'checkId')] SiteCheck $check,
         EntityManagerInterface $em,
+        CheckRegistry $registry,
     ): Response {
         $form = $this->createForm(SiteCheckType::class, $check);
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
-            $configJson = $form->get('configJson')->getData();
-            if (!empty($configJson)) {
-                $check->setConfig(json_decode($configJson, true) ?? []);
-            }
-
+            $check->setConfig($this->buildConfig($request, $check->getType(), $registry));
             $em->flush();
             $this->addFlash('success', 'Check updated.');
 
@@ -86,7 +75,39 @@ class SiteCheckController extends AbstractController
             'site' => $site,
             'check' => $check,
             'title' => 'Edit Check',
+            'schemas' => $registry->getAllSchemas(),
         ]);
+    }
+
+    private function buildConfig(Request $request, string $type, CheckRegistry $registry): array
+    {
+        if (!$registry->has($type)) {
+            return [];
+        }
+
+        $schema = $registry->get($type)->getConfigSchema();
+        $config = [];
+
+        foreach ($schema as $field) {
+            $raw = $request->request->get('check_config_' . $field['name']);
+
+            if ($raw === null || $raw === '') {
+                continue;
+            }
+
+            if ($field['name'] === 'expected_status_codes') {
+                $config[$field['name']] = array_map(
+                    'intval',
+                    array_filter(array_map('trim', explode(',', $raw)))
+                );
+            } elseif ($field['type'] === 'number') {
+                $config[$field['name']] = (int) $raw;
+            } else {
+                $config[$field['name']] = $raw;
+            }
+        }
+
+        return $config ?: $registry->get($type)->getDefaultConfig();
     }
 
     #[Route('/{checkId}/delete', name: 'delete', methods: ['POST'])]

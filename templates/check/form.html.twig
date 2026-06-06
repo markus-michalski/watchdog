@@ -14,15 +14,8 @@
 
         <div>
             {{ form_label(form.type, null, {label_attr: {class: 'block text-sm font-medium text-gray-700 mb-1'}}) }}
-            {{ form_widget(form.type, {attr: {class: 'w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500'}}) }}
+            {{ form_widget(form.type, {attr: {class: 'w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500', id: 'check_type'}}) }}
             {{ form_errors(form.type) }}
-        </div>
-
-        <div>
-            {{ form_label(form.configJson, null, {label_attr: {class: 'block text-sm font-medium text-gray-700 mb-1'}}) }}
-            <p class="text-xs text-gray-400 mb-1">HTTP check: leave empty for defaults. Docker check: <code>{"container_name": "my-app"}</code></p>
-            {{ form_widget(form.configJson, {attr: {class: 'w-full border border-gray-300 rounded px-3 py-2 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-blue-500'}}) }}
-            {{ form_errors(form.configJson) }}
         </div>
 
         <div>
@@ -32,6 +25,44 @@
                 <span class="text-sm text-gray-500">minutes (e.g. 5, 60, 1440)</span>
             </div>
             {{ form_errors(form.checkIntervalMinutes) }}
+        </div>
+
+        {# Dynamic config fields — rendered per check type #}
+        <div id="config-fields">
+            {% for type, fields in schemas %}
+                <div class="config-section space-y-3" data-type="{{ type }}" style="display: none;">
+                    {% if fields is empty %}
+                        <p class="text-sm text-gray-400 italic">
+                            No additional configuration needed — this check uses the site URL directly.
+                        </p>
+                    {% else %}
+                        {% for field in fields %}
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">
+                                    {{ field.label }}
+                                    {% if field.required %}<span class="text-red-500">*</span>{% endif %}
+                                </label>
+                                <input
+                                    type="{{ field.type }}"
+                                    name="check_config_{{ field.name }}"
+                                    id="check_config_{{ type }}_{{ field.name }}"
+                                    class="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    placeholder="{{ field.placeholder }}"
+                                    {% if field.required %}required{% endif %}
+                                    value="{{ check.config[field.name] is defined
+                                        ? (field.name == 'expected_status_codes' and check.config[field.name] is iterable
+                                            ? check.config[field.name]|join(',')
+                                            : check.config[field.name])
+                                        : field.default }}"
+                                >
+                                {% if field.help %}
+                                    <p class="text-xs text-gray-400 mt-0.5">{{ field.help }}</p>
+                                {% endif %}
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+                </div>
+            {% endfor %}
         </div>
 
         <div class="flex items-center gap-2">
@@ -51,4 +82,16 @@
         {{ form_end(form) }}
     </div>
 </div>
+
+<script>
+function showConfigForType(type) {
+    document.querySelectorAll('.config-section').forEach(el => {
+        el.style.display = el.dataset.type === type ? '' : 'none';
+    });
+}
+
+const typeSelect = document.getElementById('check_type');
+showConfigForType(typeSelect.value);
+typeSelect.addEventListener('change', () => showConfigForType(typeSelect.value));
+</script>
 {% endblock %}
