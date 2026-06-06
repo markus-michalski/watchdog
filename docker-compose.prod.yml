@@ -7,12 +7,14 @@ services:
     env_file: .env.local
     environment:
       APP_ENV: prod
+      APP_DEBUG: '0'
       SERVER_NAME: ":80"
       TZ: Europe/Berlin
     ports:
       - "127.0.0.1:8086:80"
     volumes:
       - watchdog_data:/app/var
+      - /app/var/cache
     restart: unless-stopped
 
   worker:
@@ -24,12 +26,14 @@ services:
     env_file: .env.local
     environment:
       APP_ENV: prod
+      APP_DEBUG: '0'
       TZ: Europe/Berlin
     group_add:
       - "${DOCKER_GID:-995}"
     volumes:
       - watchdog_data:/app/var
       - /var/run/docker.sock:/var/run/docker.sock:ro
+      - /app/var/cache
     restart: unless-stopped
     depends_on:
       - app
@@ -43,9 +47,11 @@ services:
     env_file: .env.local
     environment:
       APP_ENV: prod
+      APP_DEBUG: '0'
       TZ: Europe/Berlin
     volumes:
       - watchdog_data:/app/var
+      - /app/var/cache
     restart: unless-stopped
     depends_on:
       - app

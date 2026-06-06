@@ -20,10 +20,8 @@ help: ## Show this help
 ## -- Stage containers ---------------------------------------------------------
 
 .PHONY: stage-up
-stage-up: ## Start stage containers in background
+stage-up: ## Start stage containers in background (always run stage-build first)
 	$(DC) up -d
-	$(DC) exec app php bin/console cache:clear --no-warmup
-	$(DC) exec app php bin/console cache:warmup
 	$(DC) exec app php bin/console doctrine:migrations:migrate --no-interaction
 	@echo "App     → http://localhost:8087"
 	@echo "Mailpit → http://localhost:8128"
@@ -66,7 +64,7 @@ local-shell: ## Open shell in local app container
 ## -- Live containers ----------------------------------------------------------
 
 .PHONY: live-up
-live-up: ## Start live containers
+live-up: ## Start live containers (always run live-build first on first deploy)
 	$(DC_LIVE) up -d
 	$(DC_LIVE) exec app php bin/console doctrine:migrations:migrate --no-interaction
 	@echo "Live app → http://127.0.0.1:8086"
@@ -79,8 +77,6 @@ live-down: ## Stop live containers
 live-update: ## Rebuild + redeploy live without downtime, then migrate
 	$(DC_LIVE) build app worker scheduler
 	$(DC_LIVE) up -d --no-deps app worker scheduler
-	$(DC_LIVE) exec app php bin/console cache:clear --no-warmup
-	$(DC_LIVE) exec app php bin/console cache:warmup
 	$(DC_LIVE) exec app php bin/console doctrine:migrations:migrate --no-interaction
 	@echo "Live updated."
 
