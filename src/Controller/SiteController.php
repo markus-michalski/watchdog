@@ -6,6 +6,7 @@ namespace App\Controller;
 
 use App\Entity\Site;
 use App\Form\SiteType;
+use App\Repository\CheckResultRepository;
 use App\Repository\SiteRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -47,9 +48,20 @@ class SiteController extends AbstractController
     }
 
     #[Route('/{id}', name: 'show')]
-    public function show(Site $site): Response
+    public function show(Site $site, CheckResultRepository $checkResultRepository): Response
     {
-        return $this->render('site/show.html.twig', ['site' => $site]);
+        $latestResults = [];
+        foreach ($site->getChecks() as $check) {
+            $result = $checkResultRepository->findLatestForCheck($check);
+            if ($result !== null) {
+                $latestResults[$check->getId()] = $result;
+            }
+        }
+
+        return $this->render('site/show.html.twig', [
+            'site' => $site,
+            'latestResults' => $latestResults,
+        ]);
     }
 
     #[Route('/{id}/edit', name: 'edit')]
