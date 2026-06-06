@@ -2,12 +2,14 @@
 #
 # Usage:
 #   make help          — list all targets
-#   make stage-up      — start stage/dev containers
+#   make stage-up      — start stage containers (server, compose.stage.yml)
 #   make live-up       — start live containers
+#   make local-up      — start local dev containers (docker-compose.yml, with code mount)
 
 SHELL := /bin/bash
-DC      := docker compose
-DC_LIVE := docker compose -f docker-compose.prod.yml
+DC       := docker compose -f compose.stage.yml
+DC_LIVE  := docker compose -f docker-compose.prod.yml
+DC_LOCAL := docker compose
 
 .DEFAULT_GOAL := help
 
@@ -37,11 +39,27 @@ stage-logs: ## Tail all stage container logs
 
 .PHONY: stage-shell
 stage-shell: ## Open shell in stage app container
-	$(DC) exec app sh
+	$(DC) exec watchdog-stage-app sh
 
 .PHONY: stage-build
 stage-build: ## Rebuild stage image (no cache)
 	$(DC) build --no-cache app
+
+## -- Local dev (docker-compose.yml, code mount) --------------------------------
+
+.PHONY: local-up
+local-up: ## Start local dev containers (code mount, Mailpit)
+	$(DC_LOCAL) up -d
+	@echo "App     → http://localhost:8087"
+	@echo "Mailpit → http://localhost:8128"
+
+.PHONY: local-down
+local-down: ## Stop local dev containers
+	$(DC_LOCAL) down
+
+.PHONY: local-shell
+local-shell: ## Open shell in local app container
+	$(DC_LOCAL) exec app sh
 
 ## -- Live containers ----------------------------------------------------------
 
@@ -72,7 +90,7 @@ live-logs: ## Tail live container logs
 
 .PHONY: live-shell
 live-shell: ## Open shell in live app container
-	$(DC_LIVE) exec app sh
+	$(DC_LIVE) exec watchdog-live-app sh
 
 ## -- Symfony ------------------------------------------------------------------
 

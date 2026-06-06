@@ -3,30 +3,30 @@ services:
     build:
       context: .
       target: prod
-    container_name: watchdog-live-app
+    container_name: watchdog-stage-app
     env_file: .env.local
     environment:
       APP_ENV: prod
       SERVER_NAME: ":80"
       TZ: Europe/Berlin
     ports:
-      - "127.0.0.1:8086:80"
+      - "127.0.0.1:8087:80"
     volumes:
-      - watchdog_data:/app/var
+      - watchdog_stage_data:/app/var
     restart: unless-stopped
 
   worker:
     build:
       context: .
       target: prod
-    container_name: watchdog-live-worker
-    command: php bin/console messenger:consume async notifications --time-limit=3600 --memory-limit=128M
+    container_name: watchdog-stage-worker
+    command: php bin/console messenger:consume async notifications --time-limit=3600 --memory-limit=128M -vv
     env_file: .env.local
     environment:
       APP_ENV: prod
       TZ: Europe/Berlin
     volumes:
-      - watchdog_data:/app/var
+      - watchdog_stage_data:/app/var
       - /var/run/docker.sock:/var/run/docker.sock:ro
     restart: unless-stopped
     depends_on:
@@ -36,17 +36,31 @@ services:
     build:
       context: .
       target: prod
-    container_name: watchdog-live-scheduler
+    container_name: watchdog-stage-scheduler
     command: php bin/console scheduler:run checks --no-interaction
     env_file: .env.local
     environment:
       APP_ENV: prod
       TZ: Europe/Berlin
     volumes:
-      - watchdog_data:/app/var
+      - watchdog_stage_data:/app/var
     restart: unless-stopped
     depends_on:
       - app
 
+  mailpit:
+    image: axllent/mailpit:latest
+    container_name: watchdog-stage-mailpit
+    environment:
+      MP_SMTP_AUTH_ACCEPT_ANY: 1
+      MP_SMTP_AUTH_ALLOW_INSECURE: 1
+    ports:
+      - "127.0.0.1:8128:8025"
+    restart: unless-stopped
+
 volumes:
-  watchdog_data:
+  watchdog_stage_data:
+
+networks:
+  default:
+    name: watchdog-stage
