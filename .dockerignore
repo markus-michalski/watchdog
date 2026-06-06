@@ -26,6 +26,10 @@ vendor/
 var/cache/
 var/log/
 var/sessions/
+var/tailwind/
+
+# Compiled assets (regenerated in Docker build)
+public/assets/
 
 # Environment files
 .env.local

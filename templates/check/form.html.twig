@@ -30,7 +30,7 @@
         {# Dynamic config fields — rendered per check type #}
         <div id="config-fields">
             {% for type, fields in schemas %}
-                <div class="config-section space-y-3" data-type="{{ type }}" style="display: none;">
+                <div class="config-section space-y-3" data-type="{{ type }}" style="display: none;" aria-hidden="true">
                     {% if fields is empty %}
                         <p class="text-sm text-gray-400 italic">
                             No additional configuration needed — this check uses the site URL directly.
@@ -48,7 +48,7 @@
                                     id="check_config_{{ type }}_{{ field.name }}"
                                     class="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                                     placeholder="{{ field.placeholder }}"
-                                    {% if field.required %}required{% endif %}
+                                    {% if field.required %}data-required="1"{% endif %}
                                     value="{{ check.config[field.name] is defined
                                         ? (field.name == 'expected_status_codes' and check.config[field.name] is iterable
                                             ? check.config[field.name]|join(',')
@@ -86,7 +86,12 @@
 <script>
 function showConfigForType(type) {
     document.querySelectorAll('.config-section').forEach(el => {
-        el.style.display = el.dataset.type === type ? '' : 'none';
+        const visible = el.dataset.type === type;
+        el.style.display = visible ? '' : 'none';
+        el.setAttribute('aria-hidden', visible ? 'false' : 'true');
+        el.querySelectorAll('input[data-required]').forEach(input => {
+            input.required = visible;
+        });
     });
 }
 

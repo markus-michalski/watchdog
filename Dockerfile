@@ -32,10 +32,13 @@ RUN composer install --no-dev --no-scripts --no-autoloader --no-interaction
 
 COPY . .
 RUN composer dump-autoload --optimize --no-interaction \
-    && composer run-script post-install-cmd --no-interaction
+    && composer run-script post-install-cmd --no-interaction \
+    && mkdir -p var/tailwind \
+    && php bin/console tailwind:build --minify \
+    && php bin/console asset-map:compile
 
 RUN mkdir -p var/cache var/log var/data \
-    && chown -R www-data:www-data var/
+    && chown -R www-data:www-data var/ public/assets/
 
 # Development stage
 FROM base AS dev
