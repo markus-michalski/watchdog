@@ -27,4 +27,31 @@ enum CheckStatus: string
             self::Unknown => 'text-yellow-600 bg-yellow-50',
         };
     }
+
+    public function cardBorderClass(): string
+    {
+        return match ($this) {
+            self::Ok => 'border-l-4 border-green-400',
+            self::Fail => 'border-l-4 border-red-500',
+            self::Unknown => 'border-l-4 border-yellow-400',
+        };
+    }
+
+    public function dotClass(): string
+    {
+        return match ($this) {
+            self::Ok => 'bg-green-500',
+            self::Fail => 'bg-red-500',
+            self::Unknown => 'bg-yellow-400',
+        };
+    }
+
+    public function priority(): int
+    {
+        return match ($this) {
+            self::Fail => 2,
+            self::Unknown => 1,
+            self::Ok => 0,
+        };
+    }
 }

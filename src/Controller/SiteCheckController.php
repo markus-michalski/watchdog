@@ -7,14 +7,15 @@ namespace App\Controller;
 use App\Check\CheckRegistry;
 use App\Entity\Site;
 use App\Entity\SiteCheck;
-use Symfony\Bridge\Doctrine\Attribute\MapEntity;
 use App\Form\SiteCheckType;
+use App\Message\RunSiteChecksMessage;
 use App\Repository\CheckResultRepository;
-use App\Service\CheckRunner;
+use Symfony\Bridge\Doctrine\Attribute\MapEntity;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\Messenger\MessageBusInterface;
 use Symfony\Component\Routing\Attribute\Route;
 
 #[Route('/sites/{siteId}/checks', name: 'check_')]
@@ -127,12 +128,11 @@ class SiteCheckController extends AbstractController
         Request $request,
         #[MapEntity(id: 'siteId')] Site $site,
         #[MapEntity(id: 'checkId')] SiteCheck $check,
-        CheckRunner $checkRunner,
-        CheckResultRepository $checkResultRepository,
+        MessageBusInterface $bus,
     ): Response {
         if ($this->isCsrfTokenValid('run_check' . $check->getId(), $request->request->get('_token'))) {
-            $checkRunner->run($check);
-            $this->addFlash('success', sprintf('Check "%s" executed.', $check->getLabel()));
+            $bus->dispatch(new RunSiteChecksMessage($check->getId()));
+            $this->addFlash('success', sprintf('Check "%s" queued — result appears in a few seconds.', $check->getLabel()));
         }
 
         return $this->redirectToRoute('site_show', ['id' => $site->getId()]);
