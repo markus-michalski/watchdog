@@ -2,6 +2,7 @@
 # Symfony Flex auto-generated Docker stubs — we use our own docker-compose.yml
 /compose.yaml
 /compose.override.yaml
+/.git-workflow/
 
 ###> symfony/framework-bundle ###
 /.env.local
