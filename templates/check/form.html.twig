@@ -90,8 +90,10 @@ function showConfigForType(type) {
     });
 }
 
-const typeSelect = document.getElementById('check_type');
-showConfigForType(typeSelect.value);
-typeSelect.addEventListener('change', () => showConfigForType(typeSelect.value));
+const typeSelect = document.getElementById('{{ form.type.vars.id }}');
+if (typeSelect) {
+    showConfigForType(typeSelect.value);
+    typeSelect.addEventListener('change', () => showConfigForType(typeSelect.value));
+}
 </script>
 {% endblock %}
