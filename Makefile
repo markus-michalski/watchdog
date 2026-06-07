@@ -4,12 +4,12 @@
 #   make help          — list all targets
 #   make stage-update  — rebuild image + restart stage (the normal deploy command)
 #   make live-update   — rebuild image + restart live without downtime
-#   make local-up      — start local dev containers (docker-compose.yml, with code mount)
+#   make local-up      — start local dev containers (compose.yml, with code mount)
 
 SHELL := /bin/bash
 DC       := docker compose -f compose.stage.yml
-DC_LIVE  := docker compose -f docker-compose.prod.yml
-DC_LOCAL := docker compose
+DC_LIVE  := docker compose -f compose.live.yml
+DC_LOCAL := docker compose -f compose.yml
 
 .DEFAULT_GOAL := help
 
@@ -21,13 +21,11 @@ help: ## Show this help
 
 .PHONY: stage-update
 stage-update: ## Rebuild image + restart stage (normal deploy: git pull && make stage-update)
-	$(DC) build app worker scheduler
+	$(DC) build app
 	$(DC) up -d --no-deps app worker scheduler
-	@sleep 3
+	$(DC) exec app sh -c 'i=0; until php bin/console about > /dev/null 2>&1; do sleep 1; i=$$((i+1)); [ $$i -ge 60 ] && echo "App did not start" && exit 1; done'
 	$(DC) exec app php bin/console cache:clear --no-warmup
 	$(DC) exec app php bin/console cache:warmup
-	$(DC) exec app php bin/console tailwind:build --minify
-	$(DC) exec app php bin/console asset-map:compile
 	$(DC) exec app php bin/console doctrine:migrations:migrate --no-interaction
 	@echo "Stage updated → http://localhost:8087"
 
@@ -59,9 +57,9 @@ stage-shell: ## Open shell in stage app container
 
 .PHONY: stage-build
 stage-build: ## Rebuild stage image (no cache) — use stage-update for normal deploys
-	$(DC) build --no-cache app worker scheduler
+	$(DC) build --no-cache app
 
-## -- Local dev (docker-compose.yml, code mount) --------------------------------
+## -- Local dev (compose.yml, code mount) --------------------------------
 
 .PHONY: local-up
 local-up: ## Start local dev containers (code mount, Mailpit)
@@ -91,9 +89,9 @@ live-down: ## Stop live containers
 
 .PHONY: live-update
 live-update: ## Rebuild + redeploy live without downtime, then migrate
-	$(DC_LIVE) build app worker scheduler
+	$(DC_LIVE) build app
 	$(DC_LIVE) up -d --no-deps app worker scheduler
-	@sleep 3
+	$(DC_LIVE) exec app sh -c 'until php bin/console about > /dev/null 2>&1; do sleep 1; done'
 	$(DC_LIVE) exec app php bin/console cache:clear --no-warmup
 	$(DC_LIVE) exec app php bin/console cache:warmup
 	$(DC_LIVE) exec app php bin/console doctrine:migrations:migrate --no-interaction
@@ -101,7 +99,7 @@ live-update: ## Rebuild + redeploy live without downtime, then migrate
 
 .PHONY: live-build
 live-build: ## Rebuild live image (no cache) — use live-update for normal deploys
-	$(DC_LIVE) build --no-cache app worker scheduler
+	$(DC_LIVE) build --no-cache app
 
 .PHONY: live-logs
 live-logs: ## Tail live container logs

@@ -10,7 +10,7 @@
 *.swo
 
 # Docker
-docker-compose*.yml
+compose*.yml
 compose*.yaml
 Dockerfile*
 

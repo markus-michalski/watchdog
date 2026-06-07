@@ -2,7 +2,8 @@ services:
   app:
     build:
       context: .
-      target: dev
+      target: stage
+    image: watchdog-stage
     container_name: watchdog-stage-app
     env_file: .env.stage
     environment:
@@ -17,9 +18,8 @@ services:
     restart: unless-stopped
 
   worker:
-    build:
-      context: .
-      target: dev
+    image: watchdog-stage
+    pull_policy: never
     container_name: watchdog-stage-worker
     command: php bin/console messenger:consume async notifications --time-limit=3600 --memory-limit=128M -vv
     env_file: .env.stage
@@ -36,9 +36,8 @@ services:
       - app
 
   scheduler:
-    build:
-      context: .
-      target: dev
+    image: watchdog-stage
+    pull_policy: never
     container_name: watchdog-stage-scheduler
     command: php bin/console scheduler:run checks --no-interaction
     env_file: .env.stage

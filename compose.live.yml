@@ -3,6 +3,7 @@ services:
     build:
       context: .
       target: prod
+    image: watchdog-live
     container_name: watchdog-live-app
     env_file: .env.live
     environment:
@@ -17,9 +18,8 @@ services:
     restart: unless-stopped
 
   worker:
-    build:
-      context: .
-      target: prod
+    image: watchdog-live
+    pull_policy: never
     container_name: watchdog-live-worker
     command: php bin/console messenger:consume async notifications --time-limit=3600 --memory-limit=128M
     env_file: .env.live
@@ -36,9 +36,8 @@ services:
       - app
 
   scheduler:
-    build:
-      context: .
-      target: prod
+    image: watchdog-live
+    pull_policy: never
     container_name: watchdog-live-scheduler
     command: php bin/console scheduler:run checks --no-interaction
     env_file: .env.live

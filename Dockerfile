@@ -40,7 +40,25 @@ RUN composer dump-autoload --optimize --no-interaction \
 RUN mkdir -p var/cache var/log var/data \
     && chown -R www-data:www-data var/ public/assets/
 
-# Development stage
+# Stage: assets compiled like prod, dev-deps kept for profiler/debug
+FROM base AS stage
+
+ENV APP_ENV=prod
+
+COPY composer.json composer.lock ./
+RUN composer install --no-scripts --no-autoloader --no-interaction
+
+COPY . .
+RUN composer dump-autoload --no-interaction \
+    && composer run-script post-install-cmd --no-interaction \
+    && mkdir -p var/tailwind \
+    && php bin/console tailwind:build --minify \
+    && php bin/console asset-map:compile
+
+RUN mkdir -p var/cache var/log var/data \
+    && chown -R www-data:www-data var/ public/assets/
+
+# Development stage (local, code mounted via volume)
 FROM base AS dev
 
 ENV APP_ENV=dev
