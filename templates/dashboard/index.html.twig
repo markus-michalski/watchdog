@@ -102,21 +102,21 @@
                                         {{ check.label }}
                                     </a>
 
-                                    {# Status badge + time #}
+                                    {# Status badge + time — fixed widths for column alignment #}
                                     {% if result %}
-                                        <span class="px-2.5 py-0.5 rounded text-xs font-bold {{ result.status.cssClass() }} shrink-0">
+                                        <span class="w-16 text-center rounded text-xs font-bold py-0.5 {{ result.status.cssClass() }} shrink-0">
                                             {{ result.status.label() }}
                                         </span>
                                         <span class="text-xs text-gray-400 w-10 text-right shrink-0">
                                             {{ result.checkedAt|date('H:i') }}
                                         </span>
-                                        {% if result.responseTimeMs %}
-                                            <span class="text-xs text-gray-400 w-14 text-right shrink-0 hidden sm:block">
-                                                {{ result.responseTimeMs }}ms
-                                            </span>
-                                        {% endif %}
+                                        <span class="text-xs text-gray-400 w-14 text-right shrink-0 hidden sm:block">
+                                            {{ result.responseTimeMs ? result.responseTimeMs ~ 'ms' : '' }}
+                                        </span>
                                     {% else %}
-                                        <span class="px-2.5 py-0.5 rounded text-xs font-bold text-gray-400 bg-gray-100 shrink-0">PENDING</span>
+                                        <span class="w-16 text-center rounded text-xs font-bold py-0.5 text-gray-400 bg-gray-100 shrink-0">PENDING</span>
+                                        <span class="w-10 hidden sm:block"></span>
+                                        <span class="w-14 hidden sm:block"></span>
                                     {% endif %}
 
                                     {% if not check.isActive %}
