@@ -29,8 +29,8 @@ final class AlertService
         $state->transitionTo($newStatus);
         $this->em->flush();
 
-        // Notify on transition ok→fail (first failure) or fail→ok (recovery)
-        if ($previousStatus !== CheckStatus::Fail && $newStatus === CheckStatus::Fail) {
+        // Notify on transition to problematic (first time) or recovery to ok
+        if (!$previousStatus->isProblematic() && $newStatus->isProblematic()) {
             $this->bus->dispatch(new MailNotificationMessage(
                 siteCheckId: $check->getId(),
                 checkResultId: $result->getId(),
@@ -40,7 +40,7 @@ final class AlertService
             return;
         }
 
-        if ($previousStatus === CheckStatus::Fail && $newStatus === CheckStatus::Ok) {
+        if ($previousStatus->isProblematic() && $newStatus === CheckStatus::Ok) {
             $this->bus->dispatch(new MailNotificationMessage(
                 siteCheckId: $check->getId(),
                 checkResultId: $result->getId(),

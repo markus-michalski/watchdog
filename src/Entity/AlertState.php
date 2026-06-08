@@ -119,7 +119,7 @@ class AlertState
             $this->failCount = 0;
         }
 
-        if ($newStatus === CheckStatus::Fail) {
+        if ($newStatus->isProblematic()) {
             $this->incrementFailCount();
         }
     }

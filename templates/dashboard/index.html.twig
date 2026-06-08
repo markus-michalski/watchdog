@@ -27,6 +27,10 @@
                 {% set borderClass = siteStatus.cardBorderClass() %}
                 {% set badgeClass = 'bg-green-100 text-green-700' %}
                 {% set badgeLabel = 'OK' %}
+            {% elseif siteStatus.value == 'warn' %}
+                {% set borderClass = siteStatus.cardBorderClass() %}
+                {% set badgeClass = 'bg-orange-100 text-orange-700' %}
+                {% set badgeLabel = 'WARN' %}
             {% elseif siteStatus.value == 'fail' %}
                 {% set borderClass = siteStatus.cardBorderClass() %}
                 {% set badgeClass = 'bg-red-100 text-red-700' %}

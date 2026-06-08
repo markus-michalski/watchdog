@@ -92,6 +92,9 @@ final class DockerCheck implements CheckInterface
             } elseif ($healthStatus === 'starting') {
                 $result->setStatus(CheckStatus::Unknown);
                 $result->setMessage(sprintf('Container "%s" health check is starting', $containerName));
+            } elseif ($healthStatus === 'unhealthy') {
+                $result->setStatus(CheckStatus::Warn);
+                $result->setMessage(sprintf('Container "%s" health: %s', $containerName, $healthStatus));
             } else {
                 $result->setStatus(CheckStatus::Fail);
                 $result->setMessage(sprintf('Container "%s" health: %s', $containerName, $healthStatus));
