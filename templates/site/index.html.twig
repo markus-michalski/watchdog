@@ -3,7 +3,7 @@
 {% block title %}Sites — Watchdog{% endblock %}
 
 {% block body %}
-<div class="flex items-center justify-between mb-6">
+<div class="flex items-center justify-between mb-4">
     <h1 class="text-2xl font-bold text-gray-800">Sites</h1>
     <a href="{{ path('site_new') }}" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 text-sm">
         + Add Site
@@ -15,6 +15,17 @@
         No sites configured yet.
     </div>
 {% else %}
+    {# Filter bar #}
+    <div class="flex flex-wrap items-center gap-3 mb-4">
+        <input type="search" id="site-search" placeholder="Filter by name…"
+               class="border border-gray-300 rounded px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300 w-52">
+        <div class="flex gap-1.5">
+            <button data-active-filter="all"      class="site-filter-btn active px-3 py-1.5 rounded text-xs font-medium border border-gray-300 bg-gray-100 text-gray-700">All</button>
+            <button data-active-filter="1"        class="site-filter-btn px-3 py-1.5 rounded text-xs font-medium border border-green-200 text-green-700 hover:bg-green-50">Active</button>
+            <button data-active-filter="0"        class="site-filter-btn px-3 py-1.5 rounded text-xs font-medium border border-gray-200 text-gray-500 hover:bg-gray-50">Inactive</button>
+        </div>
+    </div>
+
     <div class="bg-white rounded-lg shadow overflow-hidden">
         <table class="w-full text-sm">
             <thead class="bg-gray-50 text-gray-600 uppercase text-xs">
@@ -26,9 +37,11 @@
                     <th class="px-4 py-3 text-right">Actions</th>
                 </tr>
             </thead>
-            <tbody class="divide-y divide-gray-100">
+            <tbody class="divide-y divide-gray-100" id="sites-tbody">
                 {% for site in sites %}
-                <tr class="hover:bg-gray-50">
+                <tr class="hover:bg-gray-50"
+                    data-name="{{ site.name|lower }}"
+                    data-active="{{ site.isActive ? '1' : '0' }}">
                     <td class="px-4 py-3 font-medium">
                         <a href="{{ path('site_show', {id: site.id}) }}" class="text-blue-600 hover:underline">
                             {{ site.name }}
@@ -55,8 +68,47 @@
                     </td>
                 </tr>
                 {% endfor %}
+                <tr id="sites-empty-row" class="hidden">
+                    <td colspan="5" class="px-4 py-6 text-center text-gray-400 text-sm">No sites match your filter.</td>
+                </tr>
             </tbody>
         </table>
     </div>
 {% endif %}
+
+<script>
+(function () {
+    const rows = document.querySelectorAll('#sites-tbody tr[data-name]');
+    const search = document.getElementById('site-search');
+    const btns = document.querySelectorAll('[data-active-filter]');
+    const emptyRow = document.getElementById('sites-empty-row');
+    let activeFilter = 'all';
+
+    function applyFilters() {
+        const q = search ? search.value.toLowerCase().trim() : '';
+        let visible = 0;
+        rows.forEach(row => {
+            const nameMatch = !q || row.dataset.name.includes(q);
+            const activeMatch = activeFilter === 'all' || row.dataset.active === activeFilter;
+            const show = nameMatch && activeMatch;
+            row.style.display = show ? '' : 'none';
+            if (show) visible++;
+        });
+        if (emptyRow) emptyRow.classList.toggle('hidden', visible > 0);
+    }
+
+    if (search) {
+        search.addEventListener('input', applyFilters);
+    }
+
+    btns.forEach(btn => {
+        btn.addEventListener('click', () => {
+            activeFilter = btn.dataset.activeFilter;
+            btns.forEach(b => b.classList.remove('bg-gray-100', 'bg-green-100'));
+            btn.classList.add(activeFilter === '1' ? 'bg-green-100' : 'bg-gray-100');
+            applyFilters();
+        });
+    });
+})();
+</script>
 {% endblock %}
