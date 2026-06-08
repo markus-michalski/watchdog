@@ -21,7 +21,7 @@ class ContactController extends AbstractController
     public function index(ContactRepository $repo): Response
     {
         return $this->render('contact/index.html.twig', [
-            'contacts' => $repo->findBy([], ['name' => 'ASC']),
+            'contacts' => $repo->findAllWithSites(),
         ]);
     }
 
@@ -34,12 +34,17 @@ class ContactController extends AbstractController
         $error = null;
 
         if ($request->isMethod('POST')) {
+            if (!$this->isCsrfTokenValid('contact_form', $request->request->get('_token'))) {
+                throw $this->createAccessDeniedException('Invalid CSRF token.');
+            }
+
             $name = trim((string) $request->request->get('name', ''));
             $email = trim((string) $request->request->get('email', ''));
 
-            $errors = $validator->validate($email, [new Assert\NotBlank(), new Assert\Email()]);
+            $nameErrors = $validator->validate($name, [new Assert\NotBlank(), new Assert\Length(max: 255)]);
+            $emailErrors = $validator->validate($email, [new Assert\NotBlank(), new Assert\Email()]);
 
-            if ($name !== '' && count($errors) === 0) {
+            if (count($nameErrors) === 0 && count($emailErrors) === 0) {
                 $contact = new Contact();
                 $contact->setName($name);
                 $contact->setEmail($email);
@@ -50,7 +55,9 @@ class ContactController extends AbstractController
                 return $this->redirectToRoute('contact_index');
             }
 
-            $error = 'Please enter a valid name and email address.';
+            $error = count($nameErrors) > 0
+                ? 'Please enter a valid name (max. 255 characters).'
+                : 'Please enter a valid email address.';
         }
 
         return $this->render('contact/form.html.twig', [
@@ -70,12 +77,17 @@ class ContactController extends AbstractController
         $error = null;
 
         if ($request->isMethod('POST')) {
+            if (!$this->isCsrfTokenValid('contact_form', $request->request->get('_token'))) {
+                throw $this->createAccessDeniedException('Invalid CSRF token.');
+            }
+
             $name = trim((string) $request->request->get('name', ''));
             $email = trim((string) $request->request->get('email', ''));
 
-            $errors = $validator->validate($email, [new Assert\NotBlank(), new Assert\Email()]);
+            $nameErrors = $validator->validate($name, [new Assert\NotBlank(), new Assert\Length(max: 255)]);
+            $emailErrors = $validator->validate($email, [new Assert\NotBlank(), new Assert\Email()]);
 
-            if ($name !== '' && count($errors) === 0) {
+            if (count($nameErrors) === 0 && count($emailErrors) === 0) {
                 $contact->setName($name);
                 $contact->setEmail($email);
                 $em->flush();
@@ -84,7 +96,9 @@ class ContactController extends AbstractController
                 return $this->redirectToRoute('contact_index');
             }
 
-            $error = 'Please enter a valid name and email address.';
+            $error = count($nameErrors) > 0
+                ? 'Please enter a valid name (max. 255 characters).'
+                : 'Please enter a valid email address.';
         }
 
         return $this->render('contact/form.html.twig', [
@@ -100,11 +114,15 @@ class ContactController extends AbstractController
         Request $request,
         EntityManagerInterface $em,
     ): Response {
-        if ($this->isCsrfTokenValid('delete_contact' . $contact->getId(), $request->request->get('_token'))) {
-            $em->remove($contact);
-            $em->flush();
-            $this->addFlash('success', sprintf('Contact "%s" deleted.', $contact->getName()));
+        if (!$this->isCsrfTokenValid('delete_contact' . $contact->getId(), $request->request->get('_token'))) {
+            $this->addFlash('error', 'Invalid security token. Please try again.');
+
+            return $this->redirectToRoute('contact_index');
         }
+
+        $em->remove($contact);
+        $em->flush();
+        $this->addFlash('success', sprintf('Contact "%s" deleted.', $contact->getName()));
 
         return $this->redirectToRoute('contact_index');
     }
