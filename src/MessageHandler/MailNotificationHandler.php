@@ -44,7 +44,7 @@ final class MailNotificationHandler
         }
 
         $subject = match ($message->action) {
-            'failure' => sprintf('[WATCHDOG] FAIL: %s - %s', $site->getName(), $check->getLabel()),
+            'failure' => sprintf('[WATCHDOG] %s: %s - %s', $result->getStatus()->label(), $site->getName(), $check->getLabel()),
             'recovery' => sprintf('[WATCHDOG] RECOVERED: %s - %s', $site->getName(), $check->getLabel()),
             default => sprintf('[WATCHDOG] Alert: %s', $site->getName()),
         };
