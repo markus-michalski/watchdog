@@ -43,9 +43,9 @@
 
             <div class="bg-white rounded-lg shadow {{ borderClass }} overflow-hidden">
                 <div class="p-5">
-                    {# Card header: site name + aggregate status #}
-                    <div class="flex items-start justify-between">
-                        <div>
+                    {# Card header: site name + aggregate status + actions #}
+                    <div class="flex items-start justify-between gap-3">
+                        <div class="min-w-0">
                             <a href="{{ path('site_show', {id: site.id}) }}" class="text-lg font-semibold text-gray-800 hover:text-blue-600">
                                 {{ site.name }}
                             </a>
@@ -59,9 +59,23 @@
                                 {% endif %}
                             </p>
                         </div>
-                        <span class="text-sm font-bold px-3 py-1.5 rounded-full {{ badgeClass }} shrink-0 ml-4">
-                            {{ badgeLabel }}
-                        </span>
+                        <div class="flex items-center gap-2 shrink-0">
+                            <span class="text-sm font-bold px-3 py-1.5 rounded-full {{ badgeClass }}">
+                                {{ badgeLabel }}
+                            </span>
+                            <a href="{{ path('site_edit', {id: site.id}) }}"
+                               class="border border-blue-300 text-blue-700 px-2.5 py-1 rounded text-xs hover:bg-blue-50">
+                                Edit
+                            </a>
+                            <form action="{{ path('site_delete', {id: site.id}) }}" method="post" class="inline"
+                                  onsubmit="return confirm('Delete site {{ site.name|e('js') }} and all its checks?')">
+                                <input type="hidden" name="_token" value="{{ csrf_token('delete_site' ~ site.id) }}">
+                                <button type="submit"
+                                        class="border border-red-300 text-red-700 px-2.5 py-1 rounded text-xs hover:bg-red-50 cursor-pointer">
+                                    Delete
+                                </button>
+                            </form>
+                        </div>
                     </div>
 
                     {# Check rows #}
