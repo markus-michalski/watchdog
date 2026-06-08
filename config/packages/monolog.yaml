@@ -6,10 +6,11 @@ when@dev:
     monolog:
         handlers:
             main:
-                type: stream
+                type: rotating_file
                 path: "%kernel.logs_dir%/%kernel.environment%.log"
                 level: debug
-                channels: ["!event"]
+                max_files: 14
+                channels: ["!event", "!doctrine"]
             console:
                 type: console
                 process_psr_3_messages: false
