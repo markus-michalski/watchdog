@@ -61,6 +61,16 @@ enum CheckStatus: string
         };
     }
 
+    public function textClass(): string
+    {
+        return match ($this) {
+            self::Ok => 'text-green-600',
+            self::Warn => 'text-orange-600',
+            self::Fail => 'text-red-600',
+            self::Unknown => 'text-yellow-600',
+        };
+    }
+
     public function isProblematic(): bool
     {
         return $this === self::Fail || $this === self::Warn;
