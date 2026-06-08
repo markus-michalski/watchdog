@@ -41,6 +41,7 @@ class Site
     #[ORM\Column]
     private \DateTimeImmutable $updatedAt;
 
+    /** @var Collection<int, Contact> */
     #[ORM\ManyToMany(targetEntity: Contact::class, inversedBy: 'sites')]
     #[ORM\JoinTable(name: 'site_contacts')]
     private Collection $contacts;
