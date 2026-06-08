@@ -99,6 +99,9 @@
                             <span class="px-2 py-0.5 rounded text-xs font-semibold {{ result.status.cssClass() }}">
                                 {{ result.status.label() }}
                             </span>
+                            {% if result.message %}
+                                <span class="text-xs text-gray-500 hidden sm:block max-w-xs truncate" title="{{ result.message }}">{{ result.message }}</span>
+                            {% endif %}
                             <span class="text-xs text-gray-400 hidden sm:block">{{ result.checkedAt|date('d.m. H:i') }}</span>
                             {% if result.responseTimeMs %}
                                 <span class="text-xs text-gray-400 hidden md:block">{{ result.responseTimeMs }}ms</span>
