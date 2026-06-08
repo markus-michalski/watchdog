@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\MessageHandler;
 
+use App\Entity\Site;
 use App\Message\MailNotificationMessage;
 use App\Repository\AlertStateRepository;
 use App\Repository\CheckResultRepository;
@@ -36,7 +37,16 @@ final class MailNotificationHandler
             return;
         }
 
-        $site = $check->getSite();
+        // Eager-load contacts to avoid lazy-loading issues in Messenger worker context
+        $site = $this->em->createQueryBuilder()
+            ->select('s', 'c')
+            ->from(Site::class, 's')
+            ->leftJoin('s.contacts', 'c')
+            ->where('s.id = :id')
+            ->setParameter('id', $check->getSite()->getId())
+            ->getQuery()
+            ->getSingleResult();
+
         $contacts = $site->getContacts();
 
         if ($contacts->isEmpty()) {

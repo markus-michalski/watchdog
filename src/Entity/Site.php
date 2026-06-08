@@ -41,7 +41,9 @@ class Site
     #[ORM\Column]
     private \DateTimeImmutable $updatedAt;
 
-    #[ORM\OneToMany(mappedBy: 'site', targetEntity: Contact::class, cascade: ['persist', 'remove'], orphanRemoval: true)]
+    /** @var Collection<int, Contact> */
+    #[ORM\ManyToMany(targetEntity: Contact::class, inversedBy: 'sites')]
+    #[ORM\JoinTable(name: 'site_contacts')]
     private Collection $contacts;
 
     #[ORM\OneToMany(mappedBy: 'site', targetEntity: SiteCheck::class, cascade: ['persist', 'remove'], orphanRemoval: true)]
@@ -146,7 +148,6 @@ class Site
     {
         if (!$this->contacts->contains($contact)) {
             $this->contacts->add($contact);
-            $contact->setSite($this);
         }
 
         return $this;

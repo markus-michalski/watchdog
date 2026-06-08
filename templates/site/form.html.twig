@@ -50,6 +50,27 @@
             {{ form_label(form.isActive, null, {label_attr: {class: 'text-sm text-gray-700'}}) }}
         </div>
 
+        <hr class="border-gray-200">
+        <div>
+            {{ form_label(form.contacts, null, {label_attr: {class: 'form-label'}}) }}
+            {% if form.contacts|length == 0 %}
+                <p class="text-sm text-gray-400 italic">
+                    No contacts available.
+                    <a href="{{ path('contact_new') }}" class="text-blue-600 hover:underline">Create one first</a>
+                </p>
+            {% else %}
+                <div class="space-y-1 mt-1">
+                    {% for choice in form.contacts %}
+                        <label class="flex items-center gap-2 text-sm text-gray-700 cursor-pointer">
+                            {{ form_widget(choice) }}
+                            {{ choice.vars.label }}
+                        </label>
+                    {% endfor %}
+                </div>
+            {% endif %}
+            {{ form_errors(form.contacts) }}
+        </div>
+
         <div class="flex gap-3 pt-2">
             <button type="submit" class="bg-blue-600 text-white px-5 py-2 rounded hover:bg-blue-700 text-sm font-medium">
                 Save
@@ -59,7 +80,7 @@
             </a>
         </div>
 
-        {{ form_end(form) }}
+        {{ form_end(form, {render_rest: false}) }}
     </div>
 </div>
 {% endblock %}
