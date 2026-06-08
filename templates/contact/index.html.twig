@@ -1,0 +1,61 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Contacts — Watchdog{% endblock %}
+
+{% block body %}
+<div class="flex items-center justify-between mb-6">
+    <h1 class="text-2xl font-bold text-gray-800">Contacts</h1>
+    <a href="{{ path('contact_new') }}" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 text-sm">
+        + Add contact
+    </a>
+</div>
+
+{% if contacts is empty %}
+    <div class="bg-white rounded-lg shadow p-8 text-center text-gray-500">
+        <p class="mb-2">No contacts yet.</p>
+        <a href="{{ path('contact_new') }}" class="text-blue-600 hover:underline">Add your first contact</a>
+    </div>
+{% else %}
+    <div class="bg-white rounded-lg shadow overflow-hidden">
+        <table class="w-full text-sm">
+            <thead class="bg-gray-50 text-gray-600 uppercase text-xs">
+                <tr>
+                    <th class="px-4 py-3 text-left">Name</th>
+                    <th class="px-4 py-3 text-left">Email</th>
+                    <th class="px-4 py-3 text-left">Sites</th>
+                    <th class="px-4 py-3 text-right">Actions</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-100">
+                {% for contact in contacts %}
+                <tr class="hover:bg-gray-50">
+                    <td class="px-4 py-3 font-medium text-gray-800">{{ contact.name }}</td>
+                    <td class="px-4 py-3 text-gray-600">{{ contact.email }}</td>
+                    <td class="px-4 py-3 text-gray-500">
+                        {% if contact.sites is empty %}
+                            <span class="text-gray-300 italic text-xs">none</span>
+                        {% else %}
+                            {% for site in contact.sites %}
+                                <a href="{{ path('site_show', {id: site.id}) }}" class="text-blue-600 hover:underline text-xs">{{ site.name }}</a>{% if not loop.last %}, {% endif %}
+                            {% endfor %}
+                        {% endif %}
+                    </td>
+                    <td class="px-4 py-3 text-right">
+                        <div class="flex items-center justify-end gap-1.5">
+                            <a href="{{ path('contact_edit', {id: contact.id}) }}"
+                               class="border border-blue-300 text-blue-700 px-2.5 py-1 rounded text-xs hover:bg-blue-50">Edit</a>
+                            <form action="{{ path('contact_delete', {id: contact.id}) }}" method="post" class="inline"
+                                  onsubmit="return confirm('Delete {{ contact.name|e('js') }}?')">
+                                <input type="hidden" name="_token" value="{{ csrf_token('delete_contact' ~ contact.id) }}">
+                                <button type="submit"
+                                        class="border border-red-300 text-red-700 px-2.5 py-1 rounded text-xs hover:bg-red-50 cursor-pointer">Delete</button>
+                            </form>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+{% endif %}
+{% endblock %}

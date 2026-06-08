@@ -35,22 +35,23 @@
 
     {# Contacts #}
     <div class="bg-white rounded-lg shadow p-5">
-        <h2 class="font-semibold text-gray-700 mb-3">Alert contacts</h2>
+        <div class="flex items-center justify-between mb-3">
+            <h2 class="font-semibold text-gray-700">Alert contacts</h2>
+            <a href="{{ path('contact_index') }}" class="text-xs text-blue-600 hover:underline">Manage</a>
+        </div>
         {% if site.contacts is empty %}
             <p class="text-sm text-gray-400 italic">No contacts — alerts are silent.</p>
+            <a href="{{ path('site_edit', {id: site.id}) }}" class="text-blue-600 hover:underline text-xs mt-2 inline-block">Assign contacts in site settings</a>
         {% else %}
-            <ul class="text-sm space-y-1">
+            <ul class="text-sm space-y-1.5">
                 {% for contact in site.contacts %}
-                    <li class="flex justify-between">
-                        <span>{{ contact.name }}</span>
-                        <span class="text-gray-500">{{ contact.email }}</span>
+                    <li>
+                        <span class="font-medium text-gray-800">{{ contact.name }}</span>
+                        <span class="text-gray-400 ml-1">{{ contact.email }}</span>
                     </li>
                 {% endfor %}
             </ul>
         {% endif %}
-        <a href="{{ path('contact_new', {siteId: site.id}) }}" class="text-blue-600 hover:underline text-xs mt-3 inline-block">
-            + Add contact
-        </a>
     </div>
 </div>
 

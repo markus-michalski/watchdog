@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace App\Form;
 
+use App\Entity\Contact;
 use App\Entity\Site;
+use Symfony\Bridge\Doctrine\Form\Type\EntityType;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\CheckboxType;
 use Symfony\Component\Form\Extension\Core\Type\PasswordType;
@@ -44,6 +46,15 @@ class SiteType extends AbstractType
                 'required' => false,
                 'always_empty' => false,
                 'attr' => ['class' => 'form-input', 'autocomplete' => 'off'],
+            ])
+            ->add('contacts', EntityType::class, [
+                'class' => Contact::class,
+                'choice_label' => '__toString',
+                'multiple' => true,
+                'expanded' => true,
+                'required' => false,
+                'label' => 'Alert contacts',
+                'by_reference' => false,
             ]);
     }
 

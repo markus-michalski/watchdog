@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace App\Entity;
 
 use App\Repository\ContactRepository;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: ContactRepository::class)]
@@ -16,31 +18,24 @@ class Contact
     #[ORM\Column]
     private ?int $id = null;
 
-    #[ORM\ManyToOne(inversedBy: 'contacts')]
-    #[ORM\JoinColumn(nullable: false)]
-    private Site $site;
-
     #[ORM\Column(length: 255)]
     private string $name;
 
     #[ORM\Column(length: 255)]
     private string $email;
 
+    /** @var Collection<int, Site> */
+    #[ORM\ManyToMany(targetEntity: Site::class, mappedBy: 'contacts')]
+    private Collection $sites;
+
+    public function __construct()
+    {
+        $this->sites = new ArrayCollection();
+    }
+
     public function getId(): ?int
     {
         return $this->id;
-    }
-
-    public function getSite(): Site
-    {
-        return $this->site;
-    }
-
-    public function setSite(Site $site): static
-    {
-        $this->site = $site;
-
-        return $this;
     }
 
     public function getName(): string
@@ -65,5 +60,16 @@ class Contact
         $this->email = $email;
 
         return $this;
+    }
+
+    /** @return Collection<int, Site> */
+    public function getSites(): Collection
+    {
+        return $this->sites;
+    }
+
+    public function __toString(): string
+    {
+        return sprintf('%s <%s>', $this->name, $this->email);
     }
 }
