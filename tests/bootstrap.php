@@ -15,3 +15,16 @@ if (method_exists(Dotenv::class, 'bootEnv')) {
 if ($_SERVER['APP_DEBUG'] ?? $_ENV['APP_DEBUG'] ?? true) {
     umask(0000);
 }
+
+// Create test database schema if it does not exist yet
+$dbUrl = $_ENV['DATABASE_URL'] ?? $_SERVER['DATABASE_URL'] ?? '';
+if (str_starts_with($dbUrl, 'sqlite:')) {
+    $dbFile = preg_replace('#^sqlite:////+#', '/', $dbUrl) ?: '';
+    if ($dbFile && !file_exists($dbFile)) {
+        @mkdir(dirname($dbFile), 0777, true);
+        passthru(sprintf(
+            'php %s/bin/console doctrine:schema:create --env=test --no-interaction -q',
+            dirname(__DIR__)
+        ));
+    }
+}
