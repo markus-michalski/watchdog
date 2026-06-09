@@ -146,7 +146,7 @@ class SiteCheck
     {
         return match ($this->type) {
             'http' => 'HTTP Reachability',
-            'docker' => sprintf('Docker Container Health: %s', $this->config['container_name'] ?? 'unknown'),
+            'docker' => sprintf('Docker Container Health: %s', is_string($this->config['container_name'] ?? null) ? $this->config['container_name'] : 'unknown'),
             default => ucfirst($this->type),
         };
     }

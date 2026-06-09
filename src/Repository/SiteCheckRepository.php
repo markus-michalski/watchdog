@@ -18,11 +18,11 @@ class SiteCheckRepository extends ServiceEntityRepository
         parent::__construct($registry, SiteCheck::class);
     }
 
-    /** @return SiteCheck[] */
-    /** @return SiteCheck[] */
+    /** @return array<int, SiteCheck> */
     public function findAllActiveWithSites(): array
     {
-        return $this->createQueryBuilder('c')
+        /** @var array<int, SiteCheck> $results */
+        $results = $this->createQueryBuilder('c')
             ->join('c.site', 's')
             ->leftJoin('s.contacts', 'co')
             ->addSelect('s', 'co')
@@ -31,5 +31,7 @@ class SiteCheckRepository extends ServiceEntityRepository
             ->setParameter('active', true)
             ->getQuery()
             ->getResult();
+
+        return $results;
     }
 }

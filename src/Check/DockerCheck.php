@@ -51,7 +51,8 @@ final class DockerCheck implements CheckInterface
         $result = new CheckResult();
         $result->setCheck($check);
 
-        $containerName = $check->getConfig()['container_name'] ?? '';
+        $rawName = $check->getConfig()['container_name'] ?? '';
+        $containerName = is_string($rawName) ? $rawName : '';
         if ($containerName === '') {
             $result->setStatus(CheckStatus::Unknown);
             $result->setMessage('No container_name configured');
@@ -75,8 +76,18 @@ final class DockerCheck implements CheckInterface
             return $result;
         }
 
-        $running = $data['State']['Running'] ?? false;
-        $healthStatus = $data['State']['Health']['Status'] ?? null;
+        $state = $data['State'];
+        if (!is_array($state)) {
+            $state = [];
+        }
+        $running = (bool) ($state['Running'] ?? false);
+        $healthData = $state['Health'] ?? null;
+        if (is_array($healthData)) {
+            $rawStatus = $healthData['Status'] ?? null;
+            $healthStatus = is_string($rawStatus) ? $rawStatus : null;
+        } else {
+            $healthStatus = null;
+        }
 
         if (!$running) {
             $result->setStatus(CheckStatus::Fail);
@@ -97,7 +108,7 @@ final class DockerCheck implements CheckInterface
                 $result->setMessage('unhealthy');
             } else {
                 $result->setStatus(CheckStatus::Fail);
-                $result->setMessage($healthStatus);
+                $result->setMessage((string) $healthStatus);
             }
         } else {
             // Running but no healthcheck defined — treat as OK
@@ -146,6 +157,7 @@ final class DockerCheck implements CheckInterface
             throw new \RuntimeException('Invalid JSON response from Docker API');
         }
 
+        /** @var array<string, mixed> $data */
         return $data;
     }
 }

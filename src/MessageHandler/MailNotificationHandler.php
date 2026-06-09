@@ -38,6 +38,7 @@ final class MailNotificationHandler
         }
 
         // Eager-load contacts to avoid lazy-loading issues in Messenger worker context
+        /** @var Site $site */
         $site = $this->em->createQueryBuilder()
             ->select('s', 'c')
             ->from(Site::class, 's')
