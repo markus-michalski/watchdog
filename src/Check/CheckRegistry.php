@@ -54,7 +54,7 @@ class CheckRegistry
         return $choices;
     }
 
-    /** @return array<string, array> type => config schema */
+    /** @return array<string, array<int, array<string, mixed>>> type => config schema */
     public function getAllSchemas(): array
     {
         $schemas = [];

@@ -26,6 +26,7 @@ class SiteCheck
     private string $type;
 
     /** Check-type-specific configuration (e.g. {"container_name": "my-app"}) */
+    /** @var array<string, mixed> */
     #[ORM\Column(type: 'json')]
     private array $config = [];
 
@@ -35,6 +36,7 @@ class SiteCheck
     #[ORM\Column]
     private int $checkIntervalMinutes = 5;
 
+    /** @var Collection<int, CheckResult> */
     #[ORM\OneToMany(mappedBy: 'check', targetEntity: CheckResult::class, cascade: ['remove'], orphanRemoval: true)]
     #[ORM\OrderBy(['checkedAt' => 'DESC'])]
     private Collection $results;
@@ -76,11 +78,13 @@ class SiteCheck
         return $this;
     }
 
+    /** @return array<string, mixed> */
     public function getConfig(): array
     {
         return $this->config;
     }
 
+    /** @param array<string, mixed> $config */
     public function setConfig(array $config): static
     {
         $this->config = $config;

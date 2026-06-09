@@ -16,6 +16,7 @@ use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 use Symfony\Component\Validator\Constraints as Assert;
 
+/** @extends AbstractType<Site> */
 class SiteType extends AbstractType
 {
     public function buildForm(FormBuilderInterface $builder, array $options): void
@@ -28,7 +29,7 @@ class SiteType extends AbstractType
             ])
             ->add('url', UrlType::class, [
                 'label' => 'URL',
-                'constraints' => [new Assert\NotBlank(), new Assert\Url()],
+                'constraints' => [new Assert\NotBlank(), new Assert\Url(requireTld: true)],
                 'attr' => ['class' => 'form-input', 'placeholder' => 'https://example.com'],
             ])
             ->add('isActive', CheckboxType::class, [

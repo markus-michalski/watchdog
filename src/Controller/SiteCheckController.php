@@ -80,6 +80,7 @@ class SiteCheckController extends AbstractController
         ]);
     }
 
+    /** @return array<string, mixed> */
     private function buildConfig(Request $request, string $type, CheckRegistry $registry): array
     {
         if (!$registry->has($type)) {
@@ -99,7 +100,7 @@ class SiteCheckController extends AbstractController
             if ($field['name'] === 'expected_status_codes') {
                 $config[$field['name']] = array_map(
                     'intval',
-                    array_filter(array_map('trim', explode(',', $raw)))
+                    array_filter(array_map('trim', explode(',', (string) $raw)))
                 );
             } elseif ($field['type'] === 'number') {
                 $config[$field['name']] = (int) $raw;
@@ -114,7 +115,7 @@ class SiteCheckController extends AbstractController
     #[Route('/{checkId}/delete', name: 'delete', methods: ['POST'])]
     public function delete(Request $request, #[MapEntity(id: 'siteId')] Site $site, #[MapEntity(id: 'checkId')] SiteCheck $check, EntityManagerInterface $em): Response
     {
-        if ($this->isCsrfTokenValid('delete_check' . $check->getId(), $request->request->get('_token'))) {
+        if ($this->isCsrfTokenValid('delete_check' . $check->getId(), (string) $request->request->get('_token', ''))) {
             $em->remove($check);
             $em->flush();
             $this->addFlash('success', 'Check deleted.');
@@ -130,8 +131,8 @@ class SiteCheckController extends AbstractController
         #[MapEntity(id: 'checkId')] SiteCheck $check,
         MessageBusInterface $bus,
     ): Response {
-        if ($this->isCsrfTokenValid('run_check' . $check->getId(), $request->request->get('_token'))) {
-            $bus->dispatch(new RunSiteChecksMessage($check->getId()));
+        if ($this->isCsrfTokenValid('run_check' . $check->getId(), (string) $request->request->get('_token', ''))) {
+            $bus->dispatch(new RunSiteChecksMessage((int) $check->getId()));
             $this->addFlash('success', sprintf('Check "%s" queued — result appears in a few seconds.', $check->getLabel()));
         }
 

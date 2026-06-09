@@ -32,8 +32,8 @@ final class AlertService
         // Notify on transition to problematic (first time) or recovery to ok
         if (!$previousStatus->isProblematic() && $newStatus->isProblematic()) {
             $this->bus->dispatch(new MailNotificationMessage(
-                siteCheckId: $check->getId(),
-                checkResultId: $result->getId(),
+                siteCheckId: (int) $check->getId(),
+                checkResultId: (int) $result->getId(),
                 action: 'failure',
             ));
 
@@ -42,8 +42,8 @@ final class AlertService
 
         if ($previousStatus->isProblematic() && $newStatus === CheckStatus::Ok) {
             $this->bus->dispatch(new MailNotificationMessage(
-                siteCheckId: $check->getId(),
-                checkResultId: $result->getId(),
+                siteCheckId: (int) $check->getId(),
+                checkResultId: (int) $result->getId(),
                 action: 'recovery',
             ));
         }

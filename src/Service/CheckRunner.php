@@ -6,7 +6,6 @@ namespace App\Service;
 
 use App\Check\CheckRegistry;
 use App\Entity\SiteCheck;
-use App\Repository\CheckResultRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Psr\Log\LoggerInterface;
 
@@ -15,7 +14,6 @@ final class CheckRunner
     public function __construct(
         private readonly CheckRegistry $registry,
         private readonly EntityManagerInterface $em,
-        private readonly CheckResultRepository $checkResultRepository,
         private readonly AlertService $alertService,
         private readonly LoggerInterface $logger,
     ) {}

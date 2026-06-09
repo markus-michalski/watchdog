@@ -23,7 +23,7 @@ doctrine:
 when@test:
     doctrine:
         dbal:
-            url: 'sqlite:///%kernel.project_dir%/var/data_test.db'
+            url: '%env(resolve:DATABASE_URL)%'
 
 when@prod:
     doctrine:

@@ -108,6 +108,7 @@ final class DockerCheck implements CheckInterface
         return $result;
     }
 
+    /** @return array<string, mixed> */
     private function queryDockerApi(string $path): array
     {
         $socket = stream_socket_client('unix://' . self::SOCKET_PATH, $errno, $errstr, 5);

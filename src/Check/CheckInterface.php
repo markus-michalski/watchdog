@@ -16,6 +16,7 @@ interface CheckInterface
     public function run(SiteCheck $check): CheckResult;
 
     /** Default config values shown in the UI when creating this check type */
+    /** @return array<string, mixed> */
     public function getDefaultConfig(): array;
 
     /** Human-readable label for the UI */

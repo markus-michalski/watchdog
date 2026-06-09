@@ -34,7 +34,7 @@ class ContactController extends AbstractController
         $error = null;
 
         if ($request->isMethod('POST')) {
-            if (!$this->isCsrfTokenValid('contact_form', $request->request->get('_token'))) {
+            if (!$this->isCsrfTokenValid('contact_form', (string) $request->request->get('_token', ''))) {
                 throw $this->createAccessDeniedException('Invalid CSRF token.');
             }
 
@@ -77,7 +77,7 @@ class ContactController extends AbstractController
         $error = null;
 
         if ($request->isMethod('POST')) {
-            if (!$this->isCsrfTokenValid('contact_form', $request->request->get('_token'))) {
+            if (!$this->isCsrfTokenValid('contact_form', (string) $request->request->get('_token', ''))) {
                 throw $this->createAccessDeniedException('Invalid CSRF token.');
             }
 
@@ -114,7 +114,7 @@ class ContactController extends AbstractController
         Request $request,
         EntityManagerInterface $em,
     ): Response {
-        if (!$this->isCsrfTokenValid('delete_contact' . $contact->getId(), $request->request->get('_token'))) {
+        if (!$this->isCsrfTokenValid('delete_contact' . $contact->getId(), (string) $request->request->get('_token', ''))) {
             $this->addFlash('error', 'Invalid security token. Please try again.');
 
             return $this->redirectToRoute('contact_index');

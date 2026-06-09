@@ -34,7 +34,7 @@ final class CheckScheduleProvider implements ScheduleProviderInterface
                 $schedule->add(
                     RecurringMessage::every(
                         sprintf('%d minutes', $check->getCheckIntervalMinutes()),
-                        new RunSiteChecksMessage($check->getId()),
+                        new RunSiteChecksMessage((int) $check->getId()),
                     )
                 );
             }

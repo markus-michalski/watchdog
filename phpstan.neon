@@ -1,3 +1,6 @@
+includes:
+    - vendor/phpstan/phpstan-symfony/extension.neon
+
 parameters:
     level: 8
     paths:
@@ -6,3 +9,7 @@ parameters:
         - src/Kernel.php
     symfony:
         containerXmlPath: var/cache/dev/App_KernelDevDebugContainer.xml
+    ignoreErrors:
+        # Doctrine assigns $id via reflection — PHPStan cannot see this
+        - message: '#Property App\\Entity\\.*::.*id.*is never assigned int so it can be removed from the property type#'
+          path: src/Entity

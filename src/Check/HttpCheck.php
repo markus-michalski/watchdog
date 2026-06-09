@@ -27,6 +27,7 @@ final class HttpCheck implements CheckInterface
         return 'HTTP Reachability';
     }
 
+    /** @return array<string, mixed> */
     public function getDefaultConfig(): array
     {
         return [

@@ -46,6 +46,7 @@ class Site
     #[ORM\JoinTable(name: 'site_contacts')]
     private Collection $contacts;
 
+    /** @var Collection<int, SiteCheck> */
     #[ORM\OneToMany(mappedBy: 'site', targetEntity: SiteCheck::class, cascade: ['persist', 'remove'], orphanRemoval: true)]
     private Collection $checks;
 
