@@ -36,6 +36,12 @@ services:
       - watchdog_data:/app/var
       - /var/run/docker.sock:/var/run/docker.sock:ro
       - /app/var/cache
+    healthcheck:
+      test: ["CMD", "php", "bin/console", "about"]
+      interval: 60s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
     restart: unless-stopped
     depends_on:
       - app
@@ -52,6 +58,12 @@ services:
     volumes:
       - watchdog_data:/app/var
       - /app/var/cache
+    healthcheck:
+      test: ["CMD", "php", "bin/console", "about"]
+      interval: 60s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
     restart: unless-stopped
     depends_on:
       - app
