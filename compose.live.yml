@@ -7,6 +7,7 @@ services:
     container_name: watchdog-live-app
     env_file: .env.live
     environment:
+      APP_ENV: prod
       SERVER_NAME: ":80"
       TZ: Europe/Berlin
       TRUSTED_PROXIES: "REMOTE_ADDR"
@@ -32,6 +33,7 @@ services:
     command: php bin/console messenger:consume async notifications --time-limit=3600 --memory-limit=128M
     env_file: .env.live
     environment:
+      APP_ENV: prod
       TZ: Europe/Berlin
     group_add:
       - "${DOCKER_GID:-995}"
@@ -54,6 +56,7 @@ services:
     command: php bin/console scheduler:run checks --no-interaction
     env_file: .env.live
     environment:
+      APP_ENV: prod
       TZ: Europe/Berlin
     volumes:
       - watchdog_data:/app/var
