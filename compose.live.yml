@@ -39,6 +39,10 @@ services:
       - watchdog_data:/app/var
       - /var/run/docker.sock:/var/run/docker.sock:ro
       - /app/var/cache
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
     restart: unless-stopped
     depends_on:
       - app
@@ -54,6 +58,10 @@ services:
     volumes:
       - watchdog_data:/app/var
       - /app/var/cache
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
     restart: unless-stopped
     depends_on:
       - app
