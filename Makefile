@@ -30,10 +30,11 @@ help: ## Show this help
 ## -- Setup --------------------------------------------------------------------
 
 .PHONY: setup
-setup: ## Copy *.dist files for first-time install (legal templates etc.)
+setup: ## Copy *.dist/.example files for first-time install
 	@[ -f templates/legal/impressum.html.twig ] || { cp templates/legal/impressum.html.twig.dist templates/legal/impressum.html.twig; echo "  created templates/legal/impressum.html.twig"; }
 	@[ -f templates/legal/datenschutz.html.twig ] || { cp templates/legal/datenschutz.html.twig.dist templates/legal/datenschutz.html.twig; echo "  created templates/legal/datenschutz.html.twig"; }
-	@echo "Setup done — edit templates/legal/*.html.twig with your actual legal texts"
+	@[ -f compose.override.yml ] || { cp compose.override.yml.example compose.override.yml; echo "  created compose.override.yml (add your volume mounts here)"; }
+	@echo "Setup done."
 
 ## -- Stage containers ---------------------------------------------------------
 
