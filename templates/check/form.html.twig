@@ -84,21 +84,23 @@
 </div>
 
 <script>
-function showConfigForType(type) {
-    document.querySelectorAll('.config-section').forEach(el => {
-        const visible = el.dataset.type === type;
-        el.style.display = visible ? '' : 'none';
-        el.setAttribute('aria-hidden', visible ? 'false' : 'true');
-        el.querySelectorAll('input[data-required]').forEach(input => {
-            input.required = visible;
+(function () {
+    function showConfigForType(type) {
+        document.querySelectorAll('.config-section').forEach(el => {
+            const visible = el.dataset.type === type;
+            el.style.display = visible ? '' : 'none';
+            el.setAttribute('aria-hidden', visible ? 'false' : 'true');
+            el.querySelectorAll('input[data-required]').forEach(input => {
+                input.required = visible;
+            });
         });
-    });
-}
+    }
 
-const typeSelect = document.querySelector('[data-check-type]');
-if (typeSelect) {
-    showConfigForType(typeSelect.value);
-    typeSelect.addEventListener('change', () => showConfigForType(typeSelect.value));
-}
+    const typeSelect = document.querySelector('[data-check-type]');
+    if (typeSelect) {
+        showConfigForType(typeSelect.value);
+        typeSelect.addEventListener('change', () => showConfigForType(typeSelect.value));
+    }
+}());
 </script>
 {% endblock %}
