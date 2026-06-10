@@ -15,6 +15,12 @@ services:
     volumes:
       - watchdog_stage_data:/app/var
       - /app/var/cache
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    cap_add:
+      - NET_BIND_SERVICE
     restart: unless-stopped
 
   worker:
