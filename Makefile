@@ -7,8 +7,15 @@
 #   make local-up      — start local dev containers (compose.yml, with code mount)
 
 SHELL := /bin/bash
-DC       := docker compose -f compose.stage.yml
-DC_LIVE  := docker compose -f compose.live.yml
+
+# If compose.override.yml exists locally, merge it into every compose invocation.
+# This file is gitignored — use it to add host-specific volume mounts (e.g. for
+# FileAgeCheck paths) without touching tracked files or breaking updates.
+OVERRIDE_FILE  := $(wildcard compose.override.yml)
+OVERRIDE_FLAG  := $(if $(OVERRIDE_FILE),-f compose.override.yml,)
+
+DC       := docker compose -f compose.stage.yml $(OVERRIDE_FLAG)
+DC_LIVE  := docker compose -f compose.live.yml $(OVERRIDE_FLAG)
 DC_LOCAL := docker compose -f compose.yml
 
 EXEC_APP  := $(DC) exec --user www-data app

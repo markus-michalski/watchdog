@@ -1,0 +1,40 @@
+# compose.override.yml.example
+#
+# Copy this file to compose.override.yml and adjust to your setup.
+# compose.override.yml is gitignored — it will never be overwritten by updates.
+#
+# The Makefile automatically merges this file if it exists:
+#   docker compose -f compose.live.yml -f compose.override.yml ...
+#
+# Usage:
+#   cp compose.override.yml.example compose.override.yml
+#   # edit compose.override.yml
+#   make live-update   # override is picked up automatically
+#
+# Only add what you actually need. This file is merged with the base compose file,
+# so you only need to specify the services and keys you want to extend.
+
+services:
+  worker:
+    volumes:
+      # --- FileAgeCheck: backup timestamp files ---
+      # Mount the directory where your backup scripts write their status files.
+      # All scripts should write to one shared directory (e.g. /var/watchdog-status).
+      # Then configure FileAgeCheck paths like /var/watchdog-status/restic.last_success
+      #
+      # - /var/watchdog-status:/var/watchdog-status:ro
+
+      # --- FileAgeCheck: web application directories ---
+      # For native installs (e.g. TYPO3, WordPress) on the same host.
+      # Mount the root of all web apps once — then check any file within.
+      #
+      # - /var/www:/var/www:ro
+
+      # --- FileAgeCheck: specific application path ---
+      # If you only need one application's directory:
+      #
+      # - /var/www/typo3:/var/www/typo3:ro
+
+      # --- FileAgeCheck: database dump directory ---
+      #
+      # - /var/backups/db:/var/backups/db:ro

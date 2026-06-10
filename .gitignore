@@ -3,6 +3,9 @@
 /compose.yaml
 /compose.override.yaml
 
+# Local volume overrides — gitignored so updates never conflict (see compose.override.yml.example)
+/compose.override.yml
+
 # Symfony auto-generated IDE type-reference — regenerated on cache:clear
 /config/reference.php
 /.git-workflow*
