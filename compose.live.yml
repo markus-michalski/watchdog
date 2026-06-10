@@ -44,7 +44,7 @@ services:
     image: watchdog-live
     pull_policy: never
     container_name: watchdog-live-scheduler
-    command: php bin/console scheduler:run checks --no-interaction
+    command: php bin/console messenger:consume scheduler_checks --time-limit=3600 --memory-limit=128M --no-interaction
     env_file: .env.live
     environment:
       APP_ENV: prod
