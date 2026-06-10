@@ -20,6 +20,14 @@ EXEC_LIVE := $(DC_LIVE) exec --user www-data app
 help: ## Show this help
 	@awk 'BEGIN {FS = ":.*##"; printf "\nUsage:\n  make \033[36m<target>\033[0m\n\nTargets:\n"} /^[a-zA-Z_-]+:.*?##/ { printf "  \033[36m%-18s\033[0m %s\n", $$1, $$2 }' $(MAKEFILE_LIST)
 
+## -- Setup --------------------------------------------------------------------
+
+.PHONY: setup
+setup: ## Copy *.dist files for first-time install (legal templates etc.)
+	@[ -f templates/legal/impressum.html.twig ] || { cp templates/legal/impressum.html.twig.dist templates/legal/impressum.html.twig; echo "  created templates/legal/impressum.html.twig"; }
+	@[ -f templates/legal/datenschutz.html.twig ] || { cp templates/legal/datenschutz.html.twig.dist templates/legal/datenschutz.html.twig; echo "  created templates/legal/datenschutz.html.twig"; }
+	@echo "Setup done — edit templates/legal/*.html.twig with your actual legal texts"
+
 ## -- Stage containers ---------------------------------------------------------
 
 .PHONY: stage-update

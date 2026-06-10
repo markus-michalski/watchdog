@@ -30,3 +30,7 @@
 /.php-cs-fixer.php
 /.php-cs-fixer.cache
 ###< friendsofphp/php-cs-fixer ###
+
+# Legal texts — customize locally, copy from *.dist on first install (make setup)
+/templates/legal/impressum.html.twig
+/templates/legal/datenschutz.html.twig
