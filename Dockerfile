@@ -39,7 +39,7 @@ RUN composer dump-autoload --optimize --no-interaction \
 
 RUN mkdir -p var/cache var/log var/data \
     && touch var/data.db \
-    && chown -R www-data:www-data var/ public/assets/
+    && chown -R www-data:www-data var/ public/assets/ /data /config /tmp
 
 # Stage: assets compiled, dev-deps kept, APP_ENV=dev for profiler/debug toolbar
 FROM base AS stage
@@ -57,7 +57,7 @@ RUN composer dump-autoload --no-interaction \
     && php bin/console asset-map:compile
 
 RUN mkdir -p var/cache var/log var/data \
-    && chown -R www-data:www-data var/ public/assets/
+    && chown -R www-data:www-data var/ public/assets/ /data /config /tmp
 
 # Development stage (local, code mounted via volume)
 FROM base AS dev
