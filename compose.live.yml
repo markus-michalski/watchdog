@@ -13,6 +13,7 @@ services:
       TRUSTED_PROXIES: "REMOTE_ADDR"
       FRANKENPHP_RESET_KERNEL: "1"
       MAX_REQUESTS: "1000"
+    user: "82:82"
     ports:
       - "127.0.0.1:8086:80"
     volumes:

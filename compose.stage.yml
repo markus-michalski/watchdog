@@ -11,6 +11,7 @@ services:
       SERVER_NAME: ":80"
       TZ: Europe/Berlin
       TRUSTED_PROXIES: "REMOTE_ADDR"
+    user: "82:82"
     ports:
       - "127.0.0.1:8087:80"
     volumes:

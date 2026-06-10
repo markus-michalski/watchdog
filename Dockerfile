@@ -38,6 +38,7 @@ RUN composer dump-autoload --optimize --no-interaction \
     && php bin/console asset-map:compile
 
 RUN mkdir -p var/cache var/log var/data \
+    && touch var/data.db \
     && chown -R www-data:www-data var/ public/assets/
 
 # Stage: assets compiled, dev-deps kept, APP_ENV=dev for profiler/debug toolbar
