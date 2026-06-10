@@ -10,5 +10,6 @@ final readonly class MailNotificationMessage
         public int $siteCheckId,
         public int $checkResultId,
         public string $action, // 'failure' or 'recovery'
-    ) {}
+    ) {
+    }
 }

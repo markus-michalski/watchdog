@@ -113,6 +113,6 @@ class CheckResult
 
     public function isOk(): bool
     {
-        return $this->status === CheckStatus::Ok;
+        return CheckStatus::Ok === $this->status;
     }
 }

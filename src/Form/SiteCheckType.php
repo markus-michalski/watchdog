@@ -18,7 +18,8 @@ class SiteCheckType extends AbstractType
 {
     public function __construct(
         private readonly CheckRegistry $checkRegistry,
-    ) {}
+    ) {
+    }
 
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {

@@ -44,7 +44,7 @@ class ContactController extends AbstractController
             $nameErrors = $validator->validate($name, [new Assert\NotBlank(), new Assert\Length(max: 255)]);
             $emailErrors = $validator->validate($email, [new Assert\NotBlank(), new Assert\Email()]);
 
-            if (count($nameErrors) === 0 && count($emailErrors) === 0) {
+            if (0 === count($nameErrors) && 0 === count($emailErrors)) {
                 $contact = new Contact();
                 $contact->setName($name);
                 $contact->setEmail($email);
@@ -87,7 +87,7 @@ class ContactController extends AbstractController
             $nameErrors = $validator->validate($name, [new Assert\NotBlank(), new Assert\Length(max: 255)]);
             $emailErrors = $validator->validate($email, [new Assert\NotBlank(), new Assert\Email()]);
 
-            if (count($nameErrors) === 0 && count($emailErrors) === 0) {
+            if (0 === count($nameErrors) && 0 === count($emailErrors)) {
                 $contact->setName($name);
                 $contact->setEmail($email);
                 $em->flush();
@@ -114,7 +114,7 @@ class ContactController extends AbstractController
         Request $request,
         EntityManagerInterface $em,
     ): Response {
-        if (!$this->isCsrfTokenValid('delete_contact' . $contact->getId(), (string) $request->request->get('_token', ''))) {
+        if (!$this->isCsrfTokenValid('delete_contact'.$contact->getId(), (string) $request->request->get('_token', ''))) {
             $this->addFlash('error', 'Invalid security token. Please try again.');
 
             return $this->redirectToRoute('contact_index');

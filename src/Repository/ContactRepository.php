@@ -18,14 +18,17 @@ class ContactRepository extends ServiceEntityRepository
         parent::__construct($registry, Contact::class);
     }
 
-    /** @return Contact[] */
+    /** @return array<int, Contact> */
     public function findAllWithSites(): array
     {
-        return $this->createQueryBuilder('c')
+        /** @var array<int, Contact> $results */
+        $results = $this->createQueryBuilder('c')
             ->leftJoin('c.sites', 's')
             ->addSelect('s')
             ->orderBy('c.name', 'ASC')
             ->getQuery()
             ->getResult();
+
+        return $results;
     }
 }

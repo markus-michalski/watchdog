@@ -15,7 +15,8 @@ final class HttpCheck implements CheckInterface
 {
     public function __construct(
         private readonly HttpClientInterface $httpClient,
-    ) {}
+    ) {
+    }
 
     public function getType(): string
     {
@@ -91,6 +92,9 @@ final class HttpCheck implements CheckInterface
             $result->setResponseTimeMs($responseTimeMs);
 
             $expectedCodes = $config['expected_status_codes'] ?? [200];
+            if (!is_array($expectedCodes)) {
+                $expectedCodes = [200];
+            }
             if (in_array($statusCode, $expectedCodes, true)) {
                 $result->setStatus(CheckStatus::Ok);
             } else {

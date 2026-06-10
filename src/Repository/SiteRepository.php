@@ -18,26 +18,32 @@ class SiteRepository extends ServiceEntityRepository
         parent::__construct($registry, Site::class);
     }
 
-    /** @return Site[] */
+    /** @return array<int, Site> */
     public function findAllActive(): array
     {
-        return $this->createQueryBuilder('s')
+        /** @var array<int, Site> $results */
+        $results = $this->createQueryBuilder('s')
             ->where('s.isActive = :active')
             ->setParameter('active', true)
             ->orderBy('s.name', 'ASC')
             ->getQuery()
             ->getResult();
+
+        return $results;
     }
 
-    /** @return Site[] */
+    /** @return array<int, Site> */
     public function findAllWithChecks(): array
     {
-        return $this->createQueryBuilder('s')
+        /** @var array<int, Site> $results */
+        $results = $this->createQueryBuilder('s')
             ->leftJoin('s.checks', 'c')
             ->leftJoin('s.contacts', 'co')
             ->addSelect('c', 'co')
             ->orderBy('s.name', 'ASC')
             ->getQuery()
             ->getResult();
+
+        return $results;
     }
 }

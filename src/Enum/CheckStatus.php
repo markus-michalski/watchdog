@@ -73,6 +73,6 @@ enum CheckStatus: string
 
     public function isProblematic(): bool
     {
-        return $this === self::Fail || $this === self::Warn;
+        return self::Fail === $this || self::Warn === $this;
     }
 }

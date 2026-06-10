@@ -26,18 +26,20 @@ final class MailNotificationHandler
         private readonly Environment $twig,
         private readonly EntityManagerInterface $em,
         private readonly string $mailerFrom,
-    ) {}
+    ) {
+    }
 
     public function __invoke(MailNotificationMessage $message): void
     {
         $check = $this->siteCheckRepository->find($message->siteCheckId);
         $result = $this->checkResultRepository->find($message->checkResultId);
 
-        if ($check === null || $result === null) {
+        if (null === $check || null === $result) {
             return;
         }
 
         // Eager-load contacts to avoid lazy-loading issues in Messenger worker context
+        /** @var Site $site */
         $site = $this->em->createQueryBuilder()
             ->select('s', 'c')
             ->from(Site::class, 's')

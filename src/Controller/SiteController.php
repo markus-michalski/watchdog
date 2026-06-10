@@ -53,7 +53,7 @@ class SiteController extends AbstractController
         $latestResults = [];
         foreach ($site->getChecks() as $check) {
             $result = $checkResultRepository->findLatestForCheck($check);
-            if ($result !== null) {
+            if (null !== $result) {
                 $latestResults[$check->getId()] = $result;
             }
         }
@@ -87,7 +87,7 @@ class SiteController extends AbstractController
     #[Route('/{id}/delete', name: 'delete', methods: ['POST'])]
     public function delete(Request $request, Site $site, EntityManagerInterface $em): Response
     {
-        if ($this->isCsrfTokenValid('delete' . $site->getId(), (string) $request->request->get('_token', ''))) {
+        if ($this->isCsrfTokenValid('delete'.$site->getId(), (string) $request->request->get('_token', ''))) {
             $em->remove($site);
             $em->flush();
             $this->addFlash('success', sprintf('Site "%s" deleted.', $site->getName()));

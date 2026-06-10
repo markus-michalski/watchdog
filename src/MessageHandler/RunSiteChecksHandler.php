@@ -15,12 +15,13 @@ final class RunSiteChecksHandler
     public function __construct(
         private readonly SiteCheckRepository $siteCheckRepository,
         private readonly CheckRunner $checkRunner,
-    ) {}
+    ) {
+    }
 
     public function __invoke(RunSiteChecksMessage $message): void
     {
         $check = $this->siteCheckRepository->find($message->siteCheckId);
-        if ($check === null || !$check->isActive() || !$check->getSite()->isActive()) {
+        if (null === $check || !$check->isActive() || !$check->getSite()->isActive()) {
             return;
         }
 

@@ -22,7 +22,8 @@ final class CheckScheduleProvider implements ScheduleProviderInterface
     public function __construct(
         private readonly SiteCheckRepository $siteCheckRepository,
         private readonly CacheInterface $cache,
-    ) {}
+    ) {
+    }
 
     public function getSchedule(): Schedule
     {

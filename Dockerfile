@@ -1,4 +1,4 @@
-FROM dunglas/frankenphp:1-php8.3-alpine AS base
+FROM dunglas/frankenphp:1-php8.4-alpine AS base
 
 WORKDIR /app
 
@@ -40,10 +40,10 @@ RUN composer dump-autoload --optimize --no-interaction \
 RUN mkdir -p var/cache var/log var/data \
     && chown -R www-data:www-data var/ public/assets/
 
-# Stage: assets compiled like prod, dev-deps kept for profiler/debug
+# Stage: assets compiled, dev-deps kept, APP_ENV=dev for profiler/debug toolbar
 FROM base AS stage
 
-ENV APP_ENV=prod
+ENV APP_ENV=dev
 
 COPY composer.json composer.lock ./
 RUN composer install --no-scripts --no-autoloader --no-interaction

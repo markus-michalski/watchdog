@@ -10,8 +10,8 @@ use App\Entity\SiteCheck;
 use App\Form\SiteCheckType;
 use App\Message\RunSiteChecksMessage;
 use App\Repository\CheckResultRepository;
-use Symfony\Bridge\Doctrine\Attribute\MapEntity;
 use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Bridge\Doctrine\Attribute\MapEntity;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -91,18 +91,18 @@ class SiteCheckController extends AbstractController
         $config = [];
 
         foreach ($schema as $field) {
-            $raw = $request->request->get('check_config_' . $field['name']);
+            $raw = $request->request->get('check_config_'.$field['name']);
 
-            if ($raw === null || $raw === '') {
+            if (null === $raw || '' === $raw) {
                 continue;
             }
 
-            if ($field['name'] === 'expected_status_codes') {
+            if ('expected_status_codes' === $field['name']) {
                 $config[$field['name']] = array_map(
                     'intval',
                     array_filter(array_map('trim', explode(',', (string) $raw)))
                 );
-            } elseif ($field['type'] === 'number') {
+            } elseif ('number' === $field['type']) {
                 $config[$field['name']] = (int) $raw;
             } else {
                 $config[$field['name']] = $raw;
@@ -115,7 +115,7 @@ class SiteCheckController extends AbstractController
     #[Route('/{checkId}/delete', name: 'delete', methods: ['POST'])]
     public function delete(Request $request, #[MapEntity(id: 'siteId')] Site $site, #[MapEntity(id: 'checkId')] SiteCheck $check, EntityManagerInterface $em): Response
     {
-        if ($this->isCsrfTokenValid('delete_check' . $check->getId(), (string) $request->request->get('_token', ''))) {
+        if ($this->isCsrfTokenValid('delete_check'.$check->getId(), (string) $request->request->get('_token', ''))) {
             $em->remove($check);
             $em->flush();
             $this->addFlash('success', 'Check deleted.');
@@ -131,7 +131,7 @@ class SiteCheckController extends AbstractController
         #[MapEntity(id: 'checkId')] SiteCheck $check,
         MessageBusInterface $bus,
     ): Response {
-        if ($this->isCsrfTokenValid('run_check' . $check->getId(), (string) $request->request->get('_token', ''))) {
+        if ($this->isCsrfTokenValid('run_check'.$check->getId(), (string) $request->request->get('_token', ''))) {
             $bus->dispatch(new RunSiteChecksMessage((int) $check->getId()));
             $this->addFlash('success', sprintf('Check "%s" queued — result appears in a few seconds.', $check->getLabel()));
         }

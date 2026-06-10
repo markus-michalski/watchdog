@@ -8,5 +8,6 @@ final readonly class RunSiteChecksMessage
 {
     public function __construct(
         public int $siteCheckId,
-    ) {}
+    ) {
+    }
 }

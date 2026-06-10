@@ -21,34 +21,43 @@ class CheckResultRepository extends ServiceEntityRepository
 
     public function findLatestForCheck(SiteCheck $check): ?CheckResult
     {
-        return $this->createQueryBuilder('r')
+        /** @var CheckResult|null $result */
+        $result = $this->createQueryBuilder('r')
             ->where('r.check = :check')
             ->setParameter('check', $check)
             ->orderBy('r.checkedAt', 'DESC')
             ->setMaxResults(1)
             ->getQuery()
             ->getOneOrNullResult();
+
+        return $result;
     }
 
-    /** @return CheckResult[] */
+    /** @return array<int, CheckResult> */
     public function findRecentForCheck(SiteCheck $check, int $limit = 20): array
     {
-        return $this->createQueryBuilder('r')
+        /** @var array<int, CheckResult> $results */
+        $results = $this->createQueryBuilder('r')
             ->where('r.check = :check')
             ->setParameter('check', $check)
             ->orderBy('r.checkedAt', 'DESC')
             ->setMaxResults($limit)
             ->getQuery()
             ->getResult();
+
+        return $results;
     }
 
     public function deleteOlderThan(\DateTimeImmutable $cutoff): int
     {
-        return $this->createQueryBuilder('r')
+        /** @var int $count */
+        $count = $this->createQueryBuilder('r')
             ->delete()
             ->where('r.checkedAt < :cutoff')
             ->setParameter('cutoff', $cutoff)
             ->getQuery()
             ->execute();
+
+        return $count;
     }
 }

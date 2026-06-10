@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Controller;
 
-use App\Enum\CheckStatus;
 use App\Repository\CheckResultRepository;
 use App\Repository\SiteRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -29,11 +28,11 @@ class DashboardController extends AbstractController
                 $result = $checkResultRepository->findLatestForCheck($check);
                 $latestResults[$check->getId()] = $result;
 
-                if ($result === null || !$check->isActive()) {
+                if (null === $result || !$check->isActive()) {
                     continue;
                 }
                 $status = $result->getStatus();
-                if ($worst === null || $status->priority() > $worst->priority()) {
+                if (null === $worst || $status->priority() > $worst->priority()) {
                     $worst = $status;
                 }
             }

@@ -7,6 +7,7 @@ services:
     container_name: watchdog-stage-app
     env_file: .env.stage
     environment:
+      APP_ENV: dev
       SERVER_NAME: ":80"
       TZ: Europe/Berlin
       TRUSTED_PROXIES: "REMOTE_ADDR"
@@ -24,6 +25,7 @@ services:
     command: php bin/console messenger:consume async notifications --time-limit=3600 --memory-limit=128M -vv
     env_file: .env.stage
     environment:
+      APP_ENV: dev
       TZ: Europe/Berlin
     group_add:
       - "${DOCKER_GID:-995}"
@@ -42,6 +44,7 @@ services:
     command: php bin/console scheduler:run checks --no-interaction
     env_file: .env.stage
     environment:
+      APP_ENV: dev
       TZ: Europe/Berlin
     volumes:
       - watchdog_stage_data:/app/var

@@ -129,11 +129,11 @@ class SiteCheck
 
     public function setAlertState(?AlertState $alertState): static
     {
-        if ($alertState === null && $this->alertState !== null) {
+        if (null === $alertState && null !== $this->alertState) {
             $this->alertState->setCheck(null);
         }
 
-        if ($alertState !== null && $alertState->getCheck() !== $this) {
+        if (null !== $alertState && $alertState->getCheck() !== $this) {
             $alertState->setCheck($this);
         }
 
@@ -146,7 +146,7 @@ class SiteCheck
     {
         return match ($this->type) {
             'http' => 'HTTP Reachability',
-            'docker' => sprintf('Docker Container Health: %s', $this->config['container_name'] ?? 'unknown'),
+            'docker' => sprintf('Docker Container Health: %s', is_string($this->config['container_name'] ?? null) ? $this->config['container_name'] : 'unknown'),
             default => ucfirst($this->type),
         };
     }
