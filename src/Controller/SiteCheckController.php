@@ -17,10 +17,13 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Messenger\MessageBusInterface;
 use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Contracts\Cache\CacheInterface;
 
 #[Route('/sites/{siteId}/checks', name: 'check_')]
 class SiteCheckController extends AbstractController
 {
+    public function __construct(private readonly CacheInterface $cache) {}
+
     #[Route('/new', name: 'new')]
     public function new(
         Request $request,
@@ -38,6 +41,7 @@ class SiteCheckController extends AbstractController
             $check->setConfig($this->buildConfig($request, $check->getType(), $registry));
             $em->persist($check);
             $em->flush();
+            $this->cache->delete('watchdog_schedule');
             $this->addFlash('success', sprintf('Check "%s" added.', $check->getLabel()));
 
             return $this->redirectToRoute('site_show', ['id' => $site->getId()]);
@@ -66,6 +70,7 @@ class SiteCheckController extends AbstractController
         if ($form->isSubmitted() && $form->isValid()) {
             $check->setConfig($this->buildConfig($request, $check->getType(), $registry));
             $em->flush();
+            $this->cache->delete('watchdog_schedule');
             $this->addFlash('success', 'Check updated.');
 
             return $this->redirectToRoute('site_show', ['id' => $site->getId()]);
@@ -118,6 +123,7 @@ class SiteCheckController extends AbstractController
         if ($this->isCsrfTokenValid('delete_check'.$check->getId(), (string) $request->request->get('_token', ''))) {
             $em->remove($check);
             $em->flush();
+            $this->cache->delete('watchdog_schedule');
             $this->addFlash('success', 'Check deleted.');
         }
 
