@@ -108,7 +108,7 @@
                         </p>
                     {% else %}
                         <div class="mt-4 space-y-2 border-t border-gray-100 pt-3">
-                            {% for check in site.checks %}
+                            {% for check in site.checks|sort((a, b) => a.label <=> b.label) %}
                                 {% set result = latestResults[check.id] ?? null %}
                                 <div class="flex items-center gap-3 text-sm">
                                     {% if result %}

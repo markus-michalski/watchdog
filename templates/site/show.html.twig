@@ -84,7 +84,7 @@
         </div>
     {% else %}
         <div class="grid gap-3" id="check-list">
-            {% for check in site.checks %}
+            {% for check in site.checks|sort((a, b) => a.label <=> b.label) %}
                 {% set result = latestResults[check.id] ?? null %}
                 <div class="bg-white rounded-lg shadow p-4 flex items-center gap-4 check-row" data-label="{{ check.label|lower }}">
                     <div class="flex-1 min-w-0">
