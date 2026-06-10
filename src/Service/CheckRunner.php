@@ -16,7 +16,8 @@ final class CheckRunner
         private readonly EntityManagerInterface $em,
         private readonly AlertService $alertService,
         private readonly LoggerInterface $logger,
-    ) {}
+    ) {
+    }
 
     public function run(SiteCheck $check): void
     {

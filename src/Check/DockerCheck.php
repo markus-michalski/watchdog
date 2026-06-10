@@ -53,7 +53,7 @@ final class DockerCheck implements CheckInterface
 
         $rawName = $check->getConfig()['container_name'] ?? '';
         $containerName = is_string($rawName) ? $rawName : '';
-        if ($containerName === '') {
+        if ('' === $containerName) {
             $result->setStatus(CheckStatus::Unknown);
             $result->setMessage('No container_name configured');
 
@@ -62,16 +62,16 @@ final class DockerCheck implements CheckInterface
 
         if (!file_exists(self::SOCKET_PATH)) {
             $result->setStatus(CheckStatus::Unknown);
-            $result->setMessage('Docker socket not available at ' . self::SOCKET_PATH);
+            $result->setMessage('Docker socket not available at '.self::SOCKET_PATH);
 
             return $result;
         }
 
         try {
-            $data = $this->queryDockerApi('/containers/' . urlencode($containerName) . '/json');
+            $data = $this->queryDockerApi('/containers/'.urlencode($containerName).'/json');
         } catch (\Throwable $e) {
             $result->setStatus(CheckStatus::Fail);
-            $result->setMessage('Docker API error: ' . $e->getMessage());
+            $result->setMessage('Docker API error: '.$e->getMessage());
 
             return $result;
         }
@@ -96,14 +96,14 @@ final class DockerCheck implements CheckInterface
             return $result;
         }
 
-        if ($healthStatus !== null) {
-            if ($healthStatus === 'healthy') {
+        if (null !== $healthStatus) {
+            if ('healthy' === $healthStatus) {
                 $result->setStatus(CheckStatus::Ok);
                 $result->setMessage('healthy');
-            } elseif ($healthStatus === 'starting') {
+            } elseif ('starting' === $healthStatus) {
                 $result->setStatus(CheckStatus::Unknown);
                 $result->setMessage('starting');
-            } elseif ($healthStatus === 'unhealthy') {
+            } elseif ('unhealthy' === $healthStatus) {
                 $result->setStatus(CheckStatus::Warn);
                 $result->setMessage('unhealthy');
             } else {
@@ -122,14 +122,14 @@ final class DockerCheck implements CheckInterface
     /** @return array<string, mixed> */
     private function queryDockerApi(string $path): array
     {
-        $socket = stream_socket_client('unix://' . self::SOCKET_PATH, $errno, $errstr, 5);
-        if ($socket === false) {
+        $socket = stream_socket_client('unix://'.self::SOCKET_PATH, $errno, $errstr, 5);
+        if (false === $socket) {
             throw new \RuntimeException(sprintf('Cannot connect to Docker socket: %s (%d)', $errstr, $errno));
         }
 
         stream_set_timeout($socket, 5);
 
-        $request = "GET " . $path . " HTTP/1.0\r\nHost: localhost\r\nConnection: close\r\n\r\n";
+        $request = 'GET '.$path." HTTP/1.0\r\nHost: localhost\r\nConnection: close\r\n\r\n";
         fwrite($socket, $request);
 
         $response = '';
@@ -144,7 +144,7 @@ final class DockerCheck implements CheckInterface
         preg_match('/HTTP\/\d\.\d (\d+)/', $headers, $matches);
         $statusCode = (int) ($matches[1] ?? 0);
 
-        if ($statusCode === 404) {
+        if (404 === $statusCode) {
             throw new \RuntimeException(sprintf('Container not found (404)'));
         }
 
@@ -157,7 +157,7 @@ final class DockerCheck implements CheckInterface
             throw new \RuntimeException('Invalid JSON response from Docker API');
         }
 
-        /** @var array<string, mixed> $data */
+        /* @var array<string, mixed> $data */
         return $data;
     }
 }

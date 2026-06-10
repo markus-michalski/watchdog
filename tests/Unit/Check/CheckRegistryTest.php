@@ -99,7 +99,8 @@ final class StubCheck implements CheckInterface
         private readonly string $type,
         private readonly string $label,
         private readonly array $schema = [],
-    ) {}
+    ) {
+    }
 
     public function getType(): string
     {

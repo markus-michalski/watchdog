@@ -15,7 +15,8 @@ final class HttpCheck implements CheckInterface
 {
     public function __construct(
         private readonly HttpClientInterface $httpClient,
-    ) {}
+    ) {
+    }
 
     public function getType(): string
     {

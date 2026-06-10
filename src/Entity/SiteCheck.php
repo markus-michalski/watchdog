@@ -129,11 +129,11 @@ class SiteCheck
 
     public function setAlertState(?AlertState $alertState): static
     {
-        if ($alertState === null && $this->alertState !== null) {
+        if (null === $alertState && null !== $this->alertState) {
             $this->alertState->setCheck(null);
         }
 
-        if ($alertState !== null && $alertState->getCheck() !== $this) {
+        if (null !== $alertState && $alertState->getCheck() !== $this) {
             $alertState->setCheck($this);
         }
 

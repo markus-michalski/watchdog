@@ -12,7 +12,7 @@ class Kernel extends BaseKernel
     public function getCacheDir(): string
     {
         if (isset($_SERVER['APP_CACHE_DIR'])) {
-            return $_SERVER['APP_CACHE_DIR'] . '/' . $this->environment;
+            return $_SERVER['APP_CACHE_DIR'].'/'.$this->environment;
         }
 
         return parent::getCacheDir();

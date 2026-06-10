@@ -50,7 +50,7 @@ class SiteType extends AbstractType
             ])
             ->add('contacts', EntityType::class, [
                 'class' => Contact::class,
-                'choice_label' => fn(Contact $c) => (string) $c,
+                'choice_label' => fn (Contact $c) => (string) $c,
                 'multiple' => true,
                 'expanded' => true,
                 'required' => false,

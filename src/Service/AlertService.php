@@ -18,7 +18,8 @@ final class AlertService
         private readonly AlertStateRepository $alertStateRepository,
         private readonly EntityManagerInterface $em,
         private readonly MessageBusInterface $bus,
-    ) {}
+    ) {
+    }
 
     public function evaluate(SiteCheck $check, CheckResult $result): void
     {
@@ -40,7 +41,7 @@ final class AlertService
             return;
         }
 
-        if ($previousStatus->isProblematic() && $newStatus === CheckStatus::Ok) {
+        if ($previousStatus->isProblematic() && CheckStatus::Ok === $newStatus) {
             $this->bus->dispatch(new MailNotificationMessage(
                 siteCheckId: (int) $check->getId(),
                 checkResultId: (int) $result->getId(),

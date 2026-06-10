@@ -186,6 +186,6 @@ class Site
 
     public function hasBasicAuth(): bool
     {
-        return $this->basicAuthUser !== null && $this->basicAuthPassword !== null;
+        return null !== $this->basicAuthUser && null !== $this->basicAuthPassword;
     }
 }

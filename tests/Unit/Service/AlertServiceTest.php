@@ -30,7 +30,7 @@ final class AlertServiceTest extends TestCase
         $bus = $this->createMock(MessageBusInterface::class);
         $bus->expects(self::once())
             ->method('dispatch')
-            ->with(self::callback(static fn (MailNotificationMessage $message): bool => $message->action === 'failure'))
+            ->with(self::callback(static fn (MailNotificationMessage $message): bool => 'failure' === $message->action))
             ->willReturn(new Envelope(new \stdClass()));
 
         $this->createAlertService($check, $state, $bus)->evaluate($check, $result);
@@ -46,7 +46,7 @@ final class AlertServiceTest extends TestCase
         $bus = $this->createMock(MessageBusInterface::class);
         $bus->expects(self::once())
             ->method('dispatch')
-            ->with(self::callback(static fn (MailNotificationMessage $message): bool => $message->action === 'recovery'))
+            ->with(self::callback(static fn (MailNotificationMessage $message): bool => 'recovery' === $message->action))
             ->willReturn(new Envelope(new \stdClass()));
 
         $this->createAlertService($check, $state, $bus)->evaluate($check, $result);

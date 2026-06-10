@@ -23,7 +23,7 @@ class AlertStateRepository extends ServiceEntityRepository
     {
         $state = $this->findOneBy(['check' => $check]);
 
-        if ($state === null) {
+        if (null === $state) {
             $state = new AlertState();
             $state->setCheck($check);
             $this->getEntityManager()->persist($state);
