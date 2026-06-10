@@ -11,6 +11,9 @@ DC       := docker compose -f compose.stage.yml
 DC_LIVE  := docker compose -f compose.live.yml
 DC_LOCAL := docker compose -f compose.yml
 
+EXEC_APP  := $(DC) exec --user www-data app
+EXEC_LIVE := $(DC_LIVE) exec --user www-data app
+
 .DEFAULT_GOAL := help
 
 .PHONY: help
@@ -23,16 +26,16 @@ help: ## Show this help
 stage-update: ## Rebuild image + restart stage (normal deploy: git pull && make stage-update)
 	$(DC) build app
 	$(DC) up -d --no-deps app worker scheduler
-	$(DC) exec app sh -c 'i=0; until php bin/console about > /dev/null 2>&1; do sleep 1; i=$$((i+1)); [ $$i -ge 60 ] && echo "App did not start" && exit 1; done'
-	$(DC) exec app php bin/console cache:clear --no-warmup
-	$(DC) exec app php bin/console cache:warmup
-	$(DC) exec app php bin/console doctrine:migrations:migrate --no-interaction
+	$(EXEC_APP) sh -c 'i=0; until php bin/console about > /dev/null 2>&1; do sleep 1; i=$$((i+1)); [ $$i -ge 60 ] && echo "App did not start" && exit 1; done'
+	$(EXEC_APP) php bin/console cache:clear --no-warmup
+	$(EXEC_APP) php bin/console cache:warmup
+	$(EXEC_APP) php bin/console doctrine:migrations:migrate --no-interaction
 	@echo "Stage updated → http://localhost:8087"
 
 .PHONY: stage-up
 stage-up: ## Start stage containers (does NOT rebuild — use stage-update for deploys)
 	$(DC) up -d
-	$(DC) exec app php bin/console doctrine:migrations:migrate --no-interaction
+	$(EXEC_APP) php bin/console doctrine:migrations:migrate --no-interaction
 	@echo "App     → http://localhost:8087"
 	@echo "Mailpit → http://localhost:8128"
 
@@ -53,7 +56,7 @@ stage-app-logs: ## Tail stage app container logs only
 
 .PHONY: stage-shell
 stage-shell: ## Open shell in stage app container
-	$(DC) exec app sh
+	$(EXEC_APP) sh
 
 .PHONY: stage-build
 stage-build: ## Rebuild stage image (no cache) — use stage-update for normal deploys
@@ -80,7 +83,7 @@ local-shell: ## Open shell in local app container
 .PHONY: live-up
 live-up: ## Start live containers (does NOT rebuild — use live-update for deploys)
 	$(DC_LIVE) up -d
-	$(DC_LIVE) exec app php bin/console doctrine:migrations:migrate --no-interaction
+	$(EXEC_LIVE) php bin/console doctrine:migrations:migrate --no-interaction
 	@echo "Live app → http://127.0.0.1:8086"
 
 .PHONY: live-down
@@ -91,10 +94,10 @@ live-down: ## Stop live containers
 live-update: ## Rebuild + redeploy live without downtime, then migrate
 	$(DC_LIVE) build app
 	$(DC_LIVE) up -d --no-deps app worker scheduler
-	$(DC_LIVE) exec app sh -c 'until php bin/console about > /dev/null 2>&1; do sleep 1; done'
-	$(DC_LIVE) exec app php bin/console cache:clear --no-warmup
-	$(DC_LIVE) exec app php bin/console cache:warmup
-	$(DC_LIVE) exec app php bin/console doctrine:migrations:migrate --no-interaction
+	$(EXEC_LIVE) sh -c 'until php bin/console about > /dev/null 2>&1; do sleep 1; done'
+	$(EXEC_LIVE) php bin/console cache:clear --no-warmup
+	$(EXEC_LIVE) php bin/console cache:warmup
+	$(EXEC_LIVE) php bin/console doctrine:migrations:migrate --no-interaction
 	@echo "Live updated."
 
 .PHONY: live-build
@@ -107,45 +110,45 @@ live-logs: ## Tail live container logs
 
 .PHONY: live-shell
 live-shell: ## Open shell in live app container
-	$(DC_LIVE) exec app sh
+	$(EXEC_LIVE) sh
 
 ## -- Symfony ------------------------------------------------------------------
 
 .PHONY: migrate
 migrate: ## Run Doctrine migrations (stage)
-	$(DC) exec app php bin/console doctrine:migrations:migrate --no-interaction
+	$(EXEC_APP) php bin/console doctrine:migrations:migrate --no-interaction
 
 .PHONY: cc
 cc: ## Clear Symfony cache (stage)
-	$(DC) exec app php bin/console cache:clear
+	$(EXEC_APP) php bin/console cache:clear
 
 ## -- Code quality -------------------------------------------------------------
 
 .PHONY: lint
 lint: ## Run container + twig lint
-	$(DC) exec app php bin/console lint:container
-	$(DC) exec app php bin/console lint:twig templates/ --env=prod
-	$(DC) exec app composer validate --no-check-publish
+	$(EXEC_APP) php bin/console lint:container
+	$(EXEC_APP) php bin/console lint:twig templates/ --env=prod
+	$(EXEC_APP) composer validate --no-check-publish
 
 .PHONY: stan
-stan: ## Run PHPStan (level 8)
-	$(DC) exec app vendor/bin/phpstan analyse src --level=8
+stan: ## Run PHPStan (level 9)
+	$(EXEC_APP) vendor/bin/phpstan analyse --no-progress --memory-limit=512M
 
 .PHONY: cs
 cs: ## Check code style (dry-run)
-	$(DC) exec app vendor/bin/php-cs-fixer fix --dry-run --diff
+	$(EXEC_APP) vendor/bin/php-cs-fixer fix --dry-run --diff
 
 .PHONY: fix
 fix: ## Fix code style
-	$(DC) exec app vendor/bin/php-cs-fixer fix
+	$(EXEC_APP) vendor/bin/php-cs-fixer fix
 
 .PHONY: test
 test: ## Run PHPUnit
-	$(DC) exec app php bin/phpunit
+	$(EXEC_APP) php bin/phpunit
 
 .PHONY: smoke
 smoke: ## Run all smoke tests
-	$(DC) exec app php bin/console lint:container
-	$(DC) exec app php bin/console lint:twig templates/ --env=prod
-	$(DC) exec app php bin/console doctrine:schema:validate --skip-sync
-	$(DC) exec app composer validate --no-check-publish
+	$(EXEC_APP) php bin/console lint:container
+	$(EXEC_APP) php bin/console lint:twig templates/ --env=prod
+	$(EXEC_APP) php bin/console doctrine:schema:validate --skip-sync
+	$(EXEC_APP) composer validate --no-check-publish

@@ -5,7 +5,6 @@ services:
       target: stage
     image: watchdog-stage
     container_name: watchdog-stage-app
-    user: www-data
     env_file: .env.stage
     environment:
       APP_ENV: dev
@@ -30,7 +29,6 @@ services:
     pull_policy: never
     container_name: watchdog-stage-worker
     command: php bin/console messenger:consume async notifications --time-limit=3600 --memory-limit=128M -vv
-    user: www-data
     env_file: .env.stage
     environment:
       APP_ENV: dev
@@ -54,7 +52,6 @@ services:
     pull_policy: never
     container_name: watchdog-stage-scheduler
     command: php bin/console scheduler:run checks --no-interaction
-    user: www-data
     env_file: .env.stage
     environment:
       APP_ENV: dev
