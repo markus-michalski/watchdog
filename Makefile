@@ -38,6 +38,24 @@ setup: ## Copy *.dist/.example files for first-time install
 
 ## -- Stage containers ---------------------------------------------------------
 
+.PHONY: stage-deploy-code
+stage-deploy-code: ## Sync PHP/template/config changes, recompile assets, no image rebuild
+	$(DC) cp src/. app:/app/src
+	$(DC) cp templates/. app:/app/templates
+	$(DC) cp config/. app:/app/config
+	$(DC) cp migrations/. app:/app/migrations
+	$(EXEC_APP) php bin/console tailwind:build --minify
+	$(EXEC_APP) php bin/console asset-map:compile
+	$(DC) exec --user root app php bin/console cache:clear --no-warmup
+	$(DC) exec --user root app php bin/console cache:warmup
+	$(DC) exec --user root worker php bin/console cache:clear --no-warmup
+	$(DC) exec --user root worker php bin/console cache:warmup
+	$(DC) exec --user root scheduler php bin/console cache:clear --no-warmup
+	$(DC) exec --user root scheduler php bin/console cache:warmup
+	$(EXEC_APP) php bin/console doctrine:migrations:migrate --no-interaction
+	$(DC) restart worker scheduler
+	@echo "Stage code deployed."
+
 .PHONY: stage-update
 stage-update: ## Rebuild image + restart stage (normal deploy: git pull && make stage-update)
 	$(DC) build app
@@ -114,6 +132,13 @@ local-up: ## Start local dev containers (code mount, Mailpit)
 local-down: ## Stop local dev containers
 	$(DC_LOCAL) down
 
+.PHONY: local-restart
+local-restart: local-down local-up ## Restart local dev containers
+
+.PHONY: local-logs
+local-logs: ## Tail all local dev container logs
+	$(DC_LOCAL) logs -f
+
 .PHONY: local-shell
 local-shell: ## Open shell in local app container
 	$(DC_LOCAL) exec app sh
@@ -130,6 +155,24 @@ live-up: ## Start live containers (does NOT rebuild — use live-update for depl
 live-down: ## Stop live containers
 	$(DC_LIVE) down
 
+.PHONY: live-deploy-code
+live-deploy-code: ## Sync PHP/template/config changes, recompile assets, no image rebuild
+	$(DC_LIVE) cp src/. app:/app/src
+	$(DC_LIVE) cp templates/. app:/app/templates
+	$(DC_LIVE) cp config/. app:/app/config
+	$(DC_LIVE) cp migrations/. app:/app/migrations
+	$(EXEC_LIVE) php bin/console tailwind:build --minify
+	$(EXEC_LIVE) php bin/console asset-map:compile
+	$(DC_LIVE) exec --user root app php bin/console cache:clear --no-warmup
+	$(DC_LIVE) exec --user root app php bin/console cache:warmup
+	$(DC_LIVE) exec --user root worker php bin/console cache:clear --no-warmup
+	$(DC_LIVE) exec --user root worker php bin/console cache:warmup
+	$(DC_LIVE) exec --user root scheduler php bin/console cache:clear --no-warmup
+	$(DC_LIVE) exec --user root scheduler php bin/console cache:warmup
+	$(EXEC_LIVE) php bin/console doctrine:migrations:migrate --no-interaction
+	$(DC_LIVE) restart worker scheduler
+	@echo "Live code deployed."
+
 .PHONY: live-update
 live-update: ## Rebuild + redeploy live without downtime, then migrate
 	$(DC_LIVE) build app
@@ -145,6 +188,9 @@ live-update: ## Rebuild + redeploy live without downtime, then migrate
 	$(DC_LIVE) restart worker scheduler
 	@echo "Live updated."
 
+.PHONY: live-restart
+live-restart: live-down live-up ## Restart live containers
+
 .PHONY: live-build
 live-build: ## Rebuild live image (no cache) — use live-update for normal deploys
 	$(DC_LIVE) build --no-cache app
@@ -156,6 +202,16 @@ live-logs: ## Tail live container logs
 .PHONY: live-shell
 live-shell: ## Open shell in live app container
 	$(EXEC_LIVE) sh
+
+.PHONY: live-checks-off
+live-checks-off: ## Disable all checks on live (pause automated monitoring)
+	$(EXEC_LIVE) php bin/console dbal:run-sql "UPDATE site_checks SET is_active = 0"
+	@echo "All live checks disabled."
+
+.PHONY: live-checks-on
+live-checks-on: ## Enable all checks on live (resume automated monitoring)
+	$(EXEC_LIVE) php bin/console dbal:run-sql "UPDATE site_checks SET is_active = 1"
+	@echo "All live checks enabled."
 
 ## -- Symfony ------------------------------------------------------------------
 

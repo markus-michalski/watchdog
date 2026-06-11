@@ -10,6 +10,7 @@ use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\CheckboxType;
 use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
 use Symfony\Component\Form\Extension\Core\Type\IntegerType;
+use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 
@@ -33,6 +34,12 @@ class SiteCheckType extends AbstractType
                 'label' => 'Interval (minutes)',
                 'constraints' => [new \Symfony\Component\Validator\Constraints\GreaterThan(0)],
                 'attr' => ['class' => 'form-input', 'min' => 1],
+            ])
+            ->add('runAtTime', TextType::class, [
+                'label' => 'Daily at (optional)',
+                'required' => false,
+                'help' => 'HH:MM — if set, runs once daily at this time. The interval above is ignored.',
+                'attr' => ['class' => 'form-input w-28', 'placeholder' => 'e.g. 08:30'],
             ])
             ->add('isActive', CheckboxType::class, [
                 'label' => 'Active',

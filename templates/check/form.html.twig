@@ -18,13 +18,30 @@
             {{ form_errors(form.type) }}
         </div>
 
-        <div>
+        <div id="interval-field">
             {{ form_label(form.checkIntervalMinutes, null, {label_attr: {class: 'block text-sm font-medium text-gray-700 mb-1'}}) }}
             <div class="flex items-center gap-2">
                 {{ form_widget(form.checkIntervalMinutes, {attr: {class: 'border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 w-24'}}) }}
                 <span class="text-sm text-gray-500">minutes (e.g. 5, 60, 1440)</span>
             </div>
             {{ form_errors(form.checkIntervalMinutes) }}
+        </div>
+
+        <div>
+            {{ form_label(form.runAtTime, null, {label_attr: {class: 'block text-sm font-medium text-gray-700 mb-1'}}) }}
+            <div class="flex items-center gap-2">
+                <input type="time"
+                       id="{{ form.runAtTime.vars.id }}"
+                       name="{{ form.runAtTime.vars.full_name }}"
+                       value="{{ form.runAtTime.vars.value }}"
+                       class="border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 w-36">
+                <button type="button" id="run-at-time-clear"
+                        class="text-gray-400 hover:text-gray-600 text-lg leading-none hidden"
+                        title="Clear — switch back to interval">×</button>
+            </div>
+            {%- do form.runAtTime.setRendered() -%}
+            <p class="text-xs text-gray-400 mt-0.5">If set, the check runs once daily at this time. The interval above is ignored.</p>
+            {{ form_errors(form.runAtTime) }}
         </div>
 
         {# Dynamic config fields — rendered per check type #}
@@ -99,7 +116,38 @@
     const typeSelect = document.querySelector('[data-check-type]');
     if (typeSelect) {
         showConfigForType(typeSelect.value);
-        typeSelect.addEventListener('change', () => showConfigForType(typeSelect.value));
+        typeSelect.addEventListener('change', () => {
+            showConfigForType(typeSelect.value);
+            if (timeInput) { timeInput.value = ''; syncIntervalState(); }
+        });
+    }
+
+    const timeInput   = document.getElementById('{{ form.runAtTime.vars.id }}');
+    const intervalField = document.getElementById('interval-field');
+    const intervalInput = intervalField ? intervalField.querySelector('input') : null;
+
+    const clearBtn = document.getElementById('run-at-time-clear');
+
+    function syncIntervalState() {
+        const hasTime = timeInput && timeInput.value.trim() !== '';
+        if (!intervalField || !intervalInput) return;
+        intervalField.style.opacity = hasTime ? '0.4' : '';
+        intervalField.style.pointerEvents = hasTime ? 'none' : '';
+        intervalInput.readOnly = hasTime;
+        if (clearBtn) clearBtn.classList.toggle('hidden', !hasTime);
+    }
+
+    if (timeInput) {
+        timeInput.addEventListener('input', syncIntervalState);
+        timeInput.addEventListener('change', syncIntervalState);
+        syncIntervalState();
+    }
+
+    if (clearBtn) {
+        clearBtn.addEventListener('click', () => {
+            timeInput.value = '';
+            syncIntervalState();
+        });
     }
 }());
 </script>

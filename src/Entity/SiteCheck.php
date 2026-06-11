@@ -8,6 +8,7 @@ use App\Repository\SiteCheckRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: SiteCheckRepository::class)]
 #[ORM\Table(name: 'site_checks')]
@@ -35,6 +36,11 @@ class SiteCheck
 
     #[ORM\Column]
     private int $checkIntervalMinutes = 5;
+
+    /** HH:MM — if set, run once daily at this time instead of using the interval */
+    #[ORM\Column(length: 5, nullable: true)]
+    #[Assert\Regex(pattern: '/^([01]\d|2[0-3]):[0-5]\d$/', message: 'Time must be in HH:MM format (e.g. 08:30).')]
+    private ?string $runAtTime = null;
 
     /** @var Collection<int, CheckResult> */
     #[ORM\OneToMany(mappedBy: 'check', targetEntity: CheckResult::class, cascade: ['remove'], orphanRemoval: true)]
@@ -112,6 +118,23 @@ class SiteCheck
     public function setCheckIntervalMinutes(int $checkIntervalMinutes): static
     {
         $this->checkIntervalMinutes = $checkIntervalMinutes;
+
+        return $this;
+    }
+
+    public function getRunAtTime(): ?string
+    {
+        return $this->runAtTime;
+    }
+
+    public function setRunAtTime(?string $runAtTime): static
+    {
+        if ($runAtTime !== null && $runAtTime !== '') {
+            // <input type="time"> may submit HH:MM:SS — strip seconds, keep HH:MM
+            $this->runAtTime = substr($runAtTime, 0, 5);
+        } else {
+            $this->runAtTime = null;
+        }
 
         return $this;
     }
