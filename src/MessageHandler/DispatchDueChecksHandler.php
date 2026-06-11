@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\MessageHandler;
 
+use App\Entity\SiteCheck;
 use App\Message\DispatchDueChecksMessage;
 use App\Message\RunSiteChecksMessage;
 use App\Repository\CheckResultRepository;
@@ -36,16 +37,9 @@ final class DispatchDueChecksHandler
         $dispatched = 0;
         foreach ($checks as $check) {
             $checkId = (int) $check->getId();
+            $lastRun = $lastTimestamps[$checkId] ?? null;
 
-            if (!isset($lastTimestamps[$checkId])) {
-                $this->bus->dispatch(new RunSiteChecksMessage($checkId));
-                ++$dispatched;
-                continue;
-            }
-
-            $elapsed = $now->getTimestamp() - $lastTimestamps[$checkId]->getTimestamp();
-            // 30s tolerance absorbs tick jitter so checks don't drift by one full cycle
-            if ($elapsed >= $check->getCheckIntervalMinutes() * 60 - 30) {
+            if ($this->isDue($check, $now, $lastRun)) {
                 $this->bus->dispatch(new RunSiteChecksMessage($checkId));
                 ++$dispatched;
             }
@@ -55,5 +49,35 @@ final class DispatchDueChecksHandler
             'evaluated' => count($checks),
             'dispatched' => $dispatched,
         ]);
+    }
+
+    private function isDue(SiteCheck $check, \DateTimeImmutable $now, ?\DateTimeImmutable $lastRun): bool
+    {
+        if ($check->getRunAtTime() !== null) {
+            try {
+                $scheduledToday = new \DateTimeImmutable('today ' . $check->getRunAtTime());
+            } catch (\Exception $e) {
+                $this->logger->error('Invalid run_at_time value, skipping check', [
+                    'check_id' => $check->getId(),
+                    'run_at_time' => $check->getRunAtTime(),
+                ]);
+
+                return false;
+            }
+
+            if ($now < $scheduledToday) {
+                return false;
+            }
+
+            return $lastRun === null || $lastRun < $scheduledToday;
+        }
+
+        if ($lastRun === null) {
+            return true;
+        }
+
+        $elapsed = $now->getTimestamp() - $lastRun->getTimestamp();
+
+        return $elapsed >= $check->getCheckIntervalMinutes() * 60 - 30;
     }
 }
