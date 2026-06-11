@@ -1,0 +1,18 @@
+# compose.override.yml.example
+#
+# Copy this file to compose.override.yml and add your local volume mounts.
+# compose.override.yml is gitignored — it will never be overwritten by updates.
+# The Makefile automatically detects and merges this file when it exists.
+#
+# Usage:
+#   cp compose.override.yml.example compose.override.yml
+#   # edit compose.override.yml
+#   make stage-update  (or make live-update)
+
+# EXAMPLE — uncomment and adjust:
+#
+# services:
+#   worker:
+#     volumes:
+#       - /var/backup:/var/backup:ro
+#       - /var/www:/var/www:ro

@@ -7,8 +7,15 @@
 #   make local-up      — start local dev containers (compose.yml, with code mount)
 
 SHELL := /bin/bash
-DC       := docker compose -f compose.stage.yml
-DC_LIVE  := docker compose -f compose.live.yml
+
+# If compose.override.yml exists locally, merge it into every compose invocation.
+# This file is gitignored — use it to add host-specific volume mounts (e.g. for
+# FileAgeCheck paths) without touching tracked files or breaking updates.
+OVERRIDE_FILE  := $(wildcard compose.override.yml)
+OVERRIDE_FLAG  := $(if $(OVERRIDE_FILE),-f compose.override.yml,)
+
+DC       := docker compose -f compose.stage.yml $(OVERRIDE_FLAG)
+DC_LIVE  := docker compose -f compose.live.yml $(OVERRIDE_FLAG)
 DC_LOCAL := docker compose -f compose.yml
 
 EXEC_APP  := $(DC) exec --user www-data app
@@ -23,10 +30,11 @@ help: ## Show this help
 ## -- Setup --------------------------------------------------------------------
 
 .PHONY: setup
-setup: ## Copy *.dist files for first-time install (legal templates etc.)
+setup: ## Copy *.dist/.example files for first-time install
 	@[ -f templates/legal/impressum.html.twig ] || { cp templates/legal/impressum.html.twig.dist templates/legal/impressum.html.twig; echo "  created templates/legal/impressum.html.twig"; }
 	@[ -f templates/legal/datenschutz.html.twig ] || { cp templates/legal/datenschutz.html.twig.dist templates/legal/datenschutz.html.twig; echo "  created templates/legal/datenschutz.html.twig"; }
-	@echo "Setup done — edit templates/legal/*.html.twig with your actual legal texts"
+	@[ -f compose.override.yml ] || { cp compose.override.yml.example compose.override.yml; echo "  created compose.override.yml (add your volume mounts here)"; }
+	@echo "Setup done."
 
 ## -- Stage containers ---------------------------------------------------------
 
@@ -35,6 +43,7 @@ stage-update: ## Rebuild image + restart stage (normal deploy: git pull && make 
 	$(DC) build app
 	$(DC) up -d --no-deps app worker scheduler
 	$(EXEC_APP) sh -c 'i=0; until php bin/console about > /dev/null 2>&1; do sleep 1; i=$$((i+1)); [ $$i -ge 60 ] && echo "App did not start" && exit 1; done'
+	$(DC) exec --user root app sh -c 'touch /app/var/data.db && chown www-data:www-data /app/var/data.db'
 	$(EXEC_APP) php bin/console cache:clear --no-warmup
 	$(EXEC_APP) php bin/console cache:warmup
 	$(EXEC_APP) php bin/console doctrine:migrations:migrate --no-interaction

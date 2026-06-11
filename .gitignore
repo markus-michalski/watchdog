@@ -2,7 +2,13 @@
 # Symfony Flex auto-generated Docker stubs — we use our own compose.yml
 /compose.yaml
 /compose.override.yaml
-/.git-workflow/
+
+# Local volume overrides — gitignored so updates never conflict (see compose.override.yml.example)
+/compose.override.yml
+
+# Symfony auto-generated IDE type-reference — regenerated on cache:clear
+/config/reference.php
+/.git-workflow*
 
 ###> symfony/framework-bundle ###
 /.env.local
