@@ -114,6 +114,13 @@ local-up: ## Start local dev containers (code mount, Mailpit)
 local-down: ## Stop local dev containers
 	$(DC_LOCAL) down
 
+.PHONY: local-restart
+local-restart: local-down local-up ## Restart local dev containers
+
+.PHONY: local-logs
+local-logs: ## Tail all local dev container logs
+	$(DC_LOCAL) logs -f
+
 .PHONY: local-shell
 local-shell: ## Open shell in local app container
 	$(DC_LOCAL) exec app sh
@@ -145,6 +152,9 @@ live-update: ## Rebuild + redeploy live without downtime, then migrate
 	$(DC_LIVE) restart worker scheduler
 	@echo "Live updated."
 
+.PHONY: live-restart
+live-restart: live-down live-up ## Restart live containers
+
 .PHONY: live-build
 live-build: ## Rebuild live image (no cache) — use live-update for normal deploys
 	$(DC_LIVE) build --no-cache app
@@ -156,6 +166,16 @@ live-logs: ## Tail live container logs
 .PHONY: live-shell
 live-shell: ## Open shell in live app container
 	$(EXEC_LIVE) sh
+
+.PHONY: live-checks-off
+live-checks-off: ## Disable all checks on live (pause automated monitoring)
+	$(EXEC_LIVE) php bin/console dbal:run-sql "UPDATE site_checks SET is_active = 0"
+	@echo "All live checks disabled."
+
+.PHONY: live-checks-on
+live-checks-on: ## Enable all checks on live (resume automated monitoring)
+	$(EXEC_LIVE) php bin/console dbal:run-sql "UPDATE site_checks SET is_active = 1"
+	@echo "All live checks enabled."
 
 ## -- Symfony ------------------------------------------------------------------
 
