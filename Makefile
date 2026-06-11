@@ -47,6 +47,7 @@ stage-update: ## Rebuild image + restart stage (normal deploy: git pull && make 
 	$(EXEC_APP) php bin/console cache:clear --no-warmup
 	$(EXEC_APP) php bin/console cache:warmup
 	$(EXEC_APP) php bin/console doctrine:migrations:migrate --no-interaction
+	$(DC) restart worker scheduler
 	@echo "Stage updated → http://localhost:8087"
 
 .PHONY: stage-up
@@ -119,10 +120,11 @@ live-down: ## Stop live containers
 live-update: ## Rebuild + redeploy live without downtime, then migrate
 	$(DC_LIVE) build app
 	$(DC_LIVE) up -d --no-deps app worker scheduler
-	$(EXEC_LIVE) sh -c 'until php bin/console about > /dev/null 2>&1; do sleep 1; done'
+	$(EXEC_LIVE) sh -c 'i=0; until php bin/console about > /dev/null 2>&1; do sleep 1; i=$$((i+1)); [ $$i -ge 60 ] && echo "App did not start" && exit 1; done'
 	$(EXEC_LIVE) php bin/console cache:clear --no-warmup
 	$(EXEC_LIVE) php bin/console cache:warmup
 	$(EXEC_LIVE) php bin/console doctrine:migrations:migrate --no-interaction
+	$(DC_LIVE) restart worker scheduler
 	@echo "Live updated."
 
 .PHONY: live-build
