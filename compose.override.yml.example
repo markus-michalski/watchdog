@@ -2,29 +2,17 @@
 #
 # Copy this file to compose.override.yml and add your local volume mounts.
 # compose.override.yml is gitignored — it will never be overwritten by updates.
-#
 # The Makefile automatically detects and merges this file when it exists.
 #
 # Usage:
 #   cp compose.override.yml.example compose.override.yml
-#   # edit compose.override.yml — uncomment and adjust the volumes you need
-#   make live-update   # override is picked up automatically
-#
-# An unmodified copy of this file is safe: it adds no volumes and changes nothing.
+#   # edit compose.override.yml
+#   make stage-update  (or make live-update)
 
-services:
-  worker:
-    volumes: []
-    # Uncomment and adjust what you need, then remove the "volumes: []" line above:
-    #
-    # FileAgeCheck — one directory for all backup status files (recommended):
-    # - /var/watchdog-status:/var/watchdog-status:ro
-    #
-    # FileAgeCheck — native web applications on the same host:
-    # - /var/www:/var/www:ro
-    #
-    # FileAgeCheck — single application path:
-    # - /var/www/typo3:/var/www/typo3:ro
-    #
-    # FileAgeCheck — database dump directory:
-    # - /var/backups/db:/var/backups/db:ro
+# EXAMPLE — uncomment and adjust:
+#
+# services:
+#   worker:
+#     volumes:
+#       - /var/backup:/var/backup:ro
+#       - /var/www:/var/www:ro
