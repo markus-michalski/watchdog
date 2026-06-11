@@ -30,7 +30,10 @@ class SiteType extends AbstractType
             ->add('url', UrlType::class, [
                 'label' => 'URL',
                 'required' => false,
-                'constraints' => [new Assert\Url(requireTld: true)],
+                'constraints' => [new Assert\When(
+                    expression: 'value != "" and value != null',
+                    constraints: [new Assert\Url(requireTld: true)],
+                )],
                 'attr' => ['class' => 'form-input', 'placeholder' => 'https://example.com'],
                 'help' => 'Required for HTTP checks. Leave empty for server-level checks (e.g. file age, Docker).',
             ])
