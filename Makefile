@@ -39,11 +39,13 @@ setup: ## Copy *.dist/.example files for first-time install
 ## -- Stage containers ---------------------------------------------------------
 
 .PHONY: stage-deploy-code
-stage-deploy-code: ## Sync PHP/template/config changes into running container — no image rebuild, no asset recompile
+stage-deploy-code: ## Sync PHP/template/config changes, recompile assets, no image rebuild
 	$(DC) cp src/. app:/app/src
 	$(DC) cp templates/. app:/app/templates
 	$(DC) cp config/. app:/app/config
 	$(DC) cp migrations/. app:/app/migrations
+	$(EXEC_APP) php bin/console tailwind:build --minify
+	$(EXEC_APP) php bin/console asset-map:compile
 	$(DC) exec --user root app php bin/console cache:clear --no-warmup
 	$(DC) exec --user root app php bin/console cache:warmup
 	$(DC) exec --user root worker php bin/console cache:clear --no-warmup
@@ -154,11 +156,13 @@ live-down: ## Stop live containers
 	$(DC_LIVE) down
 
 .PHONY: live-deploy-code
-live-deploy-code: ## Sync PHP/template/config changes into running container — no image rebuild, no asset recompile
+live-deploy-code: ## Sync PHP/template/config changes, recompile assets, no image rebuild
 	$(DC_LIVE) cp src/. app:/app/src
 	$(DC_LIVE) cp templates/. app:/app/templates
 	$(DC_LIVE) cp config/. app:/app/config
 	$(DC_LIVE) cp migrations/. app:/app/migrations
+	$(EXEC_LIVE) php bin/console tailwind:build --minify
+	$(EXEC_LIVE) php bin/console asset-map:compile
 	$(DC_LIVE) exec --user root app php bin/console cache:clear --no-warmup
 	$(DC_LIVE) exec --user root app php bin/console cache:warmup
 	$(DC_LIVE) exec --user root worker php bin/console cache:clear --no-warmup

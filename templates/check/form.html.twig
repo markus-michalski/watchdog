@@ -34,6 +34,7 @@
                    name="{{ form.runAtTime.vars.full_name }}"
                    value="{{ form.runAtTime.vars.value }}"
                    class="border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 w-36">
+            {%- do form.runAtTime.setRendered() -%}
             <p class="text-xs text-gray-400 mt-0.5">If set, the check runs once daily at this time. The interval above is ignored.</p>
             {{ form_errors(form.runAtTime) }}
         </div>
