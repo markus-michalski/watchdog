@@ -46,6 +46,8 @@ stage-update: ## Rebuild image + restart stage (normal deploy: git pull && make 
 	$(DC) exec --user root app sh -c 'touch /app/var/data.db && chown www-data:www-data /app/var/data.db'
 	$(EXEC_APP) php bin/console cache:clear --no-warmup
 	$(EXEC_APP) php bin/console cache:warmup
+	$(DC) exec --user www-data worker php bin/console cache:warmup
+	$(DC) exec --user www-data scheduler php bin/console cache:warmup
 	$(EXEC_APP) php bin/console doctrine:migrations:migrate --no-interaction
 	$(DC) restart worker scheduler
 	@echo "Stage updated → http://localhost:8087"
@@ -133,6 +135,8 @@ live-update: ## Rebuild + redeploy live without downtime, then migrate
 	$(EXEC_LIVE) sh -c 'i=0; until php bin/console about > /dev/null 2>&1; do sleep 1; i=$$((i+1)); [ $$i -ge 60 ] && echo "App did not start" && exit 1; done'
 	$(EXEC_LIVE) php bin/console cache:clear --no-warmup
 	$(EXEC_LIVE) php bin/console cache:warmup
+	$(DC_LIVE) exec --user www-data worker php bin/console cache:warmup
+	$(DC_LIVE) exec --user www-data scheduler php bin/console cache:warmup
 	$(EXEC_LIVE) php bin/console doctrine:migrations:migrate --no-interaction
 	$(DC_LIVE) restart worker scheduler
 	@echo "Live updated."
