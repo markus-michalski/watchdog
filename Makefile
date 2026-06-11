@@ -81,6 +81,14 @@ stage-build: ## Rebuild stage image (no cache) — use stage-update for normal d
 
 ## -- Local dev (compose.yml, code mount) --------------------------------
 
+.PHONY: local-build
+local-build: ## First-time local setup: build image, start containers, run migrations
+	$(DC_LOCAL) build app
+	$(DC_LOCAL) up -d
+	$(DC_LOCAL) exec app sh -c 'i=0; until php bin/console about > /dev/null 2>&1; do sleep 1; i=$$((i+1)); [ $$i -ge 60 ] && echo "App did not start in time" && exit 1; done'
+	$(DC_LOCAL) exec app php bin/console doctrine:migrations:migrate --no-interaction
+	@echo "Local dev ready → http://localhost:8087 | Mailpit → http://localhost:8128"
+
 .PHONY: local-up
 local-up: ## Start local dev containers (code mount, Mailpit)
 	$(DC_LOCAL) up -d
