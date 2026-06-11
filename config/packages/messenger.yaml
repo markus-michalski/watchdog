@@ -18,6 +18,5 @@ framework:
             failed: 'doctrine://default?queue_name=failed'
 
         routing:
-            App\Message\DispatchDueChecksMessage: sync
             App\Message\RunSiteChecksMessage: async
             App\Message\MailNotificationMessage: notifications
