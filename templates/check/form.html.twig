@@ -121,9 +121,9 @@
     function syncIntervalState() {
         const hasTime = timeInput && timeInput.value.trim() !== '';
         if (!intervalField || !intervalInput) return;
-        intervalInput.disabled = hasTime;
         intervalField.style.opacity = hasTime ? '0.4' : '';
         intervalField.style.pointerEvents = hasTime ? 'none' : '';
+        intervalInput.readOnly = hasTime;
     }
 
     if (timeInput) {
