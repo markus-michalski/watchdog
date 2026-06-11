@@ -57,6 +57,7 @@ RUN composer dump-autoload --no-interaction \
     && php bin/console asset-map:compile
 
 RUN mkdir -p var/cache var/log var/data \
+    && touch var/data.db \
     && chown -R www-data:www-data var/ public/assets/ /data /config /tmp
 
 # Development stage (local, code mounted via volume)

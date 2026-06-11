@@ -43,6 +43,7 @@ stage-update: ## Rebuild image + restart stage (normal deploy: git pull && make 
 	$(DC) build app
 	$(DC) up -d --no-deps app worker scheduler
 	$(EXEC_APP) sh -c 'i=0; until php bin/console about > /dev/null 2>&1; do sleep 1; i=$$((i+1)); [ $$i -ge 60 ] && echo "App did not start" && exit 1; done'
+	$(DC) exec --user root app sh -c 'touch /app/var/data.db && chown www-data:www-data /app/var/data.db'
 	$(EXEC_APP) php bin/console cache:clear --no-warmup
 	$(EXEC_APP) php bin/console cache:warmup
 	$(EXEC_APP) php bin/console doctrine:migrations:migrate --no-interaction
