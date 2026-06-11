@@ -76,6 +76,16 @@ stage-app-logs: ## Tail stage app container logs only
 stage-shell: ## Open shell in stage app container
 	$(EXEC_APP) sh
 
+.PHONY: stage-checks-off
+stage-checks-off: ## Disable all checks on stage (pause automated monitoring)
+	$(EXEC_APP) php bin/console dbal:run-sql "UPDATE site_checks SET is_active = 0"
+	@echo "All stage checks disabled."
+
+.PHONY: stage-checks-on
+stage-checks-on: ## Enable all checks on stage (resume automated monitoring)
+	$(EXEC_APP) php bin/console dbal:run-sql "UPDATE site_checks SET is_active = 1"
+	@echo "All stage checks enabled."
+
 .PHONY: stage-build
 stage-build: ## Rebuild stage image (no cache) — use stage-update for normal deploys
 	$(DC) build --no-cache app
