@@ -68,6 +68,13 @@ final class HttpCheck implements CheckInterface
         $result = new CheckResult();
         $result->setCheck($check);
 
+        if (null === $site->getUrl() || '' === $site->getUrl()) {
+            $result->setStatus(CheckStatus::Unknown);
+            $result->setMessage('No URL configured for this site');
+
+            return $result;
+        }
+
         $options = [
             'timeout' => $config['timeout'] ?? 10,
             'verify_peer' => true,
