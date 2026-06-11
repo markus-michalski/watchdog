@@ -48,6 +48,42 @@ class CheckResultRepository extends ServiceEntityRepository
         return $results;
     }
 
+    /**
+     * Returns a map of check_id => latest checkedAt for a set of checks.
+     * Single query instead of N individual lookups.
+     *
+     * @param array<int, SiteCheck> $checks
+     * @return array<int, \DateTimeImmutable>
+     */
+    public function findLatestTimestampsByChecks(array $checks): array
+    {
+        if ([] === $checks) {
+            return [];
+        }
+
+        /** @var array<int, array{check_id: mixed, last_checked: mixed}> $rows */
+        $rows = $this->createQueryBuilder('r')
+            ->select('IDENTITY(r.check) AS check_id, MAX(r.checkedAt) AS last_checked')
+            ->where('r.check IN (:checks)')
+            ->setParameter('checks', $checks)
+            ->groupBy('r.check')
+            ->getQuery()
+            ->getResult();
+
+        $map = [];
+        foreach ($rows as $row) {
+            $ts = $row['last_checked'];
+            if (null === $ts) {
+                continue;
+            }
+            $map[(int) $row['check_id']] = $ts instanceof \DateTimeImmutable
+                ? $ts
+                : new \DateTimeImmutable($ts);
+        }
+
+        return $map;
+    }
+
     public function deleteOlderThan(\DateTimeImmutable $cutoff): int
     {
         /** @var int $count */
