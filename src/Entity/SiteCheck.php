@@ -129,7 +129,12 @@ class SiteCheck
 
     public function setRunAtTime(?string $runAtTime): static
     {
-        $this->runAtTime = ($runAtTime !== '' && $runAtTime !== null) ? $runAtTime : null;
+        if ($runAtTime !== null && $runAtTime !== '') {
+            // <input type="time"> may submit HH:MM:SS — strip seconds, keep HH:MM
+            $this->runAtTime = substr($runAtTime, 0, 5);
+        } else {
+            $this->runAtTime = null;
+        }
 
         return $this;
     }
