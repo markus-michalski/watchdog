@@ -22,8 +22,8 @@ class Site
     #[ORM\Column(length: 255)]
     private string $name;
 
-    #[ORM\Column(length: 2048)]
-    private string $url;
+    #[ORM\Column(length: 2048, nullable: true)]
+    private ?string $url = null;
 
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $basicAuthUser = null;
@@ -81,14 +81,14 @@ class Site
         return $this;
     }
 
-    public function getUrl(): string
+    public function getUrl(): ?string
     {
         return $this->url;
     }
 
-    public function setUrl(string $url): static
+    public function setUrl(?string $url): static
     {
-        $this->url = $url;
+        $this->url = $url ?: null;
 
         return $this;
     }

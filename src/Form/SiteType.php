@@ -29,8 +29,10 @@ class SiteType extends AbstractType
             ])
             ->add('url', UrlType::class, [
                 'label' => 'URL',
-                'constraints' => [new Assert\NotBlank(), new Assert\Url(requireTld: true)],
+                'required' => false,
+                'constraints' => [new Assert\Url(requireTld: true)],
                 'attr' => ['class' => 'form-input', 'placeholder' => 'https://example.com'],
+                'help' => 'Required for HTTP checks. Leave empty for server-level checks (e.g. file age, Docker).',
             ])
             ->add('isActive', CheckboxType::class, [
                 'label' => 'Active',
