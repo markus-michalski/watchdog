@@ -38,6 +38,22 @@ setup: ## Copy *.dist/.example files for first-time install
 
 ## -- Stage containers ---------------------------------------------------------
 
+.PHONY: stage-deploy-code
+stage-deploy-code: ## Sync PHP/template/config changes into running container — no image rebuild, no asset recompile
+	$(DC) cp src/. app:/app/src
+	$(DC) cp templates/. app:/app/templates
+	$(DC) cp config/. app:/app/config
+	$(DC) cp migrations/. app:/app/migrations
+	$(DC) exec --user root app php bin/console cache:clear --no-warmup
+	$(DC) exec --user root app php bin/console cache:warmup
+	$(DC) exec --user root worker php bin/console cache:clear --no-warmup
+	$(DC) exec --user root worker php bin/console cache:warmup
+	$(DC) exec --user root scheduler php bin/console cache:clear --no-warmup
+	$(DC) exec --user root scheduler php bin/console cache:warmup
+	$(EXEC_APP) php bin/console doctrine:migrations:migrate --no-interaction
+	$(DC) restart worker scheduler
+	@echo "Stage code deployed."
+
 .PHONY: stage-update
 stage-update: ## Rebuild image + restart stage (normal deploy: git pull && make stage-update)
 	$(DC) build app
@@ -136,6 +152,22 @@ live-up: ## Start live containers (does NOT rebuild — use live-update for depl
 .PHONY: live-down
 live-down: ## Stop live containers
 	$(DC_LIVE) down
+
+.PHONY: live-deploy-code
+live-deploy-code: ## Sync PHP/template/config changes into running container — no image rebuild, no asset recompile
+	$(DC_LIVE) cp src/. app:/app/src
+	$(DC_LIVE) cp templates/. app:/app/templates
+	$(DC_LIVE) cp config/. app:/app/config
+	$(DC_LIVE) cp migrations/. app:/app/migrations
+	$(DC_LIVE) exec --user root app php bin/console cache:clear --no-warmup
+	$(DC_LIVE) exec --user root app php bin/console cache:warmup
+	$(DC_LIVE) exec --user root worker php bin/console cache:clear --no-warmup
+	$(DC_LIVE) exec --user root worker php bin/console cache:warmup
+	$(DC_LIVE) exec --user root scheduler php bin/console cache:clear --no-warmup
+	$(DC_LIVE) exec --user root scheduler php bin/console cache:warmup
+	$(EXEC_LIVE) php bin/console doctrine:migrations:migrate --no-interaction
+	$(DC_LIVE) restart worker scheduler
+	@echo "Live code deployed."
 
 .PHONY: live-update
 live-update: ## Rebuild + redeploy live without downtime, then migrate
