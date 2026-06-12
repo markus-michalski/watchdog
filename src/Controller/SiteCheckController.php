@@ -152,8 +152,10 @@ class SiteCheckController extends AbstractController
         #[MapEntity(id: 'checkId')] SiteCheck $check,
         CheckResultRepository $checkResultRepository,
     ): Response {
-        $perPage = 50;
-        $page    = max(1, (int) $request->query->get('page', '1'));
+        $limit = in_array($request->query->getInt('limit', 50), [10, 25, 50, 100], true)
+            ? $request->query->getInt('limit', 50)
+            : 50;
+        $page = max(1, $request->query->getInt('page', 1));
 
         $rawStatus   = $request->query->get('status', '');
         $rawFrom     = $request->query->get('from', '');
@@ -181,20 +183,19 @@ class SiteCheckController extends AbstractController
             }
         }
 
-        $total      = $checkResultRepository->countFilteredForCheck($check, $filters);
-        $results    = $checkResultRepository->findFilteredForCheck($check, $filters, $page, $perPage);
-        $totalPages = max(1, (int) ceil($total / $perPage));
-        $page       = min($page, $totalPages);
+        $total = $checkResultRepository->countFilteredForCheck($check, $filters);
+        $pages = max(1, (int) ceil($total / $limit));
+        $page  = min($page, $pages);
 
         return $this->render('check/history.html.twig', [
-            'site'       => $site,
-            'check'      => $check,
-            'results'    => $results,
-            'total'      => $total,
-            'page'       => $page,
-            'perPage'    => $perPage,
-            'totalPages' => $totalPages,
-            'filters'    => [
+            'site'    => $site,
+            'check'   => $check,
+            'results' => $checkResultRepository->findFilteredForCheck($check, $filters, $page, $limit),
+            'total'   => $total,
+            'page'    => $page,
+            'limit'   => $limit,
+            'pages'   => $pages,
+            'filters' => [
                 'status'    => $rawStatus,
                 'from'      => $rawFrom,
                 'to'        => $rawTo,

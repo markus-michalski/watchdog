@@ -64,16 +64,14 @@
         {% endif %}
     </div>
 {% else %}
-    <div class="flex items-center justify-between mb-2 text-sm text-gray-500">
-        <span>
-            Showing {{ (page - 1) * perPage + 1 }}–{{ min(page * perPage, total) }} of {{ total }} result{{ total != 1 ? 's' : '' }}
-        </span>
-        {% if check.retentionDays %}
-            <span class="text-xs text-gray-400">Retention: {{ check.retentionDays }} day{{ check.retentionDays != 1 ? 's' : '' }}</span>
-        {% endif %}
-    </div>
+    {# Build base params preserving active filters (used in pagination links) #}
+    {% set pageParams = {siteId: site.id, checkId: check.id} %}
+    {% if filters.status %}{% set pageParams = pageParams|merge({status: filters.status}) %}{% endif %}
+    {% if filters.from %}{% set pageParams = pageParams|merge({from: filters.from}) %}{% endif %}
+    {% if filters.to %}{% set pageParams = pageParams|merge({to: filters.to}) %}{% endif %}
+    {% if filters.http_code %}{% set pageParams = pageParams|merge({http_code: filters.http_code}) %}{% endif %}
 
-    <div class="bg-white rounded-lg shadow overflow-hidden mb-4">
+    <div class="bg-white rounded-lg shadow overflow-hidden">
         <table class="w-full text-sm">
             <thead class="bg-gray-50 text-gray-600 uppercase text-xs">
                 <tr>
@@ -100,65 +98,44 @@
                 {% endfor %}
             </tbody>
         </table>
-    </div>
 
-    {# Pagination #}
-    {% if totalPages > 1 %}
-        {# Build base params preserving active filters #}
-        {% set pageParams = {siteId: site.id, checkId: check.id} %}
-        {% if filters.status %}{% set pageParams = pageParams|merge({status: filters.status}) %}{% endif %}
-        {% if filters.from %}{% set pageParams = pageParams|merge({from: filters.from}) %}{% endif %}
-        {% if filters.to %}{% set pageParams = pageParams|merge({to: filters.to}) %}{% endif %}
-        {% if filters.http_code %}{% set pageParams = pageParams|merge({http_code: filters.http_code}) %}{% endif %}
-
-        {% set winStart = max(1, page - 2) %}
-        {% set winEnd   = min(totalPages, page + 2) %}
-
-        <nav class="flex items-center justify-center gap-1 text-sm">
-            {# Previous #}
-            {% if page > 1 %}
-                <a href="{{ path('check_history', pageParams|merge({page: page - 1})) }}"
-                   class="px-3 py-1.5 rounded border border-gray-300 text-gray-700 hover:bg-gray-50">←</a>
-            {% else %}
-                <span class="px-3 py-1.5 rounded border border-gray-200 text-gray-300 cursor-default">←</span>
+        {# Pagination bar — same style as invoice-management #}
+        <div class="flex items-center flex-wrap gap-3 px-4 py-3 border-t border-gray-200 text-sm text-gray-500">
+            <span>{{ total }} result{{ total != 1 ? 's' : '' }}</span>
+            {% if check.retentionDays %}
+                <span class="text-gray-300">|</span>
+                <span class="text-xs text-gray-400">Retention: {{ check.retentionDays }}d</span>
             {% endif %}
-
-            {# First page + ellipsis #}
-            {% if winStart > 1 %}
-                <a href="{{ path('check_history', pageParams|merge({page: 1})) }}"
-                   class="px-3 py-1.5 rounded border border-gray-300 text-gray-700 hover:bg-gray-50">1</a>
-                {% if winStart > 2 %}
-                    <span class="px-2 py-1.5 text-gray-400">…</span>
-                {% endif %}
-            {% endif %}
-
-            {# Window pages #}
-            {% for p in range(winStart, winEnd) %}
-                {% if p == page %}
-                    <span class="px-3 py-1.5 rounded border border-blue-500 bg-blue-600 text-white font-medium">{{ p }}</span>
-                {% else %}
-                    <a href="{{ path('check_history', pageParams|merge({page: p})) }}"
-                       class="px-3 py-1.5 rounded border border-gray-300 text-gray-700 hover:bg-gray-50">{{ p }}</a>
-                {% endif %}
+            <span class="text-gray-300">|</span>
+            <span>Entries:</span>
+            {% for n in [10, 25, 50, 100] %}
+                <a href="{{ path('check_history', pageParams|merge({page: 1, limit: n})) }}"
+                   class="rounded px-2 py-0.5 {{ n == limit ? 'bg-blue-600 text-white font-medium' : 'text-gray-600 hover:bg-gray-100' }}">
+                    {{ n }}
+                </a>
             {% endfor %}
-
-            {# Ellipsis + last page #}
-            {% if winEnd < totalPages %}
-                {% if winEnd < totalPages - 1 %}
-                    <span class="px-2 py-1.5 text-gray-400">…</span>
+            {% if pages > 1 %}
+                <span class="text-gray-300">|</span>
+                {% if page > 1 %}
+                    <a href="{{ path('check_history', pageParams|merge({page: page - 1, limit: limit})) }}"
+                       class="rounded px-2 py-0.5 text-gray-600 hover:bg-gray-100">‹</a>
                 {% endif %}
-                <a href="{{ path('check_history', pageParams|merge({page: totalPages})) }}"
-                   class="px-3 py-1.5 rounded border border-gray-300 text-gray-700 hover:bg-gray-50">{{ totalPages }}</a>
+                {% for p in 1..pages %}
+                    {% if p == 1 or p == pages or (p >= page - 2 and p <= page + 2) %}
+                        <a href="{{ path('check_history', pageParams|merge({page: p, limit: limit})) }}"
+                           class="rounded px-2 py-0.5 {{ p == page ? 'bg-blue-600 text-white font-medium' : 'text-gray-600 hover:bg-gray-100' }}">
+                            {{ p }}
+                        </a>
+                    {% elseif p == page - 3 or p == page + 3 %}
+                        <span class="text-gray-400">…</span>
+                    {% endif %}
+                {% endfor %}
+                {% if page < pages %}
+                    <a href="{{ path('check_history', pageParams|merge({page: page + 1, limit: limit})) }}"
+                       class="rounded px-2 py-0.5 text-gray-600 hover:bg-gray-100">›</a>
+                {% endif %}
             {% endif %}
-
-            {# Next #}
-            {% if page < totalPages %}
-                <a href="{{ path('check_history', pageParams|merge({page: page + 1})) }}"
-                   class="px-3 py-1.5 rounded border border-gray-300 text-gray-700 hover:bg-gray-50">→</a>
-            {% else %}
-                <span class="px-3 py-1.5 rounded border border-gray-200 text-gray-300 cursor-default">→</span>
-            {% endif %}
-        </nav>
-    {% endif %}
+        </div>
+    </div>
 {% endif %}
 {% endblock %}
