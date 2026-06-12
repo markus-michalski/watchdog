@@ -177,9 +177,9 @@ live-deploy-code: ## Sync PHP/template/config changes, recompile assets, no imag
 live-update: ## Rebuild + redeploy live without downtime, then migrate
 	$(DC_LIVE) build app
 	$(DC_LIVE) up -d --no-deps app
-	$(EXEC_LIVE) sh -c 'i=0; until php bin/console about > /dev/null 2>&1; do sleep 1; i=$$((i+1)); [ $$i -ge 60 ] && echo "App did not start" && exit 1; done'
-	$(EXEC_LIVE) php bin/console cache:clear --no-warmup
-	$(EXEC_LIVE) php bin/console cache:warmup
+	$(DC_LIVE) exec --user root app sh -c 'i=0; until php bin/console about > /dev/null 2>&1; do sleep 1; i=$$((i+1)); [ $$i -ge 60 ] && echo "App did not start" && exit 1; done'
+	$(DC_LIVE) exec --user root app php bin/console cache:clear --no-warmup
+	$(DC_LIVE) exec --user root app php bin/console cache:warmup
 	$(EXEC_LIVE) php bin/console doctrine:migrations:migrate --no-interaction
 	$(DC_LIVE) up -d --no-deps worker scheduler
 	$(DC_LIVE) exec --user root worker sh -c 'i=0; until php bin/console about > /dev/null 2>&1; do sleep 1; i=$$((i+1)); [ $$i -ge 60 ] && echo "Worker did not start" && exit 1; done'
