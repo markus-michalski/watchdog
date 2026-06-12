@@ -88,8 +88,8 @@
                                class="border border-blue-300 text-blue-700 px-2.5 py-1 rounded text-xs hover:bg-blue-50">
                                 Edit
                             </a>
-                            <form action="{{ path('client_delete', {id: client.id}) }}" method="post" class="inline"
-                                  onsubmit="return confirm('Delete client {{ client.name|e('js') }} and all its checks?')">
+                            <form action="{{ path('client_delete', {id: client.id}) }}" method="post" class="flex items-center"
+                                  data-confirm-message="Delete client {{ client.name|e('html') }} and all its checks?">
                                 <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ client.id) }}">
                                 <button type="submit"
                                         class="border border-red-300 text-red-700 px-2.5 py-1 rounded text-xs hover:bg-red-50 cursor-pointer">

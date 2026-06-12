@@ -42,8 +42,8 @@
                     <div class="flex items-center gap-1.5 shrink-0">
                         <a href="{{ path('client_url_edit', {clientId: client.id, urlId: url.id}) }}"
                            class="border border-blue-300 text-blue-700 px-2 py-0.5 rounded text-xs hover:bg-blue-50">Edit</a>
-                        <form action="{{ path('client_url_delete', {clientId: client.id, urlId: url.id}) }}" method="post" class="inline"
-                              onsubmit="return confirm('Delete this URL?')">
+                        <form action="{{ path('client_url_delete', {clientId: client.id, urlId: url.id}) }}" method="post" class="flex items-center"
+                              data-confirm-message="Delete this URL?">
                             <input type="hidden" name="_token" value="{{ csrf_token('delete_url' ~ url.id) }}">
                             <button type="submit" class="border border-red-300 text-red-700 px-2 py-0.5 rounded text-xs hover:bg-red-50 cursor-pointer">Delete</button>
                         </form>
@@ -177,8 +177,8 @@
                                 Run now
                             </button>
                         </form>
-                        <form action="{{ path('check_delete', {clientId: client.id, checkId: check.id}) }}" method="post" class="inline"
-                              onsubmit="return confirm('Delete this check?')">
+                        <form action="{{ path('check_delete', {clientId: client.id, checkId: check.id}) }}" method="post" class="flex items-center"
+                              data-confirm-message="Delete this check?">
                             <input type="hidden" name="_token" value="{{ csrf_token('delete_check' ~ check.id) }}">
                             <button type="submit"
                                     class="border border-red-300 text-red-700 px-2.5 py-1 rounded text-xs hover:bg-red-50 cursor-pointer">
