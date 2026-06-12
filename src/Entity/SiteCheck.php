@@ -185,10 +185,10 @@ class SiteCheck
     public function getLabel(): string
     {
         return match ($this->type) {
-            'http' => 'HTTP Reachability',
-            'docker' => sprintf('Docker Container Health: %s', is_string($this->config['container_name'] ?? null) ? $this->config['container_name'] : 'unknown'),
-            'file_age' => sprintf('File Age: %s', is_string($this->config['path'] ?? null) ? $this->config['path'] : 'unknown'),
-            default => ucfirst($this->type),
+            'http'     => 'HTTP Reachability',
+            'docker'   => 'Docker Container Health',
+            'file_age' => 'File Age',
+            default    => ucfirst($this->type),
         };
     }
 }

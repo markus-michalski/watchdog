@@ -134,6 +134,10 @@
                                                         <span class="text-xs font-normal text-blue-600 bg-blue-50 border border-blue-200 rounded px-1.5 py-0 shrink-0">{{ url.displayLabel }}</span>
                                                     {% endif %}
                                                 {% endfor %}
+                                            {% elseif check.type == 'docker' and check.config.container_name is defined %}
+                                                <span class="text-xs font-normal text-gray-600 bg-gray-100 border border-gray-200 rounded px-1.5 py-0 font-mono shrink-0">{{ check.config.container_name }}</span>
+                                            {% elseif check.type == 'file_age' and check.config.path is defined %}
+                                                <span class="text-xs font-normal text-gray-600 bg-gray-100 border border-gray-200 rounded px-1.5 py-0 font-mono shrink-0">{{ check.config.path }}</span>
                                             {% endif %}
                                         </a>
 
