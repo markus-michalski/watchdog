@@ -121,11 +121,6 @@
                         </p>
                         <p class="text-xs text-gray-400 mt-0.5">
                             {% if check.runAtTime %}daily at {{ check.runAtTime }}{% else %}every {{ check.checkIntervalMinutes|duration }}{% endif %}
-                            {% if check.type == 'docker' and check.config.container_name is defined %}
-                                · <span class="font-mono">{{ check.config.container_name }}</span>
-                            {% elseif check.type == 'file_age' and check.config.path is defined %}
-                                · <span class="font-mono truncate">{{ check.config.path }}</span>
-                            {% endif %}
                         </p>
                     </div>
 
