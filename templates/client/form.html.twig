@@ -31,23 +31,27 @@
         </div>
 
         <hr class="border-gray-200">
+
         <div>
-            {{ form_label(form.contacts, null, {label_attr: {class: 'form-label'}}) }}
-            {% if form.contacts|length == 0 %}
-                <p class="text-sm text-gray-400 italic">
-                    No contacts available.
-                    <a href="{{ path('contact_new') }}" class="text-blue-600 hover:underline">Create one first</a>
-                </p>
-            {% else %}
-                <div class="space-y-1 mt-1">
-                    {% for choice in form.contacts %}
-                        <label class="flex items-center gap-2 text-sm text-gray-700 cursor-pointer">
-                            {{ form_widget(choice) }}
-                            {{ choice.vars.label }}
-                        </label>
-                    {% endfor %}
-                </div>
-            {% endif %}
+            <div class="flex items-center justify-between mb-1">
+                <span class="block text-sm font-medium text-gray-700">Alert contacts</span>
+                <button type="button" id="open-contact-modal"
+                        class="text-xs text-blue-600 hover:text-blue-800 font-medium flex items-center gap-1">
+                    + New contact
+                </button>
+            </div>
+
+            <div id="contact-list" class="space-y-1 mt-1">
+                {% for choice in form.contacts %}
+                    <label class="flex items-center gap-2 text-sm text-gray-700 cursor-pointer">
+                        {{ form_widget(choice) }}
+                        {{ choice.vars.label }}
+                    </label>
+                {% endfor %}
+                {% if form.contacts|length == 0 %}
+                    <p id="no-contacts-hint" class="text-sm text-gray-400 italic">No contacts yet — add one above.</p>
+                {% endif %}
+            </div>
             {{ form_errors(form.contacts) }}
         </div>
 
@@ -63,4 +67,136 @@
         {{ form_end(form) }}
     </div>
 </div>
+
+{# Contact quick-create modal #}
+<div id="contact-modal" class="fixed inset-0 z-50 hidden" aria-modal="true" role="dialog">
+    <div class="absolute inset-0 bg-black/40" id="contact-modal-backdrop"></div>
+    <div class="relative flex items-center justify-center min-h-screen p-4">
+        <div class="bg-white rounded-lg shadow-xl w-full max-w-sm p-6 relative">
+            <h2 class="text-lg font-semibold text-gray-800 mb-4">New contact</h2>
+
+            <div id="modal-error" class="hidden mb-3 px-3 py-2 rounded bg-red-50 border border-red-200 text-red-700 text-sm"></div>
+
+            <div class="space-y-3">
+                <div>
+                    <label for="modal-name" class="block text-sm font-medium text-gray-700 mb-1">Name</label>
+                    <input type="text" id="modal-name" autocomplete="off"
+                           class="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                           placeholder="Full name">
+                </div>
+                <div>
+                    <label for="modal-email" class="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                    <input type="email" id="modal-email" autocomplete="off"
+                           class="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                           placeholder="email@example.com">
+                </div>
+            </div>
+
+            <div class="flex gap-3 mt-5">
+                <button type="button" id="modal-save"
+                        class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 text-sm font-medium">
+                    Save contact
+                </button>
+                <button type="button" id="close-contact-modal"
+                        class="text-gray-600 hover:text-gray-800 px-3 py-2 text-sm">
+                    Cancel
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+(function () {
+    const modal        = document.getElementById('contact-modal');
+    const backdrop     = document.getElementById('contact-modal-backdrop');
+    const openBtn      = document.getElementById('open-contact-modal');
+    const closeBtn     = document.getElementById('close-contact-modal');
+    const saveBtn      = document.getElementById('modal-save');
+    const nameInput    = document.getElementById('modal-name');
+    const emailInput   = document.getElementById('modal-email');
+    const errorBox     = document.getElementById('modal-error');
+    const contactList  = document.getElementById('contact-list');
+    const noHint       = document.getElementById('no-contacts-hint');
+
+    // Determine the form's checkbox field name from the existing choices,
+    // or fall back to a known Symfony naming pattern
+    function resolveFieldName() {
+        const existing = contactList.querySelector('input[type="checkbox"]');
+        if (existing) {
+            // e.g. "client_form[contacts][]" → keep that base
+            return existing.name.replace(/\[\d+\]$/, '[]');
+        }
+        // Fallback: derive from the form id attr of the surrounding form
+        return 'client[contacts][]';
+    }
+
+    function open() {
+        modal.classList.remove('hidden');
+        nameInput.value  = '';
+        emailInput.value = '';
+        errorBox.classList.add('hidden');
+        errorBox.textContent = '';
+        nameInput.focus();
+    }
+
+    function close() {
+        modal.classList.add('hidden');
+    }
+
+    openBtn.addEventListener('click', open);
+    closeBtn.addEventListener('click', close);
+    backdrop.addEventListener('click', close);
+
+    document.addEventListener('keydown', e => {
+        if (e.key === 'Escape' && !modal.classList.contains('hidden')) close();
+    });
+
+    async function save() {
+        errorBox.classList.add('hidden');
+        saveBtn.disabled = true;
+        saveBtn.textContent = 'Saving…';
+
+        const body = new FormData();
+        body.set('name',   nameInput.value.trim());
+        body.set('email',  emailInput.value.trim());
+        body.set('_token', '{{ csrf_token('contact_form') }}');
+
+        try {
+            const res  = await fetch('{{ path('contact_new_ajax') }}', { method: 'POST', body });
+            const data = await res.json();
+
+            if (!data.success) {
+                errorBox.textContent = data.error ?? 'Unknown error.';
+                errorBox.classList.remove('hidden');
+                return;
+            }
+
+            // Add new checkbox to the list, pre-checked
+            const fieldName = resolveFieldName();
+            const label = document.createElement('label');
+            label.className = 'flex items-center gap-2 text-sm text-gray-700 cursor-pointer';
+            label.innerHTML = `<input type="checkbox" name="${fieldName}" value="${data.id}" checked
+                                      class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                               ${data.name} &lt;${data.email}&gt;`;
+            if (noHint) noHint.remove();
+            contactList.appendChild(label);
+            close();
+        } catch {
+            errorBox.textContent = 'Network error. Please try again.';
+            errorBox.classList.remove('hidden');
+        } finally {
+            saveBtn.disabled = false;
+            saveBtn.textContent = 'Save contact';
+        }
+    }
+
+    saveBtn.addEventListener('click', save);
+
+    // Allow Enter key in modal fields to trigger save
+    [nameInput, emailInput].forEach(el => {
+        el.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); save(); } });
+    });
+}());
+</script>
 {% endblock %}
