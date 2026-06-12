@@ -44,8 +44,8 @@
                         <div class="flex items-center justify-end gap-1.5">
                             <a href="{{ path('contact_edit', {id: contact.id}) }}"
                                class="border border-blue-300 text-blue-700 px-2.5 py-1 rounded text-xs hover:bg-blue-50">Edit</a>
-                            <form action="{{ path('contact_delete', {id: contact.id}) }}" method="post" class="inline"
-                                  onsubmit="return confirm('Delete {{ contact.name|e('js') }}?')">
+                            <form action="{{ path('contact_delete', {id: contact.id}) }}" method="post" class="flex items-center"
+                                  data-confirm-message="Delete {{ contact.name|e('html') }}?">
                                 <input type="hidden" name="_token" value="{{ csrf_token('delete_contact' ~ contact.id) }}">
                                 <button type="submit"
                                         class="border border-red-300 text-red-700 px-2.5 py-1 rounded text-xs hover:bg-red-50 cursor-pointer">Delete</button>
