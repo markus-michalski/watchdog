@@ -21,7 +21,7 @@ final class RunSiteChecksHandler
     public function __invoke(RunSiteChecksMessage $message): void
     {
         $check = $this->siteCheckRepository->find($message->siteCheckId);
-        if (null === $check || !$check->isActive() || !$check->getSite()->isActive()) {
+        if (null === $check) {
             return;
         }
 
