@@ -118,8 +118,16 @@
         <div class="grid gap-3" id="check-list">
             {% for check in client.checks|sort((a, b) => a.label <=> b.label) %}
                 {% set result = latestResults[check.id] ?? null %}
+                {% set _searchText = check.label|lower %}
+                {% if check.type == 'docker' and check.config.container_name is defined %}
+                    {% set _searchText = _searchText ~ ' ' ~ check.config.container_name|lower %}
+                {% elseif check.type == 'http' %}
+                    {% for url in client.urls %}{% if url.id == check.config.client_url_id %}{% set _searchText = _searchText ~ ' ' ~ (url.label ?? url.url)|lower %}{% endif %}{% endfor %}
+                {% elseif check.type == 'file_age' and check.config.path is defined %}
+                    {% set _searchText = _searchText ~ ' ' ~ check.config.path|lower %}
+                {% endif %}
                 <div class="bg-white rounded-lg shadow p-4 flex items-center gap-4 check-row"
-                     data-label="{{ check.label|lower }}"
+                     data-label="{{ _searchText }}"
                      data-status="{{ result ? result.status.value : 'pending' }}"
                      data-type="{{ check.type }}">
                     <div class="flex-1 min-w-0">
