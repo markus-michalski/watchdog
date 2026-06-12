@@ -146,12 +146,60 @@ class SiteCheckController extends AbstractController
     }
 
     #[Route('/{checkId}/history', name: 'history')]
-    public function history(#[MapEntity(id: 'siteId')] Site $site, #[MapEntity(id: 'checkId')] SiteCheck $check, CheckResultRepository $checkResultRepository): Response
-    {
+    public function history(
+        Request $request,
+        #[MapEntity(id: 'siteId')] Site $site,
+        #[MapEntity(id: 'checkId')] SiteCheck $check,
+        CheckResultRepository $checkResultRepository,
+    ): Response {
+        $perPage = 50;
+        $page    = max(1, (int) $request->query->get('page', '1'));
+
+        $rawStatus   = $request->query->get('status', '');
+        $rawFrom     = $request->query->get('from', '');
+        $rawTo       = $request->query->get('to', '');
+        $rawHttpCode = $request->query->get('http_code', '');
+
+        $filters = [
+            'status'    => $rawStatus !== '' ? $rawStatus : null,
+            'from'      => null,
+            'to'        => null,
+            'http_code' => $rawHttpCode !== '' ? (int) $rawHttpCode : null,
+        ];
+
+        if ($rawFrom !== '') {
+            try {
+                $filters['from'] = new \DateTimeImmutable($rawFrom . ' 00:00:00');
+            } catch (\Exception) {
+            }
+        }
+
+        if ($rawTo !== '') {
+            try {
+                $filters['to'] = new \DateTimeImmutable($rawTo . ' 00:00:00');
+            } catch (\Exception) {
+            }
+        }
+
+        $total      = $checkResultRepository->countFilteredForCheck($check, $filters);
+        $results    = $checkResultRepository->findFilteredForCheck($check, $filters, $page, $perPage);
+        $totalPages = max(1, (int) ceil($total / $perPage));
+        $page       = min($page, $totalPages);
+
         return $this->render('check/history.html.twig', [
-            'site' => $site,
-            'check' => $check,
-            'results' => $checkResultRepository->findRecentForCheck($check, 50),
+            'site'       => $site,
+            'check'      => $check,
+            'results'    => $results,
+            'total'      => $total,
+            'page'       => $page,
+            'perPage'    => $perPage,
+            'totalPages' => $totalPages,
+            'filters'    => [
+                'status'    => $rawStatus,
+                'from'      => $rawFrom,
+                'to'        => $rawTo,
+                'http_code' => $rawHttpCode,
+            ],
         ]);
     }
 }

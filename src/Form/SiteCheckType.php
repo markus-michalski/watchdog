@@ -41,6 +41,12 @@ class SiteCheckType extends AbstractType
                 'help' => 'HH:MM — if set, runs once daily at this time. The interval above is ignored.',
                 'attr' => ['class' => 'form-input w-28', 'placeholder' => 'e.g. 08:30'],
             ])
+            ->add('retentionDays', IntegerType::class, [
+                'label' => 'Keep results for (days)',
+                'required' => false,
+                'help' => 'Leave empty to keep forever. Example: 1 for http checks every 5 min, 28 for daily checks.',
+                'attr' => ['class' => 'form-input w-28', 'min' => 1, 'placeholder' => 'e.g. 30'],
+            ])
             ->add('isActive', CheckboxType::class, [
                 'label' => 'Active',
                 'required' => false,

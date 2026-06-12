@@ -7,6 +7,7 @@ namespace App\Repository;
 use App\Entity\CheckResult;
 use App\Entity\SiteCheck;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\ORM\QueryBuilder;
 use Doctrine\Persistence\ManagerRegistry;
 
 /**
@@ -46,6 +47,67 @@ class CheckResultRepository extends ServiceEntityRepository
             ->getResult();
 
         return $results;
+    }
+
+    /**
+     * @param array{status?: string|null, from?: \DateTimeImmutable|null, to?: \DateTimeImmutable|null, http_code?: int|null} $filters
+     * @return array<int, CheckResult>
+     */
+    public function findFilteredForCheck(SiteCheck $check, array $filters, int $page = 1, int $perPage = 50): array
+    {
+        /** @var array<int, CheckResult> $results */
+        $results = $this->buildFilteredQb($check, $filters)
+            ->orderBy('r.checkedAt', 'DESC')
+            ->setFirstResult(($page - 1) * $perPage)
+            ->setMaxResults($perPage)
+            ->getQuery()
+            ->getResult();
+
+        return $results;
+    }
+
+    /**
+     * @param array{status?: string|null, from?: \DateTimeImmutable|null, to?: \DateTimeImmutable|null, http_code?: int|null} $filters
+     */
+    public function countFilteredForCheck(SiteCheck $check, array $filters): int
+    {
+        return (int) $this->buildFilteredQb($check, $filters)
+            ->select('COUNT(r.id)')
+            ->getQuery()
+            ->getSingleScalarResult();
+    }
+
+    /**
+     * @param array{status?: string|null, from?: \DateTimeImmutable|null, to?: \DateTimeImmutable|null, http_code?: int|null} $filters
+     */
+    private function buildFilteredQb(SiteCheck $check, array $filters): QueryBuilder
+    {
+        $qb = $this->createQueryBuilder('r')
+            ->where('r.check = :check')
+            ->setParameter('check', $check);
+
+        if (!empty($filters['status'])) {
+            $qb->andWhere('r.status = :status')
+               ->setParameter('status', $filters['status']);
+        }
+
+        if (!empty($filters['from'])) {
+            $qb->andWhere('r.checkedAt >= :from')
+               ->setParameter('from', $filters['from']);
+        }
+
+        if (!empty($filters['to'])) {
+            // include the full "to" day
+            $qb->andWhere('r.checkedAt < :to')
+               ->setParameter('to', $filters['to']->modify('+1 day'));
+        }
+
+        if (isset($filters['http_code']) && $filters['http_code'] !== null) {
+            $qb->andWhere('r.statusCode = :http_code')
+               ->setParameter('http_code', $filters['http_code']);
+        }
+
+        return $qb;
     }
 
     /**
@@ -90,6 +152,21 @@ class CheckResultRepository extends ServiceEntityRepository
         $count = $this->createQueryBuilder('r')
             ->delete()
             ->where('r.checkedAt < :cutoff')
+            ->setParameter('cutoff', $cutoff)
+            ->getQuery()
+            ->execute();
+
+        return $count;
+    }
+
+    public function deleteOlderThanForCheck(SiteCheck $check, \DateTimeImmutable $cutoff): int
+    {
+        /** @var int $count */
+        $count = $this->createQueryBuilder('r')
+            ->delete()
+            ->where('r.check = :check')
+            ->andWhere('r.checkedAt < :cutoff')
+            ->setParameter('check', $check)
             ->setParameter('cutoff', $cutoff)
             ->getQuery()
             ->execute();

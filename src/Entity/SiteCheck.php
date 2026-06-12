@@ -42,6 +42,11 @@ class SiteCheck
     #[Assert\Regex(pattern: '/^([01]\d|2[0-3]):[0-5]\d$/', message: 'Time must be in HH:MM format (e.g. 08:30).')]
     private ?string $runAtTime = null;
 
+    /** Keep results for N days; null = keep forever */
+    #[ORM\Column(nullable: true)]
+    #[Assert\Positive(message: 'Retention must be at least 1 day.')]
+    private ?int $retentionDays = null;
+
     /** @var Collection<int, CheckResult> */
     #[ORM\OneToMany(mappedBy: 'check', targetEntity: CheckResult::class, cascade: ['remove'], orphanRemoval: true)]
     #[ORM\OrderBy(['checkedAt' => 'DESC'])]
@@ -161,6 +166,18 @@ class SiteCheck
         }
 
         $this->alertState = $alertState;
+
+        return $this;
+    }
+
+    public function getRetentionDays(): ?int
+    {
+        return $this->retentionDays;
+    }
+
+    public function setRetentionDays(?int $retentionDays): static
+    {
+        $this->retentionDays = $retentionDays;
 
         return $this;
     }
