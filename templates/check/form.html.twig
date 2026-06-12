@@ -77,7 +77,7 @@
                                                 class="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                                                 {% if field.required %}data-required="1"{% endif %}>
                                             <option value="">— Select URL —</option>
-                                            {% for clientUrl in clientUrls %}
+                                            {% for clientUrl in clientUrls|sort((a, b) => (a.label ?? a.url) <=> (b.label ?? b.url)) %}
                                                 <option value="{{ clientUrl.id }}"
                                                         {% if check.config.client_url_id is defined and check.config.client_url_id == clientUrl.id %}selected{% endif %}>
                                                     {{ clientUrl.displayLabel }}{% if clientUrl.hasBasicAuth() %} [BasicAuth]{% endif %}

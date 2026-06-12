@@ -90,6 +90,8 @@
 
     {% if client.checks is not empty %}
     <div class="flex flex-wrap items-center gap-2 mb-3">
+        <input type="search" id="check-search" placeholder="Filter by label…"
+               class="border border-gray-300 rounded px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300 w-48">
         <div class="flex gap-1.5" id="status-filters">
             <button data-status-filter="all"     class="check-filter-btn active px-2.5 py-1 rounded text-xs font-medium border border-gray-300 bg-gray-100 text-gray-700">All</button>
             <button data-status-filter="ok"      class="check-filter-btn px-2.5 py-1 rounded text-xs font-medium border border-green-200 text-green-700 hover:bg-green-50">OK</button>
@@ -200,20 +202,25 @@
     const empty = document.getElementById('check-empty');
     const statusBtns = document.querySelectorAll('#status-filters [data-status-filter]');
     const typeBtns   = document.querySelectorAll('#type-filters [data-type-filter]');
+    const search     = document.getElementById('check-search');
     let activeStatus = 'all';
     let activeType   = 'all';
 
     function applyFilters() {
+        const q = search ? search.value.toLowerCase().trim() : '';
         let visible = 0;
         rows.forEach(row => {
             const statusMatch = activeStatus === 'all' || row.dataset.status === activeStatus;
             const typeMatch   = activeType   === 'all' || row.dataset.type   === activeType;
-            const show = statusMatch && typeMatch;
+            const labelMatch  = !q || row.dataset.label.includes(q);
+            const show = statusMatch && typeMatch && labelMatch;
             row.style.display = show ? '' : 'none';
             if (show) visible++;
         });
         if (empty) empty.classList.toggle('hidden', visible > 0);
     }
+
+    if (search) search.addEventListener('input', applyFilters);
 
     function activateBtn(btn, allBtns, activeKey) {
         allBtns.forEach(b => b.classList.remove(
