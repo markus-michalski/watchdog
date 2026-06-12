@@ -104,7 +104,7 @@
                                 {{ result.status.label() }}
                             </span>
                             {% if result.message %}
-                                <span class="text-xs font-semibold hidden sm:block {{ result.status.textClass() }}">{{ result.message }}</span>
+                                <span class="text-xs font-semibold hidden sm:block {{ result.status.textClass() }}">{{ result.message|format_durations }}</span>
                             {% endif %}
                             <span class="text-xs text-gray-400 hidden sm:block">{{ result.checkedAt|date('d.m. H:i') }}</span>
                             {% if result.responseTimeMs %}

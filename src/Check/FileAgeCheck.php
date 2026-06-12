@@ -66,25 +66,6 @@ final class FileAgeCheck implements CheckInterface
         ];
     }
 
-    private static function formatDuration(int $minutes): string
-    {
-        if ($minutes <= 0) {
-            return '0 min';
-        }
-
-        $days  = intdiv($minutes, 1440);
-        $rem   = $minutes % 1440;
-        $hours = intdiv($rem, 60);
-        $mins  = $rem % 60;
-
-        $parts = [];
-        if ($days > 0)  $parts[] = "{$days}d";
-        if ($hours > 0) $parts[] = "{$hours}h";
-        if ($mins > 0)  $parts[] = "{$mins}min";
-
-        return implode(' ', $parts) ?: '0 min';
-    }
-
     public function run(SiteCheck $check): CheckResult
     {
         $config = array_merge($this->getDefaultConfig(), $check->getConfig());
@@ -129,20 +110,20 @@ final class FileAgeCheck implements CheckInterface
 
         if ($ageMinutes > $maxAgeMinutes) {
             $result->setStatus(CheckStatus::Fail);
-            $result->setMessage(sprintf('File is %s old (max: %s)', self::formatDuration($ageMinutes), self::formatDuration($maxAgeMinutes)));
+            $result->setMessage(sprintf('File is %d min old (max: %d min)', $ageMinutes, $maxAgeMinutes));
 
             return $result;
         }
 
         if ($warnAgeMinutes > 0 && $ageMinutes > $warnAgeMinutes) {
             $result->setStatus(CheckStatus::Warn);
-            $result->setMessage(sprintf('File is %s old (warn: %s)', self::formatDuration($ageMinutes), self::formatDuration($warnAgeMinutes)));
+            $result->setMessage(sprintf('File is %d min old (warn: %d min)', $ageMinutes, $warnAgeMinutes));
 
             return $result;
         }
 
         $result->setStatus(CheckStatus::Ok);
-        $result->setMessage(sprintf('%s old', self::formatDuration($ageMinutes)));
+        $result->setMessage(sprintf('%d min old', $ageMinutes));
 
         return $result;
     }

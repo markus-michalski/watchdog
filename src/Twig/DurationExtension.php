@@ -13,7 +13,18 @@ final class DurationExtension extends AbstractExtension
     {
         return [
             new TwigFilter('duration', $this->formatDuration(...)),
+            new TwigFilter('format_durations', $this->formatDurationsInText(...)),
         ];
+    }
+
+    /** Replaces "401 min" patterns anywhere in a string with the human-readable equivalent. */
+    public function formatDurationsInText(string $text): string
+    {
+        return (string) preg_replace_callback(
+            '/(\d+)\s*min\b/',
+            fn (array $m) => $this->formatDuration((int) $m[1]),
+            $text
+        );
     }
 
     public function formatDuration(int $minutes): string
