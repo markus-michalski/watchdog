@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Scheduler;
 
+use App\Message\CleanupOldResultsMessage;
 use App\Message\DispatchDueChecksMessage;
 use Symfony\Component\Scheduler\Attribute\AsSchedule;
 use Symfony\Component\Scheduler\RecurringMessage;
@@ -23,6 +24,7 @@ final class CheckScheduleProvider implements ScheduleProviderInterface
     {
         $schedule = new Schedule();
         $schedule->add(RecurringMessage::every('1 minute', new DispatchDueChecksMessage()));
+        $schedule->add(RecurringMessage::cron('0 3 * * *', new CleanupOldResultsMessage()));
 
         return $schedule;
     }

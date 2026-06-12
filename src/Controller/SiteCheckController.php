@@ -107,7 +107,7 @@ class SiteCheckController extends AbstractController
                     'intval',
                     array_filter(array_map('trim', explode(',', (string) $raw)))
                 );
-            } elseif ('number' === $field['type']) {
+            } elseif (in_array($field['type'], ['number', 'duration'], true)) {
                 $config[$field['name']] = (int) $raw;
             } else {
                 $config[$field['name']] = $raw;
@@ -146,12 +146,61 @@ class SiteCheckController extends AbstractController
     }
 
     #[Route('/{checkId}/history', name: 'history')]
-    public function history(#[MapEntity(id: 'siteId')] Site $site, #[MapEntity(id: 'checkId')] SiteCheck $check, CheckResultRepository $checkResultRepository): Response
-    {
+    public function history(
+        Request $request,
+        #[MapEntity(id: 'siteId')] Site $site,
+        #[MapEntity(id: 'checkId')] SiteCheck $check,
+        CheckResultRepository $checkResultRepository,
+    ): Response {
+        $limit = in_array($request->query->getInt('limit', 50), [10, 25, 50, 100], true)
+            ? $request->query->getInt('limit', 50)
+            : 50;
+        $page = max(1, $request->query->getInt('page', 1));
+
+        $rawStatus   = $request->query->get('status', '');
+        $rawFrom     = $request->query->get('from', '');
+        $rawTo       = $request->query->get('to', '');
+        $rawHttpCode = $request->query->get('http_code', '');
+
+        $filters = [
+            'status'    => $rawStatus !== '' ? $rawStatus : null,
+            'from'      => null,
+            'to'        => null,
+            'http_code' => $rawHttpCode !== '' ? (int) $rawHttpCode : null,
+        ];
+
+        if ($rawFrom !== '') {
+            try {
+                $filters['from'] = new \DateTimeImmutable($rawFrom . ' 00:00:00');
+            } catch (\Exception) {
+            }
+        }
+
+        if ($rawTo !== '') {
+            try {
+                $filters['to'] = new \DateTimeImmutable($rawTo . ' 00:00:00');
+            } catch (\Exception) {
+            }
+        }
+
+        $total = $checkResultRepository->countFilteredForCheck($check, $filters);
+        $pages = max(1, (int) ceil($total / $limit));
+        $page  = min($page, $pages);
+
         return $this->render('check/history.html.twig', [
-            'site' => $site,
-            'check' => $check,
-            'results' => $checkResultRepository->findRecentForCheck($check, 50),
+            'site'    => $site,
+            'check'   => $check,
+            'results' => $checkResultRepository->findFilteredForCheck($check, $filters, $page, $limit),
+            'total'   => $total,
+            'page'    => $page,
+            'limit'   => $limit,
+            'pages'   => $pages,
+            'filters' => [
+                'status'    => $rawStatus,
+                'from'      => $rawFrom,
+                'to'        => $rawTo,
+                'http_code' => $rawHttpCode,
+            ],
         ]);
     }
 }

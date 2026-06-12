@@ -19,6 +19,18 @@ class SiteCheckRepository extends ServiceEntityRepository
     }
 
     /** @return array<int, SiteCheck> */
+    public function findWithRetentionPolicy(): array
+    {
+        /** @var array<int, SiteCheck> $results */
+        $results = $this->createQueryBuilder('c')
+            ->where('c.retentionDays IS NOT NULL')
+            ->getQuery()
+            ->getResult();
+
+        return $results;
+    }
+
+    /** @return array<int, SiteCheck> */
     public function findAllActiveWithSites(): array
     {
         /** @var array<int, SiteCheck> $results */

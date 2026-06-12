@@ -3,17 +3,74 @@
 {% block title %}{{ check.label }} — History — Watchdog{% endblock %}
 
 {% block body %}
-<div class="flex items-center gap-3 mb-6">
+<div class="flex items-center gap-3 mb-4">
     <a href="{{ path('site_show', {id: site.id}) }}" class="text-gray-500 hover:text-gray-700 text-sm">← {{ site.name }}</a>
     <h1 class="text-2xl font-bold text-gray-800">{{ check.label }}</h1>
-    <span class="text-sm text-gray-400">Last 50 results</span>
 </div>
 
-{% if results is empty %}
+{# Filter form #}
+<form method="get" class="bg-white rounded-lg shadow px-4 py-3 mb-4 flex flex-wrap items-end gap-3">
+    <div class="flex flex-col gap-1">
+        <label for="f-status" class="text-xs text-gray-500 font-medium">Status</label>
+        <select id="f-status" name="status"
+                class="border border-gray-300 rounded px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300">
+            <option value="">All</option>
+            <option value="ok"      {% if filters.status == 'ok'      %}selected{% endif %}>OK</option>
+            <option value="warn"    {% if filters.status == 'warn'    %}selected{% endif %}>WARN</option>
+            <option value="fail"    {% if filters.status == 'fail'    %}selected{% endif %}>FAIL</option>
+            <option value="unknown" {% if filters.status == 'unknown' %}selected{% endif %}>UNKNOWN</option>
+        </select>
+    </div>
+
+    <div class="flex flex-col gap-1">
+        <label for="f-http" class="text-xs text-gray-500 font-medium">HTTP Code</label>
+        <input id="f-http" type="number" name="http_code" value="{{ filters.http_code }}"
+               placeholder="e.g. 500" min="100" max="599"
+               class="border border-gray-300 rounded px-2 py-1.5 text-sm w-28 focus:outline-none focus:ring-2 focus:ring-blue-300">
+    </div>
+
+    <div class="flex flex-col gap-1">
+        <label for="f-from" class="text-xs text-gray-500 font-medium">From</label>
+        <input id="f-from" type="date" name="from" value="{{ filters.from }}"
+               class="border border-gray-300 rounded px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300">
+    </div>
+
+    <div class="flex flex-col gap-1">
+        <label for="f-to" class="text-xs text-gray-500 font-medium">To</label>
+        <input id="f-to" type="date" name="to" value="{{ filters.to }}"
+               class="border border-gray-300 rounded px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300">
+    </div>
+
+    <button type="submit"
+            class="bg-blue-600 text-white px-4 py-1.5 rounded text-sm hover:bg-blue-700">
+        Filter
+    </button>
+
+    {% if filters.status or filters.from or filters.to or filters.http_code %}
+        <a href="{{ path('check_history', {siteId: site.id, checkId: check.id}) }}"
+           class="text-sm text-gray-500 hover:text-gray-700 py-1.5">
+            × Clear
+        </a>
+    {% endif %}
+</form>
+
+{# Result info #}
+{% if total == 0 %}
     <div class="bg-white rounded-lg shadow p-8 text-center text-gray-500">
-        No results yet. Run the check first.
+        {% if filters.status or filters.from or filters.to or filters.http_code %}
+            No results match your filter.
+        {% else %}
+            No results yet. Run the check first.
+        {% endif %}
     </div>
 {% else %}
+    {# Build base params preserving active filters (used in pagination links) #}
+    {% set pageParams = {siteId: site.id, checkId: check.id} %}
+    {% if filters.status %}{% set pageParams = pageParams|merge({status: filters.status}) %}{% endif %}
+    {% if filters.from %}{% set pageParams = pageParams|merge({from: filters.from}) %}{% endif %}
+    {% if filters.to %}{% set pageParams = pageParams|merge({to: filters.to}) %}{% endif %}
+    {% if filters.http_code %}{% set pageParams = pageParams|merge({http_code: filters.http_code}) %}{% endif %}
+
     <div class="bg-white rounded-lg shadow overflow-hidden">
         <table class="w-full text-sm">
             <thead class="bg-gray-50 text-gray-600 uppercase text-xs">
@@ -41,6 +98,44 @@
                 {% endfor %}
             </tbody>
         </table>
+
+        {# Pagination bar — same style as invoice-management #}
+        <div class="flex items-center flex-wrap gap-3 px-4 py-3 border-t border-gray-200 text-sm text-gray-500">
+            <span>{{ total }} result{{ total != 1 ? 's' : '' }}</span>
+            {% if check.retentionDays %}
+                <span class="text-gray-300">|</span>
+                <span class="text-xs text-gray-400">Retention: {{ check.retentionDays }}d</span>
+            {% endif %}
+            <span class="text-gray-300">|</span>
+            <span>Entries:</span>
+            {% for n in [10, 25, 50, 100] %}
+                <a href="{{ path('check_history', pageParams|merge({page: 1, limit: n})) }}"
+                   class="rounded px-2 py-0.5 {{ n == limit ? 'bg-blue-600 text-white font-medium' : 'text-gray-600 hover:bg-gray-100' }}">
+                    {{ n }}
+                </a>
+            {% endfor %}
+            {% if pages > 1 %}
+                <span class="text-gray-300">|</span>
+                {% if page > 1 %}
+                    <a href="{{ path('check_history', pageParams|merge({page: page - 1, limit: limit})) }}"
+                       class="rounded px-2 py-0.5 text-gray-600 hover:bg-gray-100">‹</a>
+                {% endif %}
+                {% for p in 1..pages %}
+                    {% if p == 1 or p == pages or (p >= page - 2 and p <= page + 2) %}
+                        <a href="{{ path('check_history', pageParams|merge({page: p, limit: limit})) }}"
+                           class="rounded px-2 py-0.5 {{ p == page ? 'bg-blue-600 text-white font-medium' : 'text-gray-600 hover:bg-gray-100' }}">
+                            {{ p }}
+                        </a>
+                    {% elseif p == page - 3 or p == page + 3 %}
+                        <span class="text-gray-400">…</span>
+                    {% endif %}
+                {% endfor %}
+                {% if page < pages %}
+                    <a href="{{ path('check_history', pageParams|merge({page: page + 1, limit: limit})) }}"
+                       class="rounded px-2 py-0.5 text-gray-600 hover:bg-gray-100">›</a>
+                {% endif %}
+            {% endif %}
+        </div>
     </div>
 {% endif %}
 {% endblock %}
