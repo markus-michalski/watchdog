@@ -34,27 +34,27 @@ final class RunSiteChecksHandlerTest extends TestCase
     }
 
     #[Test]
-    public function doesNothingWhenCheckIsInactive(): void
+    public function runsCheckEvenWhenCheckIsInactive(): void
     {
         $check = $this->createCheck(checkActive: false, siteActive: true);
 
         $repository = $this->createMock(SiteCheckRepository::class);
         $repository->method('find')->with(1)->willReturn($check);
 
-        $registry = $this->createRegistrySpy(shouldRun: false);
+        $registry = $this->createRegistrySpy(shouldRun: true);
 
         $this->createHandler($repository, $registry)(new RunSiteChecksMessage(1));
     }
 
     #[Test]
-    public function doesNothingWhenSiteIsInactive(): void
+    public function runsCheckEvenWhenSiteIsInactive(): void
     {
         $check = $this->createCheck(checkActive: true, siteActive: false);
 
         $repository = $this->createMock(SiteCheckRepository::class);
         $repository->method('find')->with(1)->willReturn($check);
 
-        $registry = $this->createRegistrySpy(shouldRun: false);
+        $registry = $this->createRegistrySpy(shouldRun: true);
 
         $this->createHandler($repository, $registry)(new RunSiteChecksMessage(1));
     }
