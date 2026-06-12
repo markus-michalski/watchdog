@@ -31,7 +31,7 @@ final class CleanupOldResultsHandler
                 continue;
             }
 
-            $cutoff = new \DateTimeImmutable(sprintf('-%d days', $days));
+            $cutoff = new \DateTimeImmutable(sprintf('-%d days', $days), new \DateTimeZone('UTC'));
             $deleted = $this->checkResultRepository->deleteOlderThanForCheck($check, $cutoff);
 
             if ($deleted > 0) {

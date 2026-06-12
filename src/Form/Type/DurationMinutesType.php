@@ -59,9 +59,18 @@ final class DurationMinutesType extends AbstractType implements DataTransformerI
             throw new TransformationFailedException('Expected an array.');
         }
 
-        $total = (int) ($value['days']    ?? 0) * 1440
-               + (int) ($value['hours']   ?? 0) * 60
-               + (int) ($value['minutes'] ?? 0);
+        $days    = (int) ($value['days']    ?? 0);
+        $hours   = (int) ($value['hours']   ?? 0);
+        $minutes = (int) ($value['minutes'] ?? 0);
+
+        if ($hours > 23) {
+            throw new TransformationFailedException('Hours out of range.', 0, null, 'Hours must be between 0 and 23.');
+        }
+        if ($minutes > 59) {
+            throw new TransformationFailedException('Minutes out of range.', 0, null, 'Minutes must be between 0 and 59.');
+        }
+
+        $total = $days * 1440 + $hours * 60 + $minutes;
 
         if ($total < 1) {
             throw new TransformationFailedException(
