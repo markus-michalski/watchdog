@@ -89,6 +89,9 @@
                 <div class="bg-white rounded-lg shadow p-4 flex items-center gap-4 check-row" data-label="{{ check.label|lower }}">
                     <div class="flex-1 min-w-0">
                         <p class="font-medium text-gray-800">{{ check.label }}</p>
+                        <p class="text-xs text-gray-400 mt-0.5">
+                            {% if check.runAtTime %}daily at {{ check.runAtTime }}{% else %}every {{ check.checkIntervalMinutes|duration }}{% endif %}
+                        </p>
                         {% if check.config is not empty %}
                             <p class="text-xs text-gray-400 mt-0.5 font-mono truncate">{{ check.config|json_encode }}</p>
                         {% endif %}

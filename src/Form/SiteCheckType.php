@@ -6,6 +6,7 @@ namespace App\Form;
 
 use App\Check\CheckRegistry;
 use App\Entity\SiteCheck;
+use App\Form\Type\DurationMinutesType;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\CheckboxType;
 use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
@@ -30,10 +31,8 @@ class SiteCheckType extends AbstractType
                 'choices' => $this->checkRegistry->getTypeChoices(),
                 'attr' => ['class' => 'form-input'],
             ])
-            ->add('checkIntervalMinutes', IntegerType::class, [
-                'label' => 'Interval (minutes)',
-                'constraints' => [new \Symfony\Component\Validator\Constraints\GreaterThan(0)],
-                'attr' => ['class' => 'form-input', 'min' => 1],
+            ->add('checkIntervalMinutes', DurationMinutesType::class, [
+                'label' => 'Interval',
             ])
             ->add('runAtTime', TextType::class, [
                 'label' => 'Daily at (optional)',

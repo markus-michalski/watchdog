@@ -107,7 +107,7 @@ class SiteCheckController extends AbstractController
                     'intval',
                     array_filter(array_map('trim', explode(',', (string) $raw)))
                 );
-            } elseif ('number' === $field['type']) {
+            } elseif (in_array($field['type'], ['number', 'duration'], true)) {
                 $config[$field['name']] = (int) $raw;
             } else {
                 $config[$field['name']] = $raw;

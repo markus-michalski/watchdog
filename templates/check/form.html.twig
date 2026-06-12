@@ -21,10 +21,15 @@
         <div id="interval-field">
             {{ form_label(form.checkIntervalMinutes, null, {label_attr: {class: 'block text-sm font-medium text-gray-700 mb-1'}}) }}
             <div class="flex items-center gap-2">
-                {{ form_widget(form.checkIntervalMinutes, {attr: {class: 'border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 w-24'}}) }}
-                <span class="text-sm text-gray-500">minutes (e.g. 5, 60, 1440)</span>
+                {{ form_widget(form.checkIntervalMinutes.days,     {attr: {class: 'border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 w-16 text-center'}}) }}
+                <span class="text-sm text-gray-500">d</span>
+                {{ form_widget(form.checkIntervalMinutes.hours,    {attr: {class: 'border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 w-16 text-center'}}) }}
+                <span class="text-sm text-gray-500">h</span>
+                {{ form_widget(form.checkIntervalMinutes.minutes,  {attr: {class: 'border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 w-16 text-center'}}) }}
+                <span class="text-sm text-gray-500">min</span>
             </div>
             {{ form_errors(form.checkIntervalMinutes) }}
+            {%- do form.checkIntervalMinutes.setRendered() -%}
         </div>
 
         <div>
@@ -59,19 +64,39 @@
                                     {{ field.label }}
                                     {% if field.required %}<span class="text-red-500">*</span>{% endif %}
                                 </label>
-                                <input
-                                    type="{{ field.type }}"
-                                    name="check_config_{{ field.name }}"
-                                    id="check_config_{{ type }}_{{ field.name }}"
-                                    class="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                    placeholder="{{ field.placeholder }}"
-                                    {% if field.required %}data-required="1"{% endif %}
-                                    value="{{ check.config[field.name] is defined
-                                        ? (field.name == 'expected_status_codes' and check.config[field.name] is iterable
-                                            ? check.config[field.name]|join(',')
-                                            : check.config[field.name])
-                                        : field.default }}"
-                                >
+                                {% if field.type == 'duration' %}
+                                    {%- set _dval = check.config[field.name] is defined ? check.config[field.name]|default(field.default) : field.default -%}
+                                    <div class="flex items-center gap-2" data-duration-field>
+                                        {# hidden field holds the combined minutes; JS updates it on d/h/m change #}
+                                        <input type="hidden"
+                                               name="check_config_{{ field.name }}"
+                                               class="duration-hidden"
+                                               value="{{ _dval }}">
+                                        <input type="number" min="0" placeholder="0"
+                                               class="duration-days border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 w-16 text-center">
+                                        <span class="text-sm text-gray-500">d</span>
+                                        <input type="number" min="0" max="23" placeholder="0"
+                                               class="duration-hours border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 w-16 text-center">
+                                        <span class="text-sm text-gray-500">h</span>
+                                        <input type="number" min="0" max="59" placeholder="0"
+                                               class="duration-mins border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 w-16 text-center">
+                                        <span class="text-sm text-gray-500">min</span>
+                                    </div>
+                                {% else %}
+                                    <input
+                                        type="{{ field.type }}"
+                                        name="check_config_{{ field.name }}"
+                                        id="check_config_{{ type }}_{{ field.name }}"
+                                        class="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                        placeholder="{{ field.placeholder }}"
+                                        {% if field.required %}data-required="1"{% endif %}
+                                        value="{{ check.config[field.name] is defined
+                                            ? (field.name == 'expected_status_codes' and check.config[field.name] is iterable
+                                                ? check.config[field.name]|join(',')
+                                                : check.config[field.name])
+                                            : field.default }}"
+                                    >
+                                {% endif %}
                                 {% if field.help %}
                                     <p class="text-xs text-gray-400 mt-0.5">{{ field.help }}</p>
                                 {% endif %}
@@ -132,20 +157,43 @@
         });
     }
 
-    const timeInput   = document.getElementById('{{ form.runAtTime.vars.id }}');
+    const timeInput     = document.getElementById('{{ form.runAtTime.vars.id }}');
     const intervalField = document.getElementById('interval-field');
-    const intervalInput = intervalField ? intervalField.querySelector('input') : null;
+    const intervalInputs = intervalField ? [...intervalField.querySelectorAll('input[type="number"]')] : [];
 
     const clearBtn = document.getElementById('run-at-time-clear');
 
     function syncIntervalState() {
         const hasTime = timeInput && timeInput.value.trim() !== '';
-        if (!intervalField || !intervalInput) return;
+        if (!intervalField) return;
         intervalField.style.opacity = hasTime ? '0.4' : '';
         intervalField.style.pointerEvents = hasTime ? 'none' : '';
-        intervalInput.readOnly = hasTime;
+        intervalInputs.forEach(i => { i.readOnly = hasTime; });
         if (clearBtn) clearBtn.classList.toggle('hidden', !hasTime);
     }
+
+    // Initialize d/h/min display from the hidden minutes value for duration config fields
+    document.querySelectorAll('[data-duration-field]').forEach(container => {
+        const hidden = container.querySelector('.duration-hidden');
+        if (!hidden) return;
+
+        const total = parseInt(hidden.value, 10) || 0;
+        const daysInput  = container.querySelector('.duration-days');
+        const hoursInput = container.querySelector('.duration-hours');
+        const minsInput  = container.querySelector('.duration-mins');
+
+        daysInput.value  = Math.floor(total / 1440);
+        hoursInput.value = Math.floor((total % 1440) / 60);
+        minsInput.value  = total % 60;
+
+        function syncHidden() {
+            hidden.value = (parseInt(daysInput.value,  10) || 0) * 1440
+                         + (parseInt(hoursInput.value, 10) || 0) * 60
+                         + (parseInt(minsInput.value,  10) || 0);
+        }
+
+        [daysInput, hoursInput, minsInput].forEach(inp => inp.addEventListener('input', syncHidden));
+    });
 
     if (timeInput) {
         timeInput.addEventListener('input', syncIntervalState);
