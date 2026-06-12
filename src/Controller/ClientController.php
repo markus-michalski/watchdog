@@ -130,6 +130,10 @@ class ClientController extends AbstractController
         #[MapEntity(id: 'urlId')] ClientUrl $clientUrl,
         EntityManagerInterface $em,
     ): Response {
+        if ($clientUrl->getClient() !== $client) {
+            throw $this->createNotFoundException();
+        }
+
         $form = $this->createForm(ClientUrlType::class, $clientUrl);
         $form->handleRequest($request);
 
@@ -154,6 +158,10 @@ class ClientController extends AbstractController
         #[MapEntity(id: 'urlId')] ClientUrl $clientUrl,
         EntityManagerInterface $em,
     ): Response {
+        if ($clientUrl->getClient() !== $client) {
+            throw $this->createNotFoundException();
+        }
+
         if ($this->isCsrfTokenValid('delete_url'.$clientUrl->getId(), (string) $request->request->get('_token', ''))) {
             $em->remove($clientUrl);
             $em->flush();
