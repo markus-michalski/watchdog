@@ -89,7 +89,7 @@
     </div>
 
     {% if client.checks is not empty %}
-    <div class="flex flex-wrap items-center gap-3 mb-3">
+    <div class="flex flex-wrap items-center gap-2 mb-3">
         <div class="flex gap-1.5" id="status-filters">
             <button data-status-filter="all"     class="check-filter-btn active px-2.5 py-1 rounded text-xs font-medium border border-gray-300 bg-gray-100 text-gray-700">All</button>
             <button data-status-filter="ok"      class="check-filter-btn px-2.5 py-1 rounded text-xs font-medium border border-green-200 text-green-700 hover:bg-green-50">OK</button>
@@ -98,6 +98,7 @@
             <button data-status-filter="unknown" class="check-filter-btn px-2.5 py-1 rounded text-xs font-medium border border-yellow-200 text-yellow-700 hover:bg-yellow-50">UNKNOWN</button>
             <button data-status-filter="pending" class="check-filter-btn px-2.5 py-1 rounded text-xs font-medium border border-gray-200 text-gray-500 hover:bg-gray-50">PENDING</button>
         </div>
+        <span class="text-gray-300 text-sm select-none">|</span>
         <div class="flex gap-1.5" id="type-filters">
             <button data-type-filter="all"      class="check-filter-btn active px-2.5 py-1 rounded text-xs font-medium border border-gray-300 bg-gray-100 text-gray-700">All</button>
             <button data-type-filter="http"     class="check-filter-btn px-2.5 py-1 rounded text-xs font-medium border border-blue-200 text-blue-700 hover:bg-blue-50">HTTP</button>
