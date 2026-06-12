@@ -82,6 +82,16 @@
             {% endfor %}
         </div>
 
+        <div>
+            {{ form_label(form.retentionDays, null, {label_attr: {class: 'block text-sm font-medium text-gray-700 mb-1'}}) }}
+            <div class="flex items-center gap-2">
+                {{ form_widget(form.retentionDays, {attr: {class: 'border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 w-24'}}) }}
+                <span class="text-sm text-gray-500">days</span>
+            </div>
+            <p class="text-xs text-gray-400 mt-0.5">Leave empty to keep forever. Example: 1 for http checks every 5 min, 28 for daily checks.</p>
+            {{ form_errors(form.retentionDays) }}
+        </div>
+
         <div class="flex items-center gap-2">
             {{ form_widget(form.isActive) }}
             {{ form_label(form.isActive, null, {label_attr: {class: 'text-sm text-gray-700'}}) }}
