@@ -126,8 +126,15 @@
                                         {% endif %}
 
                                         <a href="{{ path('client_show', {id: client.id}) }}"
-                                           class="flex-1 text-gray-700 hover:text-blue-600 truncate">
+                                           class="flex-1 text-gray-700 hover:text-blue-600 truncate flex items-center gap-1.5">
                                             {{ check.label }}
+                                            {% if check.type == 'http' and check.config.client_url_id is defined %}
+                                                {% for url in client.urls %}
+                                                    {% if url.id == check.config.client_url_id %}
+                                                        <span class="text-xs font-normal text-blue-600 bg-blue-50 border border-blue-200 rounded px-1.5 py-0 shrink-0">{{ url.displayLabel }}</span>
+                                                    {% endif %}
+                                                {% endfor %}
+                                            {% endif %}
                                         </a>
 
                                         {% if result %}
