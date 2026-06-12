@@ -109,13 +109,24 @@
                 {% set result = latestResults[check.id] ?? null %}
                 <div class="bg-white rounded-lg shadow p-4 flex items-center gap-4 check-row" data-label="{{ check.label|lower }}">
                     <div class="flex-1 min-w-0">
-                        <p class="font-medium text-gray-800">{{ check.label }}</p>
+                        <p class="font-medium text-gray-800 flex items-center gap-2 flex-wrap">
+                            {{ check.label }}
+                            {% if check.type == 'http' and check.config.client_url_id is defined %}
+                                {% for url in client.urls %}
+                                    {% if url.id == check.config.client_url_id %}
+                                        <span class="text-xs font-normal text-blue-600 bg-blue-50 border border-blue-200 rounded px-2 py-0.5">{{ url.displayLabel }}</span>
+                                    {% endif %}
+                                {% endfor %}
+                            {% endif %}
+                        </p>
                         <p class="text-xs text-gray-400 mt-0.5">
                             {% if check.runAtTime %}daily at {{ check.runAtTime }}{% else %}every {{ check.checkIntervalMinutes|duration }}{% endif %}
+                            {% if check.type == 'docker' and check.config.container_name is defined %}
+                                · <span class="font-mono">{{ check.config.container_name }}</span>
+                            {% elseif check.type == 'file_age' and check.config.path is defined %}
+                                · <span class="font-mono truncate">{{ check.config.path }}</span>
+                            {% endif %}
                         </p>
-                        {% if check.config is not empty %}
-                            <p class="text-xs text-gray-400 mt-0.5 font-mono truncate">{{ check.config|json_encode }}</p>
-                        {% endif %}
                     </div>
 
                     <div class="flex items-center gap-2 shrink-0">
