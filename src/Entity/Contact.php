@@ -24,13 +24,13 @@ class Contact
     #[ORM\Column(length: 255, unique: true)]
     private string $email;
 
-    /** @var Collection<int, Site> */
-    #[ORM\ManyToMany(targetEntity: Site::class, mappedBy: 'contacts')]
-    private Collection $sites;
+    /** @var Collection<int, Client> */
+    #[ORM\ManyToMany(targetEntity: Client::class, mappedBy: 'contacts')]
+    private Collection $clients;
 
     public function __construct()
     {
-        $this->sites = new ArrayCollection();
+        $this->clients = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -62,10 +62,10 @@ class Contact
         return $this;
     }
 
-    /** @return Collection<int, Site> */
-    public function getSites(): Collection
+    /** @return Collection<int, Client> */
+    public function getClients(): Collection
     {
-        return $this->sites;
+        return $this->clients;
     }
 
     public function __toString(): string

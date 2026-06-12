@@ -4,11 +4,8 @@ declare(strict_types=1);
 
 namespace App\Form;
 
-use App\Entity\Contact;
-use App\Entity\Site;
-use Symfony\Bridge\Doctrine\Form\Type\EntityType;
+use App\Entity\ClientUrl;
 use Symfony\Component\Form\AbstractType;
-use Symfony\Component\Form\Extension\Core\Type\CheckboxType;
 use Symfony\Component\Form\Extension\Core\Type\PasswordType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\Extension\Core\Type\UrlType;
@@ -16,31 +13,25 @@ use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 use Symfony\Component\Validator\Constraints as Assert;
 
-/** @extends AbstractType<Site> */
-class SiteType extends AbstractType
+/** @extends AbstractType<ClientUrl> */
+class ClientUrlType extends AbstractType
 {
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
         $builder
-            ->add('name', TextType::class, [
-                'label' => 'Name',
-                'constraints' => [new Assert\NotBlank()],
-                'attr' => ['class' => 'form-input'],
-            ])
             ->add('url', UrlType::class, [
                 'label' => 'URL',
-                'required' => false,
-                'constraints' => [new Assert\When(
-                    expression: 'value != "" and value != null',
-                    constraints: [new Assert\Url(requireTld: true)],
-                )],
+                'constraints' => [
+                    new Assert\NotBlank(),
+                    new Assert\Url(requireTld: true),
+                ],
                 'attr' => ['class' => 'form-input', 'placeholder' => 'https://example.com'],
-                'help' => 'Required for HTTP checks. Leave empty for server-level checks (e.g. file age, Docker).',
             ])
-            ->add('isActive', CheckboxType::class, [
-                'label' => 'Active',
+            ->add('label', TextType::class, [
+                'label' => 'Label (optional)',
                 'required' => false,
-                'attr' => ['class' => 'form-checkbox'],
+                'attr' => ['class' => 'form-input', 'placeholder' => 'e.g. Production, Staging'],
+                'help' => 'Short name shown in dropdowns. Defaults to the URL if empty.',
             ])
             ->add('basicAuthUser', TextType::class, [
                 'label' => 'BasicAuth username',
@@ -52,20 +43,11 @@ class SiteType extends AbstractType
                 'required' => false,
                 'always_empty' => false,
                 'attr' => ['class' => 'form-input', 'autocomplete' => 'off'],
-            ])
-            ->add('contacts', EntityType::class, [
-                'class' => Contact::class,
-                'choice_label' => fn (Contact $c) => (string) $c,
-                'multiple' => true,
-                'expanded' => true,
-                'required' => false,
-                'label' => 'Alert contacts',
-                'by_reference' => false,
             ]);
     }
 
     public function configureOptions(OptionsResolver $resolver): void
     {
-        $resolver->setDefaults(['data_class' => Site::class]);
+        $resolver->setDefaults(['data_class' => ClientUrl::class]);
     }
 }

@@ -26,7 +26,7 @@ final class DispatchDueChecksHandler
 
     public function __invoke(DispatchDueChecksMessage $_message): void
     {
-        $checks = $this->siteCheckRepository->findAllActiveWithSites();
+        $checks = $this->siteCheckRepository->findAllActiveWithClients();
         if ([] === $checks) {
             return;
         }

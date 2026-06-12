@@ -1,28 +1,27 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Sites — Watchdog{% endblock %}
+{% block title %}Clients — Watchdog{% endblock %}
 
 {% block body %}
 <div class="flex items-center justify-between mb-4">
-    <h1 class="text-2xl font-bold text-gray-800">Sites</h1>
-    <a href="{{ path('site_new') }}" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 text-sm">
-        + Add Site
+    <h1 class="text-2xl font-bold text-gray-800">Clients</h1>
+    <a href="{{ path('client_new') }}" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 text-sm">
+        + Add Client
     </a>
 </div>
 
-{% if sites is empty %}
+{% if clients is empty %}
     <div class="bg-white rounded-lg shadow p-8 text-center text-gray-500">
-        No sites configured yet.
+        No clients configured yet.
     </div>
 {% else %}
-    {# Filter bar #}
     <div class="flex flex-wrap items-center gap-3 mb-4">
-        <input type="search" id="site-search" placeholder="Filter by name…"
+        <input type="search" id="client-search" placeholder="Filter by name…"
                class="border border-gray-300 rounded px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300 w-52">
         <div class="flex gap-1.5">
-            <button data-active-filter="all"      class="site-filter-btn active px-3 py-1.5 rounded text-xs font-medium border border-gray-300 bg-gray-100 text-gray-700">All</button>
-            <button data-active-filter="1"        class="site-filter-btn px-3 py-1.5 rounded text-xs font-medium border border-green-200 text-green-700 hover:bg-green-50">Active</button>
-            <button data-active-filter="0"        class="site-filter-btn px-3 py-1.5 rounded text-xs font-medium border border-gray-200 text-gray-500 hover:bg-gray-50">Inactive</button>
+            <button data-active-filter="all"   class="client-filter-btn active px-3 py-1.5 rounded text-xs font-medium border border-gray-300 bg-gray-100 text-gray-700">All</button>
+            <button data-active-filter="1"     class="client-filter-btn px-3 py-1.5 rounded text-xs font-medium border border-green-200 text-green-700 hover:bg-green-50">Active</button>
+            <button data-active-filter="0"     class="client-filter-btn px-3 py-1.5 rounded text-xs font-medium border border-gray-200 text-gray-500 hover:bg-gray-50">Inactive</button>
         </div>
     </div>
 
@@ -31,36 +30,36 @@
             <thead class="bg-gray-50 text-gray-600 uppercase text-xs">
                 <tr>
                     <th class="px-4 py-3 text-left">Name</th>
-                    <th class="px-4 py-3 text-left">URL</th>
+                    <th class="px-4 py-3 text-center">URLs</th>
                     <th class="px-4 py-3 text-center">Checks</th>
                     <th class="px-4 py-3 text-center">Status</th>
                     <th class="px-4 py-3 text-right">Actions</th>
                 </tr>
             </thead>
-            <tbody class="divide-y divide-gray-100" id="sites-tbody">
-                {% for site in sites %}
+            <tbody class="divide-y divide-gray-100" id="clients-tbody">
+                {% for client in clients %}
                 <tr class="hover:bg-gray-50"
-                    data-name="{{ site.name|lower }}"
-                    data-active="{{ site.isActive ? '1' : '0' }}">
+                    data-name="{{ client.name|lower }}"
+                    data-active="{{ client.isActive ? '1' : '0' }}">
                     <td class="px-4 py-3 font-medium">
-                        <a href="{{ path('site_show', {id: site.id}) }}" class="text-blue-600 hover:underline">
-                            {{ site.name }}
+                        <a href="{{ path('client_show', {id: client.id}) }}" class="text-blue-600 hover:underline">
+                            {{ client.name }}
                         </a>
                     </td>
-                    <td class="px-4 py-3 text-gray-600 truncate max-w-xs">{{ site.url }}</td>
-                    <td class="px-4 py-3 text-center text-gray-600">{{ site.checks|length }}</td>
+                    <td class="px-4 py-3 text-center text-gray-600">{{ client.urls|length }}</td>
+                    <td class="px-4 py-3 text-center text-gray-600">{{ client.checks|length }}</td>
                     <td class="px-4 py-3 text-center">
-                        <span class="px-2 py-0.5 rounded text-xs {% if site.isActive %}bg-green-100 text-green-700{% else %}bg-gray-100 text-gray-500{% endif %}">
-                            {{ site.isActive ? 'Active' : 'Inactive' }}
+                        <span class="px-2 py-0.5 rounded text-xs {% if client.isActive %}bg-green-100 text-green-700{% else %}bg-gray-100 text-gray-500{% endif %}">
+                            {{ client.isActive ? 'Active' : 'Inactive' }}
                         </span>
                     </td>
                     <td class="px-4 py-3 text-right">
                         <div class="flex items-center justify-end gap-1.5">
-                            <a href="{{ path('site_edit', {id: site.id}) }}"
+                            <a href="{{ path('client_edit', {id: client.id}) }}"
                                class="border border-blue-300 text-blue-700 px-2.5 py-1 rounded text-xs hover:bg-blue-50">Edit</a>
-                            <form action="{{ path('site_delete', {id: site.id}) }}" method="post" class="inline"
-                                  onsubmit="return confirm('Delete {{ site.name|e('js') }}?')">
-                                <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ site.id) }}">
+                            <form action="{{ path('client_delete', {id: client.id}) }}" method="post" class="inline"
+                                  onsubmit="return confirm('Delete {{ client.name|e('js') }}?')">
+                                <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ client.id) }}">
                                 <button type="submit"
                                         class="border border-red-300 text-red-700 px-2.5 py-1 rounded text-xs hover:bg-red-50 cursor-pointer">Delete</button>
                             </form>
@@ -68,8 +67,8 @@
                     </td>
                 </tr>
                 {% endfor %}
-                <tr id="sites-empty-row" class="hidden">
-                    <td colspan="5" class="px-4 py-6 text-center text-gray-400 text-sm">No sites match your filter.</td>
+                <tr id="clients-empty-row" class="hidden">
+                    <td colspan="5" class="px-4 py-6 text-center text-gray-400 text-sm">No clients match your filter.</td>
                 </tr>
             </tbody>
         </table>
@@ -78,10 +77,10 @@
 
 <script>
 (function () {
-    const rows = document.querySelectorAll('#sites-tbody tr[data-name]');
-    const search = document.getElementById('site-search');
+    const rows = document.querySelectorAll('#clients-tbody tr[data-name]');
+    const search = document.getElementById('client-search');
     const btns = document.querySelectorAll('[data-active-filter]');
-    const emptyRow = document.getElementById('sites-empty-row');
+    const emptyRow = document.getElementById('clients-empty-row');
     let activeFilter = 'all';
 
     function applyFilters() {
@@ -97,9 +96,7 @@
         if (emptyRow) emptyRow.classList.toggle('hidden', visible > 0);
     }
 
-    if (search) {
-        search.addEventListener('input', applyFilters);
-    }
+    if (search) search.addEventListener('input', applyFilters);
 
     btns.forEach(btn => {
         btn.addEventListener('click', () => {

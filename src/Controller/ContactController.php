@@ -8,6 +8,7 @@ use App\Entity\Contact;
 use App\Repository\ContactRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
@@ -65,6 +66,38 @@ class ContactController extends AbstractController
             'contact' => null,
             'error' => $error,
         ]);
+    }
+
+    #[Route('/new-ajax', name: 'new_ajax', methods: ['POST'])]
+    public function newAjax(
+        Request $request,
+        EntityManagerInterface $em,
+        ValidatorInterface $validator,
+    ): JsonResponse {
+        if (!$this->isCsrfTokenValid('contact_form', (string) $request->request->get('_token', ''))) {
+            return new JsonResponse(['success' => false, 'error' => 'Invalid CSRF token.'], 403);
+        }
+
+        $name  = trim((string) $request->request->get('name', ''));
+        $email = trim((string) $request->request->get('email', ''));
+
+        $nameErrors  = $validator->validate($name,  [new Assert\NotBlank(), new Assert\Length(max: 255)]);
+        $emailErrors = $validator->validate($email, [new Assert\NotBlank(), new Assert\Email()]);
+
+        if (count($nameErrors) > 0) {
+            return new JsonResponse(['success' => false, 'error' => 'Please enter a valid name (max. 255 characters).']);
+        }
+        if (count($emailErrors) > 0) {
+            return new JsonResponse(['success' => false, 'error' => 'Please enter a valid email address.']);
+        }
+
+        $contact = new Contact();
+        $contact->setName($name);
+        $contact->setEmail($email);
+        $em->persist($contact);
+        $em->flush();
+
+        return new JsonResponse(['success' => true, 'id' => $contact->getId(), 'name' => $contact->getName(), 'email' => $contact->getEmail()]);
     }
 
     #[Route('/{id}/edit', name: 'edit', methods: ['GET', 'POST'])]

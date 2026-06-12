@@ -5,78 +5,77 @@
 {% block body %}
 <div class="flex items-center justify-between mb-4">
     <h1 class="text-2xl font-bold text-gray-800">Dashboard</h1>
-    <a href="{{ path('site_new') }}" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 text-sm">
-        + Add Site
+    <a href="{{ path('client_new') }}" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 text-sm">
+        + Add Client
     </a>
 </div>
 
-{% if sites is empty %}
+{% if clients is empty %}
     <div class="bg-white rounded-lg shadow p-8 text-center text-gray-500">
-        <p class="text-lg mb-2">No sites configured yet.</p>
-        <a href="{{ path('site_new') }}" class="text-blue-600 hover:underline">Add your first site</a>
+        <p class="text-lg mb-2">No clients configured yet.</p>
+        <a href="{{ path('client_new') }}" class="text-blue-600 hover:underline">Add your first client</a>
     </div>
 {% else %}
-    {# Filter bar #}
     <div class="flex flex-wrap items-center gap-3 mb-4">
         <input type="search" id="dashboard-search" placeholder="Filter by name…"
                class="border border-gray-300 rounded px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300 w-52">
         <div class="flex gap-1.5" id="status-filters">
-            <button data-status-filter="all"   class="filter-btn active px-3 py-1.5 rounded text-xs font-medium border border-gray-300 bg-gray-100 text-gray-700">All</button>
-            <button data-status-filter="ok"    class="filter-btn px-3 py-1.5 rounded text-xs font-medium border border-green-200 text-green-700 hover:bg-green-50">OK</button>
-            <button data-status-filter="warn"  class="filter-btn px-3 py-1.5 rounded text-xs font-medium border border-orange-200 text-orange-700 hover:bg-orange-50">WARN</button>
-            <button data-status-filter="fail"  class="filter-btn px-3 py-1.5 rounded text-xs font-medium border border-red-200 text-red-700 hover:bg-red-50">FAIL</button>
+            <button data-status-filter="all"     class="filter-btn active px-3 py-1.5 rounded text-xs font-medium border border-gray-300 bg-gray-100 text-gray-700">All</button>
+            <button data-status-filter="ok"      class="filter-btn px-3 py-1.5 rounded text-xs font-medium border border-green-200 text-green-700 hover:bg-green-50">OK</button>
+            <button data-status-filter="warn"    class="filter-btn px-3 py-1.5 rounded text-xs font-medium border border-orange-200 text-orange-700 hover:bg-orange-50">WARN</button>
+            <button data-status-filter="fail"    class="filter-btn px-3 py-1.5 rounded text-xs font-medium border border-red-200 text-red-700 hover:bg-red-50">FAIL</button>
             <button data-status-filter="unknown" class="filter-btn px-3 py-1.5 rounded text-xs font-medium border border-yellow-200 text-yellow-700 hover:bg-yellow-50">UNKNOWN</button>
             <button data-status-filter="pending" class="filter-btn px-3 py-1.5 rounded text-xs font-medium border border-gray-200 text-gray-500 hover:bg-gray-50">PENDING</button>
         </div>
     </div>
 
     <div class="grid grid-cols-1 md:grid-cols-2 gap-4" id="dashboard-grid">
-        {% for site in sites %}
-            {% set siteStatus = siteStatuses[site.id] %}
-            {% if siteStatus is null %}
+        {% for client in clients %}
+            {% set clientStatus = clientStatuses[client.id] %}
+            {% if clientStatus is null %}
                 {% set borderClass = 'border-l-4 border-gray-300' %}
                 {% set badgeClass = 'bg-gray-100 text-gray-500' %}
                 {% set badgeLabel = 'PENDING' %}
                 {% set statusKey = 'pending' %}
-            {% elseif siteStatus.value == 'ok' %}
-                {% set borderClass = siteStatus.cardBorderClass() %}
+            {% elseif clientStatus.value == 'ok' %}
+                {% set borderClass = clientStatus.cardBorderClass() %}
                 {% set badgeClass = 'bg-green-100 text-green-700' %}
                 {% set badgeLabel = 'OK' %}
                 {% set statusKey = 'ok' %}
-            {% elseif siteStatus.value == 'warn' %}
-                {% set borderClass = siteStatus.cardBorderClass() %}
+            {% elseif clientStatus.value == 'warn' %}
+                {% set borderClass = clientStatus.cardBorderClass() %}
                 {% set badgeClass = 'bg-orange-100 text-orange-700' %}
                 {% set badgeLabel = 'WARN' %}
                 {% set statusKey = 'warn' %}
-            {% elseif siteStatus.value == 'fail' %}
-                {% set borderClass = siteStatus.cardBorderClass() %}
+            {% elseif clientStatus.value == 'fail' %}
+                {% set borderClass = clientStatus.cardBorderClass() %}
                 {% set badgeClass = 'bg-red-100 text-red-700' %}
                 {% set badgeLabel = 'FAIL' %}
                 {% set statusKey = 'fail' %}
             {% else %}
-                {% set borderClass = siteStatus.cardBorderClass() %}
+                {% set borderClass = clientStatus.cardBorderClass() %}
                 {% set badgeClass = 'bg-yellow-100 text-yellow-700' %}
                 {% set badgeLabel = 'UNKNOWN' %}
                 {% set statusKey = 'unknown' %}
             {% endif %}
 
             <div class="bg-white rounded-lg shadow {{ borderClass }} overflow-hidden"
-                 data-site-card
-                 data-name="{{ site.name|lower }}"
+                 data-client-card
+                 data-name="{{ client.name|lower }}"
                  data-status="{{ statusKey }}">
                 <div class="p-5">
-                    {# Card header: site name + aggregate status + actions #}
                     <div class="flex items-start justify-between gap-3">
                         <div class="min-w-0">
-                            <a href="{{ path('site_show', {id: site.id}) }}" class="text-lg font-semibold text-gray-800 hover:text-blue-600">
-                                {{ site.name }}
+                            <a href="{{ path('client_show', {id: client.id}) }}" class="text-lg font-semibold text-gray-800 hover:text-blue-600">
+                                {{ client.name }}
                             </a>
                             <p class="text-sm text-gray-500 mt-0.5">
-                                <a href="{{ site.url }}" target="_blank" rel="noopener" class="hover:underline">{{ site.url }}</a>
-                                {% if site.hasBasicAuth() %}
-                                    <span class="ml-2 text-xs bg-yellow-100 text-yellow-700 px-2 py-0.5 rounded">BasicAuth</span>
+                                {% if client.urls is not empty %}
+                                    {% for url in client.urls %}
+                                        <a href="{{ url.url }}" target="_blank" rel="noopener" class="hover:underline">{{ url.displayLabel }}</a>{% if not loop.last %}, {% endif %}
+                                    {% endfor %}
                                 {% endif %}
-                                {% if not site.isActive %}
+                                {% if not client.isActive %}
                                     <span class="ml-2 text-xs bg-gray-100 text-gray-400 px-2 py-0.5 rounded">Inactive</span>
                                 {% endif %}
                             </p>
@@ -85,13 +84,13 @@
                             <span class="text-sm font-bold px-3 py-1.5 rounded-full {{ badgeClass }}">
                                 {{ badgeLabel }}
                             </span>
-                            <a href="{{ path('site_edit', {id: site.id}) }}"
+                            <a href="{{ path('client_edit', {id: client.id}) }}"
                                class="border border-blue-300 text-blue-700 px-2.5 py-1 rounded text-xs hover:bg-blue-50">
                                 Edit
                             </a>
-                            <form action="{{ path('site_delete', {id: site.id}) }}" method="post" class="inline"
-                                  onsubmit="return confirm('Delete site {{ site.name|e('js') }} and all its checks?')">
-                                <input type="hidden" name="_token" value="{{ csrf_token('delete_site' ~ site.id) }}">
+                            <form action="{{ path('client_delete', {id: client.id}) }}" method="post" class="inline"
+                                  onsubmit="return confirm('Delete client {{ client.name|e('js') }} and all its checks?')">
+                                <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ client.id) }}">
                                 <button type="submit"
                                         class="border border-red-300 text-red-700 px-2.5 py-1 rounded text-xs hover:bg-red-50 cursor-pointer">
                                     Delete
@@ -100,11 +99,10 @@
                         </div>
                     </div>
 
-                    {# Check rows #}
-                    {% if site.checks is empty %}
+                    {% if client.checks is empty %}
                         <p class="text-sm text-gray-400 italic mt-4">
                             No checks defined.
-                            <a href="{{ path('check_new', {siteId: site.id}) }}" class="text-blue-600 hover:underline">Add check</a>
+                            <a href="{{ path('check_new', {clientId: client.id}) }}" class="text-blue-600 hover:underline">Add check</a>
                         </p>
                     {% else %}
                         <div class="mt-3 border-t border-gray-100 pt-2">
@@ -115,10 +113,10 @@
                                      fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
                                 </svg>
-                                {{ site.checks|length }} check{{ site.checks|length != 1 ? 's' : '' }}
+                                {{ client.checks|length }} check{{ client.checks|length != 1 ? 's' : '' }}
                             </button>
                             <div class="hidden mt-2 space-y-2" data-checks-panel>
-                                {% for check in site.checks|sort((a, b) => a.label <=> b.label) %}
+                                {% for check in client.checks|sort((a, b) => a.label <=> b.label) %}
                                     {% set result = latestResults[check.id] ?? null %}
                                     <div class="flex items-center gap-3 text-sm">
                                         {% if result %}
@@ -127,9 +125,20 @@
                                             <span class="w-2.5 h-2.5 rounded-full shrink-0 bg-gray-300"></span>
                                         {% endif %}
 
-                                        <a href="{{ path('site_show', {id: site.id}) }}"
-                                           class="flex-1 text-gray-700 hover:text-blue-600 truncate">
+                                        <a href="{{ path('client_show', {id: client.id}) }}"
+                                           class="flex-1 text-gray-700 hover:text-blue-600 truncate flex items-center gap-1.5">
                                             {{ check.label }}
+                                            {% if check.type == 'http' and check.config.client_url_id is defined %}
+                                                {% for url in client.urls %}
+                                                    {% if url.id == check.config.client_url_id %}
+                                                        <span class="text-xs font-normal text-blue-600 bg-blue-50 border border-blue-200 rounded px-1.5 py-0 shrink-0">{{ url.displayLabel }}</span>
+                                                    {% endif %}
+                                                {% endfor %}
+                                            {% elseif check.type == 'docker' and check.config.container_name is defined %}
+                                                <span class="text-xs font-normal text-indigo-600 bg-indigo-50 border border-indigo-200 rounded px-1.5 py-0 font-mono shrink-0">{{ check.config.container_name }}</span>
+                                            {% elseif check.type == 'file_age' and check.config.path is defined %}
+                                                <span class="text-xs font-normal text-amber-600 bg-amber-50 border border-amber-200 rounded px-1.5 py-0 font-mono shrink-0">{{ check.config.path }}</span>
+                                            {% endif %}
                                         </a>
 
                                         {% if result %}
@@ -161,12 +170,12 @@
         {% endfor %}
     </div>
 
-    <p id="dashboard-empty" class="hidden text-center text-gray-400 text-sm mt-8">No sites match your filter.</p>
+    <p id="dashboard-empty" class="hidden text-center text-gray-400 text-sm mt-8">No clients match your filter.</p>
 {% endif %}
 
 <script>
 (function () {
-    const cards = document.querySelectorAll('[data-site-card]');
+    const cards = document.querySelectorAll('[data-client-card]');
     const search = document.getElementById('dashboard-search');
     const btns = document.querySelectorAll('[data-status-filter]');
     const empty = document.getElementById('dashboard-empty');
@@ -185,9 +194,7 @@
         if (empty) empty.classList.toggle('hidden', visible > 0);
     }
 
-    if (search) {
-        search.addEventListener('input', applyFilters);
-    }
+    if (search) search.addEventListener('input', applyFilters);
 
     btns.forEach(btn => {
         btn.addEventListener('click', () => {

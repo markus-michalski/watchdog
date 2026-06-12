@@ -27,9 +27,9 @@ final class CheckRunner
             return;
         }
 
-        $this->logger->info('Running check "{type}" for site "{site}"', [
+        $this->logger->info('Running check "{type}" for client "{client}"', [
             'type' => $check->getType(),
-            'site' => $check->getSite()->getName(),
+            'client' => $check->getClient()->getName(),
         ]);
 
         $implementation = $this->registry->get($check->getType());

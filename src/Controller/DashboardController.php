@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Controller;
 
 use App\Repository\CheckResultRepository;
-use App\Repository\SiteRepository;
+use App\Repository\ClientRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
@@ -14,17 +14,17 @@ class DashboardController extends AbstractController
 {
     #[Route('/', name: 'dashboard')]
     public function index(
-        SiteRepository $siteRepository,
+        ClientRepository $clientRepository,
         CheckResultRepository $checkResultRepository,
     ): Response {
-        $sites = $siteRepository->findAllWithChecks();
+        $clients = $clientRepository->findAllWithChecks();
 
         $latestResults = [];
-        $siteStatuses = [];
+        $clientStatuses = [];
 
-        foreach ($sites as $site) {
+        foreach ($clients as $client) {
             $worst = null;
-            foreach ($site->getChecks() as $check) {
+            foreach ($client->getChecks() as $check) {
                 $result = $checkResultRepository->findLatestForCheck($check);
                 $latestResults[$check->getId()] = $result;
 
@@ -36,13 +36,13 @@ class DashboardController extends AbstractController
                     $worst = $status;
                 }
             }
-            $siteStatuses[$site->getId()] = $worst;
+            $clientStatuses[$client->getId()] = $worst;
         }
 
         return $this->render('dashboard/index.html.twig', [
-            'sites' => $sites,
+            'clients' => $clients,
             'latestResults' => $latestResults,
-            'siteStatuses' => $siteStatuses,
+            'clientStatuses' => $clientStatuses,
         ]);
     }
 }
