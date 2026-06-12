@@ -162,6 +162,7 @@ live-deploy-code: ## Sync PHP/template/config changes, recompile assets, no imag
 	$(DC_LIVE) cp config/. app:/app/config
 	$(DC_LIVE) cp migrations/. app:/app/migrations
 	$(EXEC_LIVE) php bin/console tailwind:build --minify
+	$(DC_LIVE) exec --user root app chown -R www-data:www-data /app/var/cache
 	$(EXEC_LIVE) php bin/console asset-map:compile
 	$(DC_LIVE) exec --user root app php bin/console cache:clear --no-warmup
 	$(DC_LIVE) exec --user root app php bin/console cache:warmup
@@ -178,6 +179,7 @@ live-update: ## Rebuild + redeploy live without downtime, then migrate
 	$(DC_LIVE) build app
 	$(DC_LIVE) up -d --no-deps app
 	$(EXEC_LIVE) sh -c 'i=0; until php bin/console about > /dev/null 2>&1; do sleep 1; i=$$((i+1)); [ $$i -ge 60 ] && echo "App did not start" && exit 1; done'
+	$(DC_LIVE) exec --user root app chown -R www-data:www-data /app/var/cache
 	$(EXEC_LIVE) php bin/console cache:clear --no-warmup
 	$(EXEC_LIVE) php bin/console cache:warmup
 	$(EXEC_LIVE) php bin/console doctrine:migrations:migrate --no-interaction
