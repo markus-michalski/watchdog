@@ -1,36 +1,57 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}{{ site.name }} — Watchdog{% endblock %}
+{% block title %}{{ client.name }} — Watchdog{% endblock %}
 
 {% block body %}
 <div class="flex items-center justify-between mb-6">
     <div class="flex items-center gap-3">
-        <a href="{{ path('site_index') }}" class="text-gray-500 hover:text-gray-700 text-sm">← Sites</a>
-        <h1 class="text-2xl font-bold text-gray-800">{{ site.name }}</h1>
-        <span class="px-2 py-0.5 rounded text-xs {% if site.isActive %}bg-green-100 text-green-700{% else %}bg-gray-100 text-gray-500{% endif %}">
-            {{ site.isActive ? 'Active' : 'Inactive' }}
+        <a href="{{ path('client_index') }}" class="text-gray-500 hover:text-gray-700 text-sm">← Clients</a>
+        <h1 class="text-2xl font-bold text-gray-800">{{ client.name }}</h1>
+        <span class="px-2 py-0.5 rounded text-xs {% if client.isActive %}bg-green-100 text-green-700{% else %}bg-gray-100 text-gray-500{% endif %}">
+            {{ client.isActive ? 'Active' : 'Inactive' }}
         </span>
     </div>
-    <a href="{{ path('site_edit', {id: site.id}) }}" class="border border-blue-300 text-blue-700 px-3 py-1.5 rounded text-sm hover:bg-blue-50">Edit site</a>
+    <a href="{{ path('client_edit', {id: client.id}) }}" class="border border-blue-300 text-blue-700 px-3 py-1.5 rounded text-sm hover:bg-blue-50">Edit client</a>
 </div>
 
 <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
-    {# Site info #}
+    {# URLs #}
     <div class="bg-white rounded-lg shadow p-5 lg:col-span-2">
-        <h2 class="font-semibold text-gray-700 mb-3">Site details</h2>
-        <dl class="text-sm space-y-2">
-            <div class="flex gap-2">
-                <dt class="text-gray-500 w-32 shrink-0">URL</dt>
-                <dd><a href="{{ site.url }}" target="_blank" rel="noopener" class="text-blue-600 hover:underline">{{ site.url }}</a></dd>
-            </div>
-            {% if site.hasBasicAuth() %}
-            <div class="flex gap-2">
-                <dt class="text-gray-500 w-32 shrink-0">BasicAuth</dt>
-                <dd class="text-yellow-700">{{ site.basicAuthUser }} / ••••••</dd>
-            </div>
-            {% endif %}
-        </dl>
+        <div class="flex items-center justify-between mb-3">
+            <h2 class="font-semibold text-gray-700">URLs</h2>
+            <a href="{{ path('client_url_new', {id: client.id}) }}" class="text-xs bg-blue-600 text-white px-3 py-1.5 rounded hover:bg-blue-700">+ Add URL</a>
+        </div>
+        {% if client.urls is empty %}
+            <p class="text-sm text-gray-400 italic">No URLs configured. Add one to create HTTP checks.</p>
+        {% else %}
+            <ul class="divide-y divide-gray-100">
+                {% for url in client.urls %}
+                <li class="py-2 flex items-center justify-between gap-3">
+                    <div class="min-w-0">
+                        {% if url.label %}
+                            <span class="font-medium text-gray-800 text-sm">{{ url.label }}</span>
+                            <span class="text-gray-400 text-xs ml-2">{{ url.url }}</span>
+                        {% else %}
+                            <a href="{{ url.url }}" target="_blank" rel="noopener" class="text-blue-600 hover:underline text-sm truncate block">{{ url.url }}</a>
+                        {% endif %}
+                        {% if url.hasBasicAuth() %}
+                            <span class="text-xs bg-yellow-100 text-yellow-700 px-2 py-0.5 rounded ml-1">BasicAuth: {{ url.basicAuthUser }}</span>
+                        {% endif %}
+                    </div>
+                    <div class="flex items-center gap-1.5 shrink-0">
+                        <a href="{{ path('client_url_edit', {clientId: client.id, urlId: url.id}) }}"
+                           class="border border-blue-300 text-blue-700 px-2 py-0.5 rounded text-xs hover:bg-blue-50">Edit</a>
+                        <form action="{{ path('client_url_delete', {clientId: client.id, urlId: url.id}) }}" method="post" class="inline"
+                              onsubmit="return confirm('Delete this URL?')">
+                            <input type="hidden" name="_token" value="{{ csrf_token('delete_url' ~ url.id) }}">
+                            <button type="submit" class="border border-red-300 text-red-700 px-2 py-0.5 rounded text-xs hover:bg-red-50 cursor-pointer">Delete</button>
+                        </form>
+                    </div>
+                </li>
+                {% endfor %}
+            </ul>
+        {% endif %}
     </div>
 
     {# Contacts #}
@@ -39,12 +60,12 @@
             <h2 class="font-semibold text-gray-700">Alert contacts</h2>
             <a href="{{ path('contact_index') }}" class="text-xs text-blue-600 hover:underline">Manage</a>
         </div>
-        {% if site.contacts is empty %}
+        {% if client.contacts is empty %}
             <p class="text-sm text-gray-400 italic">No contacts — alerts are silent.</p>
-            <a href="{{ path('site_edit', {id: site.id}) }}" class="text-blue-600 hover:underline text-xs mt-2 inline-block">Assign contacts in site settings</a>
+            <a href="{{ path('client_edit', {id: client.id}) }}" class="text-blue-600 hover:underline text-xs mt-2 inline-block">Assign contacts in client settings</a>
         {% else %}
             <ul class="text-sm space-y-1.5">
-                {% for contact in site.contacts %}
+                {% for contact in client.contacts %}
                     <li>
                         <span class="font-medium text-gray-800">{{ contact.name }}</span>
                         <span class="text-gray-400 ml-1">{{ contact.email }}</span>
@@ -60,10 +81,10 @@
     <div class="flex items-center justify-between mb-3">
         <h2 class="text-lg font-semibold text-gray-800">
             Checks
-            <span class="text-sm font-normal text-gray-400 ml-1">({{ site.checks|length }})</span>
+            <span class="text-sm font-normal text-gray-400 ml-1">({{ client.checks|length }})</span>
         </h2>
         <div class="flex items-center gap-3">
-            {% if site.checks|length > 4 %}
+            {% if client.checks|length > 4 %}
             <input
                 type="search"
                 id="check-filter"
@@ -72,19 +93,19 @@
                 oninput="filterChecks(this.value)"
             >
             {% endif %}
-            <a href="{{ path('check_new', {siteId: site.id}) }}" class="bg-blue-600 text-white px-3 py-1.5 rounded hover:bg-blue-700 text-sm">
+            <a href="{{ path('check_new', {clientId: client.id}) }}" class="bg-blue-600 text-white px-3 py-1.5 rounded hover:bg-blue-700 text-sm">
                 + Add check
             </a>
         </div>
     </div>
 
-    {% if site.checks is empty %}
+    {% if client.checks is empty %}
         <div class="bg-white rounded-lg shadow p-6 text-center text-gray-500 text-sm">
             No checks configured. Add your first check above.
         </div>
     {% else %}
         <div class="grid gap-3" id="check-list">
-            {% for check in site.checks|sort((a, b) => a.label <=> b.label) %}
+            {% for check in client.checks|sort((a, b) => a.label <=> b.label) %}
                 {% set result = latestResults[check.id] ?? null %}
                 <div class="bg-white rounded-lg shadow p-4 flex items-center gap-4 check-row" data-label="{{ check.label|lower }}">
                     <div class="flex-1 min-w-0">
@@ -97,7 +118,6 @@
                         {% endif %}
                     </div>
 
-                    {# Health status from last result #}
                     <div class="flex items-center gap-2 shrink-0">
                         {% if result %}
                             <span class="px-2 py-0.5 rounded text-xs font-semibold {{ result.status.cssClass() }}">
@@ -115,29 +135,27 @@
                         {% endif %}
                     </div>
 
-                    {# Only show Disabled badge — Active is the default, no need to label it #}
                     {% if not check.isActive %}
                         <span class="text-xs bg-gray-100 text-gray-400 px-2 py-0.5 rounded shrink-0">Disabled</span>
                     {% endif %}
 
-                    {# Action buttons #}
                     <div class="flex items-center gap-1.5 shrink-0">
-                        <a href="{{ path('check_history', {siteId: site.id, checkId: check.id}) }}"
+                        <a href="{{ path('check_history', {clientId: client.id, checkId: check.id}) }}"
                            class="border border-gray-300 text-gray-600 px-2.5 py-1 rounded text-xs hover:bg-gray-50 whitespace-nowrap">
                             History
                         </a>
-                        <a href="{{ path('check_edit', {siteId: site.id, checkId: check.id}) }}"
+                        <a href="{{ path('check_edit', {clientId: client.id, checkId: check.id}) }}"
                            class="border border-blue-300 text-blue-700 px-2.5 py-1 rounded text-xs hover:bg-blue-50">
                             Edit
                         </a>
-                        <form action="{{ path('check_run', {siteId: site.id, checkId: check.id}) }}" method="post" class="inline">
+                        <form action="{{ path('check_run', {clientId: client.id, checkId: check.id}) }}" method="post" class="inline">
                             <input type="hidden" name="_token" value="{{ csrf_token('run_check' ~ check.id) }}">
                             <button type="submit"
                                     class="border border-green-300 text-green-700 px-2.5 py-1 rounded text-xs hover:bg-green-50 cursor-pointer">
                                 Run now
                             </button>
                         </form>
-                        <form action="{{ path('check_delete', {siteId: site.id, checkId: check.id}) }}" method="post" class="inline"
+                        <form action="{{ path('check_delete', {clientId: client.id, checkId: check.id}) }}" method="post" class="inline"
                               onsubmit="return confirm('Delete this check?')">
                             <input type="hidden" name="_token" value="{{ csrf_token('delete_check' ~ check.id) }}">
                             <button type="submit"

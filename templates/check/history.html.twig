@@ -4,7 +4,7 @@
 
 {% block body %}
 <div class="flex items-center gap-3 mb-4">
-    <a href="{{ path('site_show', {id: site.id}) }}" class="text-gray-500 hover:text-gray-700 text-sm">← {{ site.name }}</a>
+    <a href="{{ path('client_show', {id: client.id}) }}" class="text-gray-500 hover:text-gray-700 text-sm">← {{ client.name }}</a>
     <h1 class="text-2xl font-bold text-gray-800">{{ check.label }}</h1>
 </div>
 
@@ -47,7 +47,7 @@
     </button>
 
     {% if filters.status or filters.from or filters.to or filters.http_code %}
-        <a href="{{ path('check_history', {siteId: site.id, checkId: check.id}) }}"
+        <a href="{{ path('check_history', {clientId: client.id, checkId: check.id}) }}"
            class="text-sm text-gray-500 hover:text-gray-700 py-1.5">
             × Clear
         </a>
@@ -65,7 +65,7 @@
     </div>
 {% else %}
     {# Build base params preserving active filters (used in pagination links) #}
-    {% set pageParams = {siteId: site.id, checkId: check.id} %}
+    {% set pageParams = {clientId: client.id, checkId: check.id} %}
     {% if filters.status %}{% set pageParams = pageParams|merge({status: filters.status}) %}{% endif %}
     {% if filters.from %}{% set pageParams = pageParams|merge({from: filters.from}) %}{% endif %}
     {% if filters.to %}{% set pageParams = pageParams|merge({to: filters.to}) %}{% endif %}

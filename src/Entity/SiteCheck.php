@@ -21,7 +21,7 @@ class SiteCheck
 
     #[ORM\ManyToOne(inversedBy: 'checks')]
     #[ORM\JoinColumn(nullable: false)]
-    private Site $site;
+    private Client $client;
 
     #[ORM\Column(length: 64)]
     private string $type;
@@ -65,14 +65,14 @@ class SiteCheck
         return $this->id;
     }
 
-    public function getSite(): Site
+    public function getClient(): Client
     {
-        return $this->site;
+        return $this->client;
     }
 
-    public function setSite(Site $site): static
+    public function setClient(Client $client): static
     {
-        $this->site = $site;
+        $this->client = $client;
 
         return $this;
     }

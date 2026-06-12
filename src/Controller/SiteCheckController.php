@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Controller;
 
 use App\Check\CheckRegistry;
-use App\Entity\Site;
+use App\Entity\Client;
 use App\Entity\SiteCheck;
 use App\Form\SiteCheckType;
 use App\Message\RunSiteChecksMessage;
@@ -19,7 +19,7 @@ use Symfony\Component\Messenger\MessageBusInterface;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Contracts\Cache\CacheInterface;
 
-#[Route('/sites/{siteId}/checks', name: 'check_')]
+#[Route('/clients/{clientId}/checks', name: 'check_')]
 class SiteCheckController extends AbstractController
 {
     public function __construct(private readonly CacheInterface $cache) {}
@@ -27,12 +27,12 @@ class SiteCheckController extends AbstractController
     #[Route('/new', name: 'new')]
     public function new(
         Request $request,
-        #[MapEntity(id: 'siteId')] Site $site,
+        #[MapEntity(id: 'clientId')] Client $client,
         EntityManagerInterface $em,
         CheckRegistry $registry,
     ): Response {
         $check = new SiteCheck();
-        $check->setSite($site);
+        $check->setClient($client);
 
         $form = $this->createForm(SiteCheckType::class, $check);
         $form->handleRequest($request);
@@ -44,22 +44,23 @@ class SiteCheckController extends AbstractController
             $this->cache->delete('watchdog_schedule');
             $this->addFlash('success', sprintf('Check "%s" added.', $check->getLabel()));
 
-            return $this->redirectToRoute('site_show', ['id' => $site->getId()]);
+            return $this->redirectToRoute('client_show', ['id' => $client->getId()]);
         }
 
         return $this->render('check/form.html.twig', [
             'form' => $form,
-            'site' => $site,
+            'client' => $client,
             'check' => $check,
             'title' => 'Add Check',
             'schemas' => $registry->getAllSchemas(),
+            'clientUrls' => $client->getUrls(),
         ]);
     }
 
     #[Route('/{checkId}/edit', name: 'edit')]
     public function edit(
         Request $request,
-        #[MapEntity(id: 'siteId')] Site $site,
+        #[MapEntity(id: 'clientId')] Client $client,
         #[MapEntity(id: 'checkId')] SiteCheck $check,
         EntityManagerInterface $em,
         CheckRegistry $registry,
@@ -73,15 +74,16 @@ class SiteCheckController extends AbstractController
             $this->cache->delete('watchdog_schedule');
             $this->addFlash('success', 'Check updated.');
 
-            return $this->redirectToRoute('site_show', ['id' => $site->getId()]);
+            return $this->redirectToRoute('client_show', ['id' => $client->getId()]);
         }
 
         return $this->render('check/form.html.twig', [
             'form' => $form,
-            'site' => $site,
+            'client' => $client,
             'check' => $check,
             'title' => 'Edit Check',
             'schemas' => $registry->getAllSchemas(),
+            'clientUrls' => $client->getUrls(),
         ]);
     }
 
@@ -107,7 +109,7 @@ class SiteCheckController extends AbstractController
                     'intval',
                     array_filter(array_map('trim', explode(',', (string) $raw)))
                 );
-            } elseif (in_array($field['type'], ['number', 'duration'], true)) {
+            } elseif (in_array($field['type'], ['number', 'duration', 'client_url_select'], true)) {
                 $config[$field['name']] = (int) $raw;
             } else {
                 $config[$field['name']] = $raw;
@@ -118,8 +120,12 @@ class SiteCheckController extends AbstractController
     }
 
     #[Route('/{checkId}/delete', name: 'delete', methods: ['POST'])]
-    public function delete(Request $request, #[MapEntity(id: 'siteId')] Site $site, #[MapEntity(id: 'checkId')] SiteCheck $check, EntityManagerInterface $em): Response
-    {
+    public function delete(
+        Request $request,
+        #[MapEntity(id: 'clientId')] Client $client,
+        #[MapEntity(id: 'checkId')] SiteCheck $check,
+        EntityManagerInterface $em,
+    ): Response {
         if ($this->isCsrfTokenValid('delete_check'.$check->getId(), (string) $request->request->get('_token', ''))) {
             $em->remove($check);
             $em->flush();
@@ -127,13 +133,13 @@ class SiteCheckController extends AbstractController
             $this->addFlash('success', 'Check deleted.');
         }
 
-        return $this->redirectToRoute('site_show', ['id' => $site->getId()]);
+        return $this->redirectToRoute('client_show', ['id' => $client->getId()]);
     }
 
     #[Route('/{checkId}/run', name: 'run', methods: ['POST'])]
     public function run(
         Request $request,
-        #[MapEntity(id: 'siteId')] Site $site,
+        #[MapEntity(id: 'clientId')] Client $client,
         #[MapEntity(id: 'checkId')] SiteCheck $check,
         MessageBusInterface $bus,
     ): Response {
@@ -142,13 +148,13 @@ class SiteCheckController extends AbstractController
             $this->addFlash('success', sprintf('Check "%s" queued — result appears in a few seconds.', $check->getLabel()));
         }
 
-        return $this->redirectToRoute('site_show', ['id' => $site->getId()]);
+        return $this->redirectToRoute('client_show', ['id' => $client->getId()]);
     }
 
     #[Route('/{checkId}/history', name: 'history')]
     public function history(
         Request $request,
-        #[MapEntity(id: 'siteId')] Site $site,
+        #[MapEntity(id: 'clientId')] Client $client,
         #[MapEntity(id: 'checkId')] SiteCheck $check,
         CheckResultRepository $checkResultRepository,
     ): Response {
@@ -188,7 +194,7 @@ class SiteCheckController extends AbstractController
         $page  = min($page, $pages);
 
         return $this->render('check/history.html.twig', [
-            'site'    => $site,
+            'client'  => $client,
             'check'   => $check,
             'results' => $checkResultRepository->findFilteredForCheck($check, $filters, $page, $limit),
             'total'   => $total,

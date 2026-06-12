@@ -4,10 +4,11 @@ declare(strict_types=1);
 
 namespace App\MessageHandler;
 
-use App\Entity\Site;
+use App\Entity\Client;
 use App\Message\MailNotificationMessage;
 use App\Repository\AlertStateRepository;
 use App\Repository\CheckResultRepository;
+use App\Repository\ClientUrlRepository;
 use App\Repository\SiteCheckRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Mailer\MailerInterface;
@@ -22,6 +23,7 @@ final class MailNotificationHandler
         private readonly SiteCheckRepository $siteCheckRepository,
         private readonly CheckResultRepository $checkResultRepository,
         private readonly AlertStateRepository $alertStateRepository,
+        private readonly ClientUrlRepository $clientUrlRepository,
         private readonly MailerInterface $mailer,
         private readonly Environment $twig,
         private readonly EntityManagerInterface $em,
@@ -39,33 +41,44 @@ final class MailNotificationHandler
         }
 
         // Eager-load contacts to avoid lazy-loading issues in Messenger worker context
-        /** @var Site $site */
-        $site = $this->em->createQueryBuilder()
-            ->select('s', 'c')
-            ->from(Site::class, 's')
-            ->leftJoin('s.contacts', 'c')
-            ->where('s.id = :id')
-            ->setParameter('id', $check->getSite()->getId())
+        /** @var Client $client */
+        $client = $this->em->createQueryBuilder()
+            ->select('c', 'co')
+            ->from(Client::class, 'c')
+            ->leftJoin('c.contacts', 'co')
+            ->where('c.id = :id')
+            ->setParameter('id', $check->getClient()->getId())
             ->getQuery()
             ->getSingleResult();
 
-        $contacts = $site->getContacts();
+        $contacts = $client->getContacts();
 
         if ($contacts->isEmpty()) {
             return;
         }
 
         $subject = match ($message->action) {
-            'failure' => sprintf('[WATCHDOG] %s: %s - %s', $result->getStatus()->label(), $site->getName(), $check->getLabel()),
-            'recovery' => sprintf('[WATCHDOG] RECOVERED: %s - %s', $site->getName(), $check->getLabel()),
-            default => sprintf('[WATCHDOG] Alert: %s', $site->getName()),
+            'failure' => sprintf('[WATCHDOG] %s: %s - %s', $result->getStatus()->label(), $client->getName(), $check->getLabel()),
+            'recovery' => sprintf('[WATCHDOG] RECOVERED: %s - %s', $client->getName(), $check->getLabel()),
+            default => sprintf('[WATCHDOG] Alert: %s', $client->getName()),
         };
 
+        $checkUrl = null;
+        if ('http' === $check->getType()) {
+            $clientUrlId = isset($check->getConfig()['client_url_id'])
+                ? (int) $check->getConfig()['client_url_id']
+                : null;
+            if (null !== $clientUrlId) {
+                $checkUrl = $this->clientUrlRepository->find($clientUrlId)?->getUrl();
+            }
+        }
+
         $htmlBody = $this->twig->render('email/notification.html.twig', [
-            'site' => $site,
+            'client' => $client,
             'check' => $check,
             'result' => $result,
             'action' => $message->action,
+            'checkUrl' => $checkUrl,
         ]);
 
         foreach ($contacts as $contact) {

@@ -7,6 +7,7 @@ namespace App\Check;
 use App\Entity\CheckResult;
 use App\Entity\SiteCheck;
 use App\Enum\CheckStatus;
+use App\Repository\ClientUrlRepository;
 use Symfony\Component\DependencyInjection\Attribute\AutoconfigureTag;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
 
@@ -15,6 +16,7 @@ final class HttpCheck implements CheckInterface
 {
     public function __construct(
         private readonly HttpClientInterface $httpClient,
+        private readonly ClientUrlRepository $clientUrlRepository,
     ) {
     }
 
@@ -41,6 +43,15 @@ final class HttpCheck implements CheckInterface
     {
         return [
             [
+                'name' => 'client_url_id',
+                'label' => 'URL',
+                'type' => 'client_url_select',
+                'required' => true,
+                'default' => '',
+                'placeholder' => '',
+                'help' => 'Select which URL to monitor. Add URLs in the client settings first.',
+            ],
+            [
                 'name' => 'timeout',
                 'label' => 'Timeout (seconds)',
                 'type' => 'number',
@@ -63,14 +74,24 @@ final class HttpCheck implements CheckInterface
 
     public function run(SiteCheck $check): CheckResult
     {
-        $site = $check->getSite();
         $config = array_merge($this->getDefaultConfig(), $check->getConfig());
         $result = new CheckResult();
         $result->setCheck($check);
 
-        if (null === $site->getUrl() || '' === $site->getUrl()) {
+        $clientUrlId = isset($config['client_url_id']) ? (int) $config['client_url_id'] : null;
+
+        if (null === $clientUrlId || $clientUrlId <= 0) {
             $result->setStatus(CheckStatus::Unknown);
-            $result->setMessage('No URL configured for this site');
+            $result->setMessage('No URL selected for this check');
+
+            return $result;
+        }
+
+        $clientUrl = $this->clientUrlRepository->find($clientUrlId);
+
+        if (null === $clientUrl) {
+            $result->setStatus(CheckStatus::Unknown);
+            $result->setMessage(sprintf('URL #%d not found — was it deleted?', $clientUrlId));
 
             return $result;
         }
@@ -81,17 +102,17 @@ final class HttpCheck implements CheckInterface
             'max_redirects' => 5,
         ];
 
-        if ($site->hasBasicAuth()) {
+        if ($clientUrl->hasBasicAuth()) {
             $options['auth_basic'] = [
-                $site->getBasicAuthUser(),
-                $site->getBasicAuthPassword(),
+                $clientUrl->getBasicAuthUser(),
+                $clientUrl->getBasicAuthPassword(),
             ];
         }
 
         $start = hrtime(true);
 
         try {
-            $response = $this->httpClient->request('GET', $site->getUrl(), $options);
+            $response = $this->httpClient->request('GET', $clientUrl->getUrl(), $options);
             $statusCode = $response->getStatusCode();
             $responseTimeMs = (int) ((hrtime(true) - $start) / 1_000_000);
 

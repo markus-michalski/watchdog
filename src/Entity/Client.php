@@ -4,15 +4,15 @@ declare(strict_types=1);
 
 namespace App\Entity;
 
-use App\Repository\SiteRepository;
+use App\Repository\ClientRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 
-#[ORM\Entity(repositoryClass: SiteRepository::class)]
-#[ORM\Table(name: 'sites')]
+#[ORM\Entity(repositoryClass: ClientRepository::class)]
+#[ORM\Table(name: 'clients')]
 #[ORM\HasLifecycleCallbacks]
-class Site
+class Client
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
@@ -21,16 +21,6 @@ class Site
 
     #[ORM\Column(length: 255)]
     private string $name;
-
-    #[ORM\Column(length: 2048, nullable: true)]
-    private ?string $url = null;
-
-    #[ORM\Column(length: 255, nullable: true)]
-    private ?string $basicAuthUser = null;
-
-    /** Stored encrypted via lifecycle callbacks */
-    #[ORM\Column(length: 512, nullable: true)]
-    private ?string $basicAuthPassword = null;
 
     #[ORM\Column]
     private bool $isActive = true;
@@ -42,18 +32,24 @@ class Site
     private \DateTimeImmutable $updatedAt;
 
     /** @var Collection<int, Contact> */
-    #[ORM\ManyToMany(targetEntity: Contact::class, inversedBy: 'sites')]
-    #[ORM\JoinTable(name: 'site_contacts')]
+    #[ORM\ManyToMany(targetEntity: Contact::class, inversedBy: 'clients')]
+    #[ORM\JoinTable(name: 'client_contacts')]
     private Collection $contacts;
 
     /** @var Collection<int, SiteCheck> */
-    #[ORM\OneToMany(mappedBy: 'site', targetEntity: SiteCheck::class, cascade: ['persist', 'remove'], orphanRemoval: true)]
+    #[ORM\OneToMany(mappedBy: 'client', targetEntity: SiteCheck::class, cascade: ['persist', 'remove'], orphanRemoval: true)]
     private Collection $checks;
+
+    /** @var Collection<int, ClientUrl> */
+    #[ORM\OneToMany(mappedBy: 'client', targetEntity: ClientUrl::class, cascade: ['persist', 'remove'], orphanRemoval: true)]
+    #[ORM\OrderBy(['url' => 'ASC'])]
+    private Collection $urls;
 
     public function __construct()
     {
         $this->contacts = new ArrayCollection();
         $this->checks = new ArrayCollection();
+        $this->urls = new ArrayCollection();
         $this->createdAt = new \DateTimeImmutable();
         $this->updatedAt = new \DateTimeImmutable();
     }
@@ -77,42 +73,6 @@ class Site
     public function setName(string $name): static
     {
         $this->name = $name;
-
-        return $this;
-    }
-
-    public function getUrl(): ?string
-    {
-        return $this->url;
-    }
-
-    public function setUrl(?string $url): static
-    {
-        $this->url = $url ?: null;
-
-        return $this;
-    }
-
-    public function getBasicAuthUser(): ?string
-    {
-        return $this->basicAuthUser;
-    }
-
-    public function setBasicAuthUser(?string $basicAuthUser): static
-    {
-        $this->basicAuthUser = $basicAuthUser;
-
-        return $this;
-    }
-
-    public function getBasicAuthPassword(): ?string
-    {
-        return $this->basicAuthPassword;
-    }
-
-    public function setBasicAuthPassword(?string $basicAuthPassword): static
-    {
-        $this->basicAuthPassword = $basicAuthPassword;
 
         return $this;
     }
@@ -171,7 +131,7 @@ class Site
     {
         if (!$this->checks->contains($check)) {
             $this->checks->add($check);
-            $check->setSite($this);
+            $check->setClient($this);
         }
 
         return $this;
@@ -184,8 +144,26 @@ class Site
         return $this;
     }
 
-    public function hasBasicAuth(): bool
+    /** @return Collection<int, ClientUrl> */
+    public function getUrls(): Collection
     {
-        return null !== $this->basicAuthUser && null !== $this->basicAuthPassword;
+        return $this->urls;
+    }
+
+    public function addUrl(ClientUrl $url): static
+    {
+        if (!$this->urls->contains($url)) {
+            $this->urls->add($url);
+            $url->setClient($this);
+        }
+
+        return $this;
+    }
+
+    public function removeUrl(ClientUrl $url): static
+    {
+        $this->urls->removeElement($url);
+
+        return $this;
     }
 }

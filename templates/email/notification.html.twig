@@ -8,20 +8,22 @@
 
 <div style="background: {% if action == 'failure' %}#fee2e2{% else %}#dcfce7{% endif %}; border-left: 4px solid {% if action == 'failure' %}#dc2626{% else %}#16a34a{% endif %}; padding: 16px; border-radius: 4px; margin-bottom: 20px;">
     <h2 style="margin: 0 0 8px 0; font-size: 18px; color: {% if action == 'failure' %}#dc2626{% else %}#16a34a{% endif %};">
-        {% if action == 'failure' %}FAIL{% else %}RECOVERED{% endif %}: {{ site.name }}
+        {% if action == 'failure' %}FAIL{% else %}RECOVERED{% endif %}: {{ client.name }}
     </h2>
     <p style="margin: 0; font-size: 14px;">{{ check.label }}</p>
 </div>
 
 <table style="width: 100%; border-collapse: collapse; font-size: 14px;">
     <tr>
-        <td style="padding: 8px 0; color: #666; width: 140px;">Site</td>
-        <td style="padding: 8px 0; font-weight: bold;">{{ site.name }}</td>
+        <td style="padding: 8px 0; color: #666; width: 140px;">Client</td>
+        <td style="padding: 8px 0; font-weight: bold;">{{ client.name }}</td>
     </tr>
+    {% if checkUrl is defined and checkUrl %}
     <tr>
         <td style="padding: 8px 0; color: #666;">URL</td>
-        <td style="padding: 8px 0;"><a href="{{ site.url }}" style="color: #2563eb;">{{ site.url }}</a></td>
+        <td style="padding: 8px 0;"><a href="{{ checkUrl }}" style="color: #2563eb;">{{ checkUrl }}</a></td>
     </tr>
+    {% endif %}
     <tr>
         <td style="padding: 8px 0; color: #666;">Check</td>
         <td style="padding: 8px 0;">{{ check.label }}</td>

@@ -31,15 +31,15 @@ class SiteCheckRepository extends ServiceEntityRepository
     }
 
     /** @return array<int, SiteCheck> */
-    public function findAllActiveWithSites(): array
+    public function findAllActiveWithClients(): array
     {
         /** @var array<int, SiteCheck> $results */
         $results = $this->createQueryBuilder('c')
-            ->join('c.site', 's')
-            ->leftJoin('s.contacts', 'co')
-            ->addSelect('s', 'co')
+            ->join('c.client', 'cl')
+            ->leftJoin('cl.contacts', 'co')
+            ->addSelect('cl', 'co')
             ->where('c.isActive = :active')
-            ->andWhere('s.isActive = :active')
+            ->andWhere('cl.isActive = :active')
             ->setParameter('active', true)
             ->getQuery()
             ->getResult();

@@ -12,7 +12,7 @@
 {% block body %}
 <div class="max-w-lg">
     <div class="flex items-center gap-3 mb-6">
-        <a href="{{ path('site_index') }}" class="text-gray-500 hover:text-gray-700 text-sm">← Sites</a>
+        <a href="{{ path('client_show', {id: client.id}) }}" class="text-gray-500 hover:text-gray-700 text-sm">← {{ client.name }}</a>
         <h1 class="text-2xl font-bold text-gray-800">{{ title }}</h1>
     </div>
 
@@ -20,19 +20,22 @@
         {{ form_start(form, {attr: {class: 'space-y-4'}}) }}
 
         <div>
-            {{ form_label(form.name, null, {label_attr: {class: 'form-label'}}) }}
-            {{ form_widget(form.name, {attr: {class: 'w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500'}}) }}
-            {{ form_errors(form.name) }}
-        </div>
-
-        <div>
             {{ form_label(form.url, null, {label_attr: {class: 'form-label'}}) }}
             {{ form_widget(form.url, {attr: {class: 'w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500'}}) }}
             {{ form_errors(form.url) }}
         </div>
 
+        <div>
+            {{ form_label(form.label, null, {label_attr: {class: 'form-label'}}) }}
+            {{ form_widget(form.label, {attr: {class: 'w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500'}}) }}
+            {% if form.label.vars.help is defined and form.label.vars.help %}
+                <p class="text-xs text-gray-400 mt-0.5">{{ form.label.vars.help }}</p>
+            {% endif %}
+            {{ form_errors(form.label) }}
+        </div>
+
         <hr class="border-gray-200">
-        <p class="text-sm font-medium text-gray-700">BasicAuth (optional — for stage environments)</p>
+        <p class="text-sm font-medium text-gray-700">BasicAuth (optional)</p>
 
         <div class="grid grid-cols-2 gap-4">
             <div>
@@ -45,37 +48,11 @@
             </div>
         </div>
 
-        <div class="flex items-center gap-2">
-            {{ form_widget(form.isActive) }}
-            {{ form_label(form.isActive, null, {label_attr: {class: 'text-sm text-gray-700'}}) }}
-        </div>
-
-        <hr class="border-gray-200">
-        <div>
-            {{ form_label(form.contacts, null, {label_attr: {class: 'form-label'}}) }}
-            {% if form.contacts|length == 0 %}
-                <p class="text-sm text-gray-400 italic">
-                    No contacts available.
-                    <a href="{{ path('contact_new') }}" class="text-blue-600 hover:underline">Create one first</a>
-                </p>
-            {% else %}
-                <div class="space-y-1 mt-1">
-                    {% for choice in form.contacts %}
-                        <label class="flex items-center gap-2 text-sm text-gray-700 cursor-pointer">
-                            {{ form_widget(choice) }}
-                            {{ choice.vars.label }}
-                        </label>
-                    {% endfor %}
-                </div>
-            {% endif %}
-            {{ form_errors(form.contacts) }}
-        </div>
-
         <div class="flex gap-3 pt-2">
             <button type="submit" class="bg-blue-600 text-white px-5 py-2 rounded hover:bg-blue-700 text-sm font-medium">
                 Save
             </button>
-            <a href="{{ path('site_index') }}" class="text-gray-600 hover:text-gray-800 px-3 py-2 text-sm">
+            <a href="{{ path('client_show', {id: client.id}) }}" class="text-gray-600 hover:text-gray-800 px-3 py-2 text-sm">
                 Cancel
             </a>
         </div>
