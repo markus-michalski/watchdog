@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Tests\Unit\Check;
 
 use App\Check\FileAgeCheck;
-use App\Entity\Site;
+use App\Entity\Client;
 use App\Entity\SiteCheck;
 use App\Enum\CheckStatus;
 use PHPUnit\Framework\Attributes\Test;
@@ -184,12 +184,11 @@ final class FileAgeCheckTest extends TestCase
 
     private function createSiteCheckWithWarn(string $path, int $maxAgeMinutes, int $warnAgeMinutes): SiteCheck
     {
-        $site = new Site();
-        $site->setName('Example');
-        $site->setUrl('https://example.test');
+        $client = new Client();
+        $client->setName('Example');
 
         $check = new SiteCheck();
-        $check->setSite($site);
+        $check->setClient($client);
         $check->setType('file_age');
         $check->setConfig([
             'path' => $path,

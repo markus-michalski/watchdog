@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Tests\Unit\MessageHandler;
 
 use App\Check\CheckRegistry;
-use App\Entity\Site;
+use App\Entity\Client;
 use App\Entity\SiteCheck;
 use App\Message\RunSiteChecksMessage;
 use App\MessageHandler\RunSiteChecksHandler;
@@ -105,12 +105,12 @@ final class RunSiteChecksHandlerTest extends TestCase
 
     private function createCheck(bool $checkActive, bool $siteActive): SiteCheck
     {
-        $site = new Site();
-        $site->setName('Example');
-        $site->setIsActive($siteActive);
+        $client = new Client();
+        $client->setName('Example');
+        $client->setIsActive($siteActive);
 
         $check = new SiteCheck();
-        $check->setSite($site);
+        $check->setClient($client);
         $check->setType('http');
         $check->setIsActive($checkActive);
 
