@@ -30,4 +30,18 @@ interface CheckInterface
      * @return array<int, array{name: string, label: string, type: string, required: bool, default: mixed, placeholder: string, help: string}>
      */
     public function getConfigSchema(): array;
+
+    /**
+     * Column label for the primary check target shown in alert emails (e.g. "URL", "Container", "Path").
+     * Return null if this check type has no meaningful target to display.
+     */
+    public function getEmailTargetLabel(): ?string;
+
+    /**
+     * Resolve the human-readable target value for alert emails from the stored config.
+     * Return null if not configured or not applicable.
+     *
+     * @param array<string, mixed> $config
+     */
+    public function resolveEmailTarget(array $config): ?string;
 }

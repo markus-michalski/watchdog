@@ -70,6 +70,19 @@ final class DockerExecCheck implements CheckInterface
         ];
     }
 
+    public function getEmailTargetLabel(): string
+    {
+        return 'Container';
+    }
+
+    /** @param array<string, mixed> $config */
+    public function resolveEmailTarget(array $config): ?string
+    {
+        $name = $config['container_name'] ?? '';
+
+        return is_string($name) && '' !== $name ? $name : null;
+    }
+
     public function run(SiteCheck $check): CheckResult
     {
         $result = new CheckResult();

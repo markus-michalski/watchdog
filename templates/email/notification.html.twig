@@ -18,10 +18,10 @@
         <td style="padding: 8px 0; color: #666; width: 140px;">Client</td>
         <td style="padding: 8px 0; font-weight: bold;">{{ client.name }}</td>
     </tr>
-    {% if checkUrl is defined and checkUrl %}
+    {% if checkTarget is defined and checkTarget %}
     <tr>
-        <td style="padding: 8px 0; color: #666;">URL</td>
-        <td style="padding: 8px 0;"><a href="{{ checkUrl }}" style="color: #2563eb;">{{ checkUrl }}</a></td>
+        <td style="padding: 8px 0; color: #666; width: 140px;">{{ checkTarget.label }}</td>
+        <td style="padding: 8px 0; font-family: monospace; font-size: 12px;">{{ checkTarget.value }}</td>
     </tr>
     {% endif %}
     <tr>

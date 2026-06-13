@@ -46,6 +46,19 @@ final class DockerCheck implements CheckInterface
         ];
     }
 
+    public function getEmailTargetLabel(): string
+    {
+        return 'Container';
+    }
+
+    /** @param array<string, mixed> $config */
+    public function resolveEmailTarget(array $config): ?string
+    {
+        $name = $config['container_name'] ?? '';
+
+        return is_string($name) && '' !== $name ? $name : null;
+    }
+
     public function run(SiteCheck $check): CheckResult
     {
         $result = new CheckResult();
@@ -157,7 +170,7 @@ final class DockerCheck implements CheckInterface
             throw new \RuntimeException('Invalid JSON response from Docker API');
         }
 
-        /* @var array<string, mixed> $data */
+        /** @var array<string, mixed> $data */
         return $data;
     }
 }
