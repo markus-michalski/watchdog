@@ -8,7 +8,7 @@ use App\Check\CheckInterface;
 use App\Check\CheckRegistry;
 use App\Entity\AlertState;
 use App\Entity\CheckResult;
-use App\Entity\Site;
+use App\Entity\Client;
 use App\Entity\SiteCheck;
 use App\Enum\CheckStatus;
 use App\Repository\AlertStateRepository;
@@ -103,11 +103,11 @@ final class CheckRunnerTest extends TestCase
 
     private function createSiteCheck(string $type): SiteCheck
     {
-        $site = new Site();
-        $site->setName('Example');
+        $client = new Client();
+        $client->setName('Example');
 
         $check = new SiteCheck();
-        $check->setSite($site);
+        $check->setClient($client);
         $check->setType($type);
 
         return $check;

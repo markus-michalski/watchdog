@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace App\MessageHandler;
 
+use App\Check\CheckRegistry;
 use App\Entity\Client;
 use App\Message\MailNotificationMessage;
 use App\Repository\AlertStateRepository;
 use App\Repository\CheckResultRepository;
-use App\Repository\ClientUrlRepository;
 use App\Repository\SiteCheckRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Mailer\MailerInterface;
@@ -23,7 +23,7 @@ final class MailNotificationHandler
         private readonly SiteCheckRepository $siteCheckRepository,
         private readonly CheckResultRepository $checkResultRepository,
         private readonly AlertStateRepository $alertStateRepository,
-        private readonly ClientUrlRepository $clientUrlRepository,
+        private readonly CheckRegistry $checkRegistry,
         private readonly MailerInterface $mailer,
         private readonly Environment $twig,
         private readonly EntityManagerInterface $em,
@@ -57,28 +57,21 @@ final class MailNotificationHandler
             return;
         }
 
+        $checkTarget = $this->resolveCheckTarget($check->getType(), $check->getConfig());
+
+        $targetSuffix = $checkTarget ? ' ('.$checkTarget['value'].')' : '';
         $subject = match ($message->action) {
-            'failure' => sprintf('[WATCHDOG] %s: %s - %s', $result->getStatus()->label(), $client->getName(), $check->getLabel()),
-            'recovery' => sprintf('[WATCHDOG] RECOVERED: %s - %s', $client->getName(), $check->getLabel()),
+            'failure' => sprintf('[WATCHDOG] %s: %s - %s%s', $result->getStatus()->label(), $client->getName(), $check->getLabel(), $targetSuffix),
+            'recovery' => sprintf('[WATCHDOG] RECOVERED: %s - %s%s', $client->getName(), $check->getLabel(), $targetSuffix),
             default => sprintf('[WATCHDOG] Alert: %s', $client->getName()),
         };
-
-        $checkUrl = null;
-        if ('http' === $check->getType()) {
-            $clientUrlId = isset($check->getConfig()['client_url_id'])
-                ? (int) $check->getConfig()['client_url_id']
-                : null;
-            if (null !== $clientUrlId) {
-                $checkUrl = $this->clientUrlRepository->find($clientUrlId)?->getUrl();
-            }
-        }
 
         $htmlBody = $this->twig->render('email/notification.html.twig', [
             'client' => $client,
             'check' => $check,
             'result' => $result,
             'action' => $message->action,
-            'checkUrl' => $checkUrl,
+            'checkTarget' => $checkTarget,
         ]);
 
         foreach ($contacts as $contact) {
@@ -95,5 +88,26 @@ final class MailNotificationHandler
         $state = $this->alertStateRepository->findOrCreateForCheck($check);
         $state->setLastAlertSentAt(new \DateTimeImmutable());
         $this->em->flush();
+    }
+
+    /**
+     * @param array<string, mixed> $config
+     * @return array{label: string, value: string}|null
+     */
+    private function resolveCheckTarget(string $type, array $config): ?array
+    {
+        if (!$this->checkRegistry->has($type)) {
+            return null;
+        }
+
+        $impl = $this->checkRegistry->get($type);
+        $label = $impl->getEmailTargetLabel();
+        $value = $impl->resolveEmailTarget($config);
+
+        if (null === $label || null === $value || '' === $value) {
+            return null;
+        }
+
+        return ['label' => $label, 'value' => $value];
     }
 }

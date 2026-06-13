@@ -5,9 +5,11 @@ declare(strict_types=1);
 namespace App\Tests\Unit\Check;
 
 use App\Check\HttpCheck;
-use App\Entity\Site;
+use App\Entity\Client;
+use App\Entity\ClientUrl;
 use App\Entity\SiteCheck;
 use App\Enum\CheckStatus;
+use App\Repository\ClientUrlRepository;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\HttpClient\Exception\TransportException;
@@ -19,16 +21,39 @@ final class HttpCheckTest extends TestCase
     #[Test]
     public function testGetTypeReturnsHttp(): void
     {
-        $httpCheck = new HttpCheck(new MockHttpClient());
+        $httpCheck = $this->buildCheck(new MockHttpClient());
 
         self::assertSame('http', $httpCheck->getType());
     }
 
     #[Test]
+    public function testRunWithNoClientUrlIdReturnsUnknown(): void
+    {
+        $check = $this->createSiteCheck([]);
+        $result = $this->buildCheck(new MockHttpClient())->run($check);
+
+        self::assertSame(CheckStatus::Unknown, $result->getStatus());
+    }
+
+    #[Test]
+    public function testRunWithUnknownClientUrlIdReturnsUnknown(): void
+    {
+        $check = $this->createSiteCheck(['client_url_id' => 999]);
+        // repo returns null — URL was deleted
+        $result = $this->buildCheck(new MockHttpClient(), null)->run($check);
+
+        self::assertSame(CheckStatus::Unknown, $result->getStatus());
+        self::assertStringContainsString('999', (string) $result->getMessage());
+    }
+
+    #[Test]
     public function testRunWithExpected200ReturnsOkStatus(): void
     {
-        $httpCheck = new HttpCheck(new MockHttpClient(new MockResponse('', ['http_code' => 200])));
-        $check = $this->createSiteCheck(['expected_status_codes' => [200]]);
+        $check = $this->createSiteCheck(['client_url_id' => 1, 'expected_status_codes' => [200]]);
+        $httpCheck = $this->buildCheck(
+            new MockHttpClient(new MockResponse('', ['http_code' => 200])),
+            $this->makeClientUrl('https://example.test'),
+        );
 
         $result = $httpCheck->run($check);
 
@@ -39,8 +64,11 @@ final class HttpCheckTest extends TestCase
     #[Test]
     public function testRunWith500ReturnsFailStatusWithStatusCodeInMessage(): void
     {
-        $httpCheck = new HttpCheck(new MockHttpClient(new MockResponse('', ['http_code' => 500])));
-        $check = $this->createSiteCheck(['expected_status_codes' => [200]]);
+        $check = $this->createSiteCheck(['client_url_id' => 1, 'expected_status_codes' => [200]]);
+        $httpCheck = $this->buildCheck(
+            new MockHttpClient(new MockResponse('', ['http_code' => 500])),
+            $this->makeClientUrl('https://example.test'),
+        );
 
         $result = $httpCheck->run($check);
 
@@ -51,8 +79,11 @@ final class HttpCheckTest extends TestCase
     #[Test]
     public function testRunWithUnexpectedStatusCodeReturnsFailStatus(): void
     {
-        $httpCheck = new HttpCheck(new MockHttpClient(new MockResponse('', ['http_code' => 404])));
-        $check = $this->createSiteCheck(['expected_status_codes' => [200]]);
+        $check = $this->createSiteCheck(['client_url_id' => 1, 'expected_status_codes' => [200]]);
+        $httpCheck = $this->buildCheck(
+            new MockHttpClient(new MockResponse('', ['http_code' => 404])),
+            $this->makeClientUrl('https://example.test'),
+        );
 
         $result = $httpCheck->run($check);
 
@@ -63,10 +94,13 @@ final class HttpCheckTest extends TestCase
     #[Test]
     public function testRunWithNetworkExceptionReturnsFailStatus(): void
     {
-        $httpCheck = new HttpCheck(new MockHttpClient(static function (): never {
-            throw new TransportException('Connection refused');
-        }));
-        $check = $this->createSiteCheck(['expected_status_codes' => [200]]);
+        $check = $this->createSiteCheck(['client_url_id' => 1, 'expected_status_codes' => [200]]);
+        $httpCheck = $this->buildCheck(
+            new MockHttpClient(static function (): never {
+                throw new TransportException('Connection refused');
+            }),
+            $this->makeClientUrl('https://example.test'),
+        );
 
         $result = $httpCheck->run($check);
 
@@ -74,17 +108,39 @@ final class HttpCheckTest extends TestCase
         self::assertStringContainsString('Connection refused', (string) $result->getMessage());
     }
 
+    // --- helpers ---
+
+    private function buildCheck(MockHttpClient $httpClient, ?ClientUrl $clientUrl = null): HttpCheck
+    {
+        $repo = $this->createStub(ClientUrlRepository::class);
+        $repo->method('find')->willReturn($clientUrl);
+
+        return new HttpCheck($httpClient, $repo);
+    }
+
+    /** @param array<string, mixed> $config */
     private function createSiteCheck(array $config): SiteCheck
     {
-        $site = new Site();
-        $site->setName('Example');
-        $site->setUrl('https://example.test');
+        $client = new Client();
+        $client->setName('Example');
 
         $check = new SiteCheck();
-        $check->setSite($site);
+        $check->setClient($client);
         $check->setType('http');
         $check->setConfig($config);
 
         return $check;
+    }
+
+    private function makeClientUrl(string $url): ClientUrl
+    {
+        $client = new Client();
+        $client->setName('Example');
+
+        $clientUrl = new ClientUrl();
+        $clientUrl->setClient($client);
+        $clientUrl->setUrl($url);
+
+        return $clientUrl;
     }
 }

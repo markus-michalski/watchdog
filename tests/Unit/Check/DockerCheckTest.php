@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Tests\Unit\Check;
 
 use App\Check\DockerCheck;
-use App\Entity\Site;
+use App\Entity\Client;
 use App\Entity\SiteCheck;
 use App\Enum\CheckStatus;
 use PHPUnit\Framework\Attributes\Test;
@@ -54,7 +54,7 @@ final class DockerCheckTest extends TestCase
     private function createSiteCheck(array $config): SiteCheck
     {
         $check = new SiteCheck();
-        $check->setSite(new Site());
+        $check->setClient(new Client());
         $check->setType('docker');
         $check->setConfig($config);
 

@@ -102,7 +102,7 @@ class CheckResultRepository extends ServiceEntityRepository
                ->setParameter('to', $filters['to']->modify('+1 day'));
         }
 
-        if (isset($filters['http_code']) && $filters['http_code'] !== null) {
+        if (isset($filters['http_code'])) {
             $qb->andWhere('r.statusCode = :http_code')
                ->setParameter('http_code', $filters['http_code']);
         }
@@ -138,9 +138,19 @@ class CheckResultRepository extends ServiceEntityRepository
             if (null === $ts) {
                 continue;
             }
-            $map[(int) $row['check_id']] = $ts instanceof \DateTimeImmutable
-                ? $ts
-                : new \DateTimeImmutable($ts);
+            $checkId = $row['check_id'];
+            if (!is_int($checkId) && !is_string($checkId)) {
+                continue;
+            }
+            try {
+                if ($ts instanceof \DateTimeInterface) {
+                    $map[(int) $checkId] = \DateTimeImmutable::createFromInterface($ts);
+                } elseif (is_string($ts)) {
+                    $map[(int) $checkId] = new \DateTimeImmutable($ts);
+                }
+            } catch (\Exception) {
+                continue;
+            }
         }
 
         return $map;

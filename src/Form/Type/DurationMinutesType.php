@@ -13,6 +13,7 @@ use Symfony\Component\Form\FormBuilderInterface;
 /**
  * Compound form type that maps a total-minutes integer to three d/h/min inputs.
  *
+ * @extends AbstractType<int>
  * @implements DataTransformerInterface<int, array{days: int, hours: int, minutes: int}>
  */
 final class DurationMinutesType extends AbstractType implements DataTransformerInterface
@@ -39,8 +40,12 @@ final class DurationMinutesType extends AbstractType implements DataTransformerI
         $builder->addModelTransformer($this);
     }
 
-    /** int minutes → ['days', 'hours', 'minutes'] */
-    public function transform(mixed $value): mixed
+    /**
+     * int minutes → ['days', 'hours', 'minutes']
+     *
+     * @return array{days: int, hours: int, minutes: int}
+     */
+    public function transform(mixed $value): array
     {
         $total = is_int($value) ? $value : 0;
 
@@ -53,15 +58,16 @@ final class DurationMinutesType extends AbstractType implements DataTransformerI
     }
 
     /** ['days', 'hours', 'minutes'] → int minutes */
-    public function reverseTransform(mixed $value): mixed
+    public function reverseTransform(mixed $value): int
     {
         if (!is_array($value)) {
             throw new TransformationFailedException('Expected an array.');
         }
 
-        $days    = (int) ($value['days']    ?? 0);
-        $hours   = (int) ($value['hours']   ?? 0);
-        $minutes = (int) ($value['minutes'] ?? 0);
+        /** @var array<string, mixed> $value */
+        $days    = is_int($value['days'] ?? null) ? $value['days'] : 0;
+        $hours   = is_int($value['hours'] ?? null) ? $value['hours'] : 0;
+        $minutes = is_int($value['minutes'] ?? null) ? $value['minutes'] : 0;
 
         if ($hours > 23) {
             throw new TransformationFailedException('Hours out of range.', 0, null, 'Hours must be between 0 and 23.');

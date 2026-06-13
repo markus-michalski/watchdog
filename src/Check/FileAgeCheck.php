@@ -66,6 +66,19 @@ final class FileAgeCheck implements CheckInterface
         ];
     }
 
+    public function getEmailTargetLabel(): string
+    {
+        return 'Path';
+    }
+
+    /** @param array<string, mixed> $config */
+    public function resolveEmailTarget(array $config): ?string
+    {
+        $path = $config['path'] ?? '';
+
+        return is_string($path) && '' !== $path ? $path : null;
+    }
+
     public function run(SiteCheck $check): CheckResult
     {
         $config = array_merge($this->getDefaultConfig(), $check->getConfig());

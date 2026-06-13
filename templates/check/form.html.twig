@@ -177,6 +177,16 @@
         });
     }
 
+    // Disable inputs in hidden sections so duplicate field names don't overwrite submitted values
+    const formEl = document.querySelector('form');
+    if (formEl) {
+        formEl.addEventListener('submit', () => {
+            document.querySelectorAll('.config-section[aria-hidden="true"] input, .config-section[aria-hidden="true"] select').forEach(el => {
+                el.disabled = true;
+            });
+        });
+    }
+
     const timeInput     = document.getElementById('{{ form.runAtTime.vars.id }}');
     const intervalField = document.getElementById('interval-field');
     const intervalInputs = intervalField ? [...intervalField.querySelectorAll('input[type="number"]')] : [];

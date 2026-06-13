@@ -72,13 +72,33 @@ final class HttpCheck implements CheckInterface
         ];
     }
 
+    public function getEmailTargetLabel(): string
+    {
+        return 'URL';
+    }
+
+    /** @param array<string, mixed> $config */
+    public function resolveEmailTarget(array $config): ?string
+    {
+        $raw = $config['client_url_id'] ?? null;
+        $id = is_int($raw) || is_string($raw) ? (int) $raw : null;
+        if (null === $id) {
+            return null;
+        }
+
+        $clientUrl = $this->clientUrlRepository->find($id);
+
+        return $clientUrl?->getDisplayLabel();
+    }
+
     public function run(SiteCheck $check): CheckResult
     {
         $config = array_merge($this->getDefaultConfig(), $check->getConfig());
         $result = new CheckResult();
         $result->setCheck($check);
 
-        $clientUrlId = isset($config['client_url_id']) ? (int) $config['client_url_id'] : null;
+        $rawId = $config['client_url_id'] ?? null;
+        $clientUrlId = is_int($rawId) || is_string($rawId) ? (int) $rawId : null;
 
         if (null === $clientUrlId || $clientUrlId <= 0) {
             $result->setStatus(CheckStatus::Unknown);

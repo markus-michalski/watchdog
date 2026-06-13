@@ -130,4 +130,15 @@ final class StubCheck implements CheckInterface
     {
         return $this->schema;
     }
+
+    public function getEmailTargetLabel(): ?string
+    {
+        return null;
+    }
+
+    /** @param array<string, mixed> $config */
+    public function resolveEmailTarget(array $config): ?string
+    {
+        return null;
+    }
 }

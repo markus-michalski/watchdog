@@ -6,7 +6,7 @@ namespace App\Tests\Unit\Service;
 
 use App\Entity\AlertState;
 use App\Entity\CheckResult;
-use App\Entity\Site;
+use App\Entity\Client;
 use App\Entity\SiteCheck;
 use App\Enum\CheckStatus;
 use App\Message\MailNotificationMessage;
@@ -92,7 +92,7 @@ final class AlertServiceTest extends TestCase
     private function createSiteCheck(): SiteCheck
     {
         $check = new SiteCheck();
-        $check->setSite(new Site());
+        $check->setClient(new Client());
         $check->setType('http');
         $this->setId($check, 1);
 
