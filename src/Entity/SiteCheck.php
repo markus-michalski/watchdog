@@ -187,8 +187,9 @@ class SiteCheck
         return match ($this->type) {
             'http'     => 'HTTP Reachability',
             'docker'   => 'Docker Container Health',
-            'file_age' => 'File Age',
-            default    => ucfirst($this->type),
+            'docker_exec' => 'Docker Exec',
+            'file_age'    => 'File Age',
+            default       => ucfirst($this->type),
         };
     }
 }
