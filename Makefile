@@ -108,6 +108,16 @@ stage-checks-on: ## Enable all checks on stage (resume automated monitoring)
 	$(EXEC_APP) php bin/console dbal:run-sql "UPDATE site_checks SET is_active = 1"
 	@echo "All stage checks enabled."
 
+.PHONY: stage-clients-off
+stage-clients-off: ## Deactivate all clients on stage
+	$(EXEC_APP) php bin/console dbal:run-sql "UPDATE clients SET is_active = 0"
+	@echo "All stage clients deactivated."
+
+.PHONY: stage-clients-on
+stage-clients-on: ## Activate all clients on stage
+	$(EXEC_APP) php bin/console dbal:run-sql "UPDATE clients SET is_active = 1"
+	@echo "All stage clients activated."
+
 .PHONY: stage-build
 stage-build: ## Rebuild stage image (no cache) — use stage-update for normal deploys
 	$(DC) build --no-cache app
@@ -216,6 +226,16 @@ live-checks-off: ## Disable all checks on live (pause automated monitoring)
 live-checks-on: ## Enable all checks on live (resume automated monitoring)
 	$(EXEC_LIVE) php bin/console dbal:run-sql "UPDATE site_checks SET is_active = 1"
 	@echo "All live checks enabled."
+
+.PHONY: live-clients-off
+live-clients-off: ## Deactivate all clients on live
+	$(EXEC_LIVE) php bin/console dbal:run-sql "UPDATE clients SET is_active = 0"
+	@echo "All live clients deactivated."
+
+.PHONY: live-clients-on
+live-clients-on: ## Activate all clients on live
+	$(EXEC_LIVE) php bin/console dbal:run-sql "UPDATE clients SET is_active = 1"
+	@echo "All live clients activated."
 
 ## -- Symfony ------------------------------------------------------------------
 
