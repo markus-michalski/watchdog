@@ -103,6 +103,16 @@ class SiteCheckController extends AbstractController
         $config = [];
 
         foreach ($schema as $field) {
+            if ('client_url_multiselect' === $field['type']) {
+                $values = $request->request->all('check_config_'.$field['name']);
+                $config[$field['name']] = array_values(array_filter(
+                    array_map(static fn (mixed $v): string => is_string($v) ? trim($v) : '', $values),
+                    static fn (string $v): bool => '' !== $v,
+                ));
+
+                continue;
+            }
+
             $raw = $request->request->get('check_config_'.$field['name']);
 
             if (null === $raw || '' === $raw) {

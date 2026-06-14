@@ -107,6 +107,13 @@ class ClientUrl
         return $this->label ?? $this->url;
     }
 
+    public function getHostname(): string
+    {
+        $parsed = parse_url($this->url);
+
+        return $parsed['host'] ?? $this->url;
+    }
+
     public function __toString(): string
     {
         return $this->getDisplayLabel();

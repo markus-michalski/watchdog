@@ -30,7 +30,7 @@ final class SslCertificateCheck implements CheckInterface
     public function getDefaultConfig(): array
     {
         return [
-            'host' => '',
+            'hosts' => [],
             'port' => 443,
             'warn_days' => 14,
             'fail_days' => 3,
@@ -44,13 +44,13 @@ final class SslCertificateCheck implements CheckInterface
     {
         return [
             [
-                'name' => 'host',
-                'label' => 'Hostname',
-                'type' => 'text',
+                'name' => 'hosts',
+                'label' => 'URLs to check',
+                'type' => 'client_url_multiselect',
                 'required' => true,
-                'default' => '',
-                'placeholder' => 'example.com',
-                'help' => 'Hostname to connect to (without https://). The TLS certificate of this host will be checked.',
+                'default' => [],
+                'placeholder' => '',
+                'help' => 'Select the client URLs whose TLS certificates should be checked. The check fails if any certificate is expiring.',
             ],
             [
                 'name' => 'port',
@@ -102,15 +102,20 @@ final class SslCertificateCheck implements CheckInterface
 
     public function getEmailTargetLabel(): string
     {
-        return 'Host';
+        return 'Hosts';
     }
 
     /** @param array<string, mixed> $config */
     public function resolveEmailTarget(array $config): ?string
     {
-        $host = $config['host'] ?? '';
+        $hosts = $config['hosts'] ?? [];
+        if (!is_array($hosts) || [] === $hosts) {
+            return null;
+        }
 
-        return is_string($host) && '' !== $host ? $host : null;
+        $nonEmpty = array_values(array_filter($hosts, static fn ($h) => is_string($h) && '' !== $h));
+
+        return [] === $nonEmpty ? null : implode(', ', $nonEmpty);
     }
 
     public function run(SiteCheck $check): CheckResult
@@ -119,10 +124,17 @@ final class SslCertificateCheck implements CheckInterface
         $checkResult = new CheckResult();
         $checkResult->setCheck($check);
 
-        $host = is_string($config['host']) ? trim($config['host']) : '';
-        if ('' === $host) {
+        $rawHosts = $config['hosts'] ?? [];
+        $hosts = is_array($rawHosts)
+            ? array_values(array_filter(
+                array_map(static fn (mixed $h): string => is_string($h) ? trim($h) : '', $rawHosts),
+                static fn (string $h): bool => '' !== $h,
+            ))
+            : [];
+
+        if ([] === $hosts) {
             $checkResult->setStatus(CheckStatus::Unknown);
-            $checkResult->setMessage('No host configured');
+            $checkResult->setMessage('No hosts configured');
 
             return $checkResult;
         }
@@ -133,41 +145,43 @@ final class SslCertificateCheck implements CheckInterface
         $timeout = is_numeric($config['timeout']) ? (int) $config['timeout'] : 10;
         $allowSelfSigned = (bool) ($config['allow_self_signed'] ?? false);
 
-        $expiryOrError = $this->certExpiryReader->read($host, $port, $timeout, $allowSelfSigned);
+        $worstStatus = CheckStatus::Ok;
+        $messages = [];
 
-        if (is_string($expiryOrError)) {
-            $checkResult->setStatus(CheckStatus::Fail);
-            $checkResult->setMessage($expiryOrError);
+        foreach ($hosts as $host) {
+            $expiryOrError = $this->certExpiryReader->read($host, $port, $timeout, $allowSelfSigned);
 
-            return $checkResult;
+            if (is_string($expiryOrError)) {
+                $worstStatus = $this->worseStatus($worstStatus, CheckStatus::Fail);
+                $messages[] = $expiryOrError;
+
+                continue;
+            }
+
+            $daysRemaining = (int) ceil(($expiryOrError - time()) / 86400);
+
+            if ($daysRemaining <= 0) {
+                $worstStatus = $this->worseStatus($worstStatus, CheckStatus::Fail);
+                $messages[] = sprintf('%s: expired', $host);
+            } elseif ($daysRemaining <= $failDays) {
+                $worstStatus = $this->worseStatus($worstStatus, CheckStatus::Fail);
+                $messages[] = sprintf('%s: expires in %d day(s)', $host, $daysRemaining);
+            } elseif ($daysRemaining <= $warnDays) {
+                $worstStatus = $this->worseStatus($worstStatus, CheckStatus::Warn);
+                $messages[] = sprintf('%s: expires in %d day(s)', $host, $daysRemaining);
+            } else {
+                $messages[] = sprintf('%s: valid for %d day(s)', $host, $daysRemaining);
+            }
         }
 
-        $daysRemaining = (int) ceil(($expiryOrError - time()) / 86400);
-
-        if ($daysRemaining <= 0) {
-            $checkResult->setStatus(CheckStatus::Fail);
-            $checkResult->setMessage(sprintf('Certificate for %s has expired', $host));
-
-            return $checkResult;
-        }
-
-        if ($daysRemaining <= $failDays) {
-            $checkResult->setStatus(CheckStatus::Fail);
-            $checkResult->setMessage(sprintf('Certificate for %s expires in %d day(s)', $host, $daysRemaining));
-
-            return $checkResult;
-        }
-
-        if ($daysRemaining <= $warnDays) {
-            $checkResult->setStatus(CheckStatus::Warn);
-            $checkResult->setMessage(sprintf('Certificate for %s expires in %d day(s)', $host, $daysRemaining));
-
-            return $checkResult;
-        }
-
-        $checkResult->setStatus(CheckStatus::Ok);
-        $checkResult->setMessage(sprintf('Certificate for %s valid for %d day(s)', $host, $daysRemaining));
+        $checkResult->setStatus($worstStatus);
+        $checkResult->setMessage(implode('; ', $messages));
 
         return $checkResult;
+    }
+
+    private function worseStatus(CheckStatus $current, CheckStatus $new): CheckStatus
+    {
+        return $new->priority() > $current->priority() ? $new : $current;
     }
 }

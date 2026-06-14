@@ -32,6 +32,7 @@ final class SslCertificateCheckTest extends TestCase
     {
         $defaults = $this->makeCheck()->getDefaultConfig();
 
+        self::assertSame([], $defaults['hosts']);
         self::assertSame(443, $defaults['port']);
         self::assertSame(14, $defaults['warn_days']);
         self::assertSame(3, $defaults['fail_days']);
@@ -45,7 +46,7 @@ final class SslCertificateCheckTest extends TestCase
         $schema = $this->makeCheck()->getConfigSchema();
         $names = array_column($schema, 'name');
 
-        self::assertContains('host', $names);
+        self::assertContains('hosts', $names);
         self::assertContains('port', $names);
         self::assertContains('warn_days', $names);
         self::assertContains('fail_days', $names);
@@ -54,18 +55,19 @@ final class SslCertificateCheckTest extends TestCase
     }
 
     #[Test]
-    public function testGetConfigSchemaMarksHostAsRequired(): void
+    public function testGetConfigSchemaMarksHostsAsRequired(): void
     {
         $schema = $this->makeCheck()->getConfigSchema();
-        $field = $this->findField($schema, 'host');
+        $field = $this->findField($schema, 'hosts');
 
         self::assertTrue($field['required']);
+        self::assertSame('client_url_multiselect', $field['type']);
     }
 
     #[Test]
-    public function testRunReturnsUnknownWhenHostNotConfigured(): void
+    public function testRunReturnsUnknownWhenNoHostsConfigured(): void
     {
-        $check = $this->createSiteCheck(host: '');
+        $check = $this->createSiteCheck(hosts: []);
 
         $result = $this->makeCheck()->run($check);
 
@@ -77,7 +79,7 @@ final class SslCertificateCheckTest extends TestCase
     public function testRunReturnsFailWhenConnectionFails(): void
     {
         $errorMessage = 'Connection to unreachable.example.com:443 failed: Network unreachable';
-        $check = $this->createSiteCheck(host: 'unreachable.example.com');
+        $check = $this->createSiteCheck(hosts: ['unreachable.example.com']);
 
         $result = $this->makeCheck(readerResult: $errorMessage)->run($check);
 
@@ -88,7 +90,7 @@ final class SslCertificateCheckTest extends TestCase
     #[Test]
     public function testRunReturnsFailMessageFromReader(): void
     {
-        $check = $this->createSiteCheck(host: 'example.com');
+        $check = $this->createSiteCheck(hosts: ['example.com']);
 
         $result = $this->makeCheck(readerResult: 'Connection to example.com:443 failed: Connection timed out')->run($check);
 
@@ -100,7 +102,7 @@ final class SslCertificateCheckTest extends TestCase
     public function testRunReturnsOkWhenCertIsValidAndNotExpiringSoon(): void
     {
         $expiry = time() + (60 * 86400); // 60 days from now
-        $check = $this->createSiteCheck(host: 'example.com');
+        $check = $this->createSiteCheck(hosts: ['example.com']);
 
         $result = $this->makeCheck(readerResult: $expiry)->run($check);
 
@@ -112,7 +114,7 @@ final class SslCertificateCheckTest extends TestCase
     public function testRunReturnsWarnWhenCertExpiresSoon(): void
     {
         $expiry = time() + (10 * 86400); // 10 days — inside default warn_days=14
-        $check = $this->createSiteCheck(host: 'example.com');
+        $check = $this->createSiteCheck(hosts: ['example.com']);
 
         $result = $this->makeCheck(readerResult: $expiry)->run($check);
 
@@ -124,7 +126,7 @@ final class SslCertificateCheckTest extends TestCase
     public function testRunReturnsFailWhenCertExpiresWithinFailDays(): void
     {
         $expiry = time() + (2 * 86400); // 2 days — inside default fail_days=3
-        $check = $this->createSiteCheck(host: 'example.com');
+        $check = $this->createSiteCheck(hosts: ['example.com']);
 
         $result = $this->makeCheck(readerResult: $expiry)->run($check);
 
@@ -136,7 +138,7 @@ final class SslCertificateCheckTest extends TestCase
     public function testRunReturnsFailWhenCertIsAlreadyExpired(): void
     {
         $expiry = time() - (5 * 86400); // expired 5 days ago
-        $check = $this->createSiteCheck(host: 'example.com');
+        $check = $this->createSiteCheck(hosts: ['example.com']);
 
         $result = $this->makeCheck(readerResult: $expiry)->run($check);
 
@@ -148,7 +150,7 @@ final class SslCertificateCheckTest extends TestCase
     public function testRunRespectsCustomWarnDays(): void
     {
         $expiry = time() + (20 * 86400); // 20 days — inside custom warn_days=30
-        $check = $this->createSiteCheck(host: 'example.com', warnDays: 30, failDays: 3);
+        $check = $this->createSiteCheck(hosts: ['example.com'], warnDays: 30, failDays: 3);
 
         $result = $this->makeCheck(readerResult: $expiry)->run($check);
 
@@ -159,7 +161,7 @@ final class SslCertificateCheckTest extends TestCase
     public function testRunRespectsCustomFailDays(): void
     {
         $expiry = time() + (5 * 86400); // 5 days — inside custom fail_days=7
-        $check = $this->createSiteCheck(host: 'example.com', warnDays: 14, failDays: 7);
+        $check = $this->createSiteCheck(hosts: ['example.com'], warnDays: 14, failDays: 7);
 
         $result = $this->makeCheck(readerResult: $expiry)->run($check);
 
@@ -171,7 +173,7 @@ final class SslCertificateCheckTest extends TestCase
     {
         // exactly warn_days away: must be Warn (condition is <=, inclusive)
         $expiry = time() + (14 * 86400);
-        $check = $this->createSiteCheck(host: 'example.com', warnDays: 14, failDays: 3);
+        $check = $this->createSiteCheck(hosts: ['example.com'], warnDays: 14, failDays: 3);
 
         $result = $this->makeCheck(readerResult: $expiry)->run($check);
 
@@ -183,7 +185,7 @@ final class SslCertificateCheckTest extends TestCase
     {
         // exactly fail_days away: must be Fail (condition is <=, inclusive)
         $expiry = time() + (3 * 86400);
-        $check = $this->createSiteCheck(host: 'example.com', warnDays: 14, failDays: 3);
+        $check = $this->createSiteCheck(hosts: ['example.com'], warnDays: 14, failDays: 3);
 
         $result = $this->makeCheck(readerResult: $expiry)->run($check);
 
@@ -194,7 +196,7 @@ final class SslCertificateCheckTest extends TestCase
     public function testRunPassesAllowSelfSignedFlagToReader(): void
     {
         $expiry = time() + (30 * 86400);
-        $check = $this->createSiteCheck(host: 'internal.example.com', allowSelfSigned: true);
+        $check = $this->createSiteCheck(hosts: ['internal.example.com'], allowSelfSigned: true);
 
         /** @var SslCertExpiryReaderInterface&MockObject $reader */
         $reader = $this->createMock(SslCertExpiryReaderInterface::class);
@@ -210,29 +212,106 @@ final class SslCertificateCheckTest extends TestCase
     }
 
     #[Test]
-    public function testGetEmailTargetLabelReturnsHost(): void
+    public function testRunChecksMultipleHostsAndReturnsWorstCaseStatus(): void
     {
-        self::assertSame('Host', $this->makeCheck()->getEmailTargetLabel());
+        // host1 is fine, host2 is expiring soon → worst case = Warn
+        $goodExpiry = time() + (60 * 86400);
+        $warnExpiry = time() + (7 * 86400); // inside warn_days=14
+
+        $check = $this->createSiteCheck(hosts: ['ok.example.com', 'warn.example.com']);
+
+        $reader = $this->createStub(SslCertExpiryReaderInterface::class);
+        $reader->method('read')->willReturnCallback(function (string $host) use ($goodExpiry, $warnExpiry): int {
+            return match ($host) {
+                'ok.example.com' => $goodExpiry,
+                'warn.example.com' => $warnExpiry,
+                default => $goodExpiry,
+            };
+        });
+
+        $result = (new SslCertificateCheck($reader))->run($check);
+
+        self::assertSame(CheckStatus::Warn, $result->getStatus());
     }
 
     #[Test]
-    public function testResolveEmailTargetReturnsHost(): void
+    public function testRunFailsEntireCheckIfOneHostFails(): void
     {
-        $result = $this->makeCheck()->resolveEmailTarget(['host' => 'example.com']);
+        $goodExpiry = time() + (60 * 86400);
+        $failExpiry = time() + (1 * 86400); // inside fail_days=3
+
+        $check = $this->createSiteCheck(hosts: ['ok.example.com', 'fail.example.com']);
+
+        $reader = $this->createStub(SslCertExpiryReaderInterface::class);
+        $reader->method('read')->willReturnCallback(function (string $host) use ($goodExpiry, $failExpiry): int {
+            return match ($host) {
+                'ok.example.com' => $goodExpiry,
+                'fail.example.com' => $failExpiry,
+                default => $goodExpiry,
+            };
+        });
+
+        $result = (new SslCertificateCheck($reader))->run($check);
+
+        self::assertSame(CheckStatus::Fail, $result->getStatus());
+    }
+
+    #[Test]
+    public function testRunMessageContainsResultForEachHost(): void
+    {
+        $goodExpiry = time() + (60 * 86400);
+        $warnExpiry = time() + (7 * 86400);
+
+        $check = $this->createSiteCheck(hosts: ['alpha.example.com', 'beta.example.com']);
+
+        $reader = $this->createStub(SslCertExpiryReaderInterface::class);
+        $reader->method('read')->willReturnCallback(function (string $host) use ($goodExpiry, $warnExpiry): int {
+            return match ($host) {
+                'alpha.example.com' => $goodExpiry,
+                'beta.example.com' => $warnExpiry,
+                default => $goodExpiry,
+            };
+        });
+
+        $result = (new SslCertificateCheck($reader))->run($check);
+        $message = (string) $result->getMessage();
+
+        self::assertStringContainsString('alpha.example.com', $message);
+        self::assertStringContainsString('beta.example.com', $message);
+    }
+
+    #[Test]
+    public function testGetEmailTargetLabelReturnsHosts(): void
+    {
+        self::assertSame('Hosts', $this->makeCheck()->getEmailTargetLabel());
+    }
+
+    #[Test]
+    public function testResolveEmailTargetReturnsSingleHost(): void
+    {
+        $result = $this->makeCheck()->resolveEmailTarget(['hosts' => ['example.com']]);
 
         self::assertSame('example.com', $result);
     }
 
     #[Test]
-    public function testResolveEmailTargetReturnsNullWhenHostEmpty(): void
+    public function testResolveEmailTargetJoinsMultipleHosts(): void
     {
-        $result = $this->makeCheck()->resolveEmailTarget(['host' => '']);
+        $result = $this->makeCheck()->resolveEmailTarget(['hosts' => ['a.example.com', 'b.example.com']]);
+
+        self::assertSame('a.example.com, b.example.com', $result);
+    }
+
+    #[Test]
+    public function testResolveEmailTargetReturnsNullWhenHostsEmpty(): void
+    {
+        $result = $this->makeCheck()->resolveEmailTarget(['hosts' => []]);
 
         self::assertNull($result);
     }
 
     #[Test]
-    public function testResolveEmailTargetReturnsNullWhenHostMissing(): void
+    public function testResolveEmailTargetReturnsNullWhenHostsMissing(): void
     {
         $result = $this->makeCheck()->resolveEmailTarget([]);
 
@@ -249,8 +328,11 @@ final class SslCertificateCheckTest extends TestCase
         return new SslCertificateCheck($reader);
     }
 
+    /**
+     * @param list<string>           $hosts
+     */
     private function createSiteCheck(
-        string $host,
+        array $hosts,
         int $port = 443,
         int $warnDays = 14,
         int $failDays = 3,
@@ -264,7 +346,7 @@ final class SslCertificateCheckTest extends TestCase
         $check->setClient($client);
         $check->setType('ssl_cert');
         $check->setConfig([
-            'host' => $host,
+            'hosts' => $hosts,
             'port' => $port,
             'warn_days' => $warnDays,
             'fail_days' => $failDays,

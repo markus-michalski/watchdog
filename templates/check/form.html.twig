@@ -85,6 +85,30 @@
                                             {% endfor %}
                                         </select>
                                     {% endif %}
+                                {% elseif field.type == 'client_url_multiselect' %}
+                                    {% if clientUrls is empty %}
+                                        <p class="text-sm text-amber-600 bg-amber-50 border border-amber-200 rounded px-3 py-2">
+                                            No URLs configured for this client yet.
+                                            <a href="{{ path('client_url_new', {id: client.id}) }}" class="underline font-medium">Add a URL first.</a>
+                                        </p>
+                                    {% else %}
+                                        {%- set selectedHosts = check.config[field.name] ?? [] -%}
+                                        <div class="space-y-1.5 border border-gray-200 rounded px-3 py-2.5">
+                                            {% for clientUrl in clientUrls|sort((a, b) => (a.label ?? a.url) <=> (b.label ?? b.url)) %}
+                                                <label class="flex items-center gap-2 text-sm text-gray-700 cursor-pointer select-none">
+                                                    <input type="checkbox"
+                                                           name="check_config_{{ field.name }}[]"
+                                                           value="{{ clientUrl.hostname }}"
+                                                           class="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                                                           {% if clientUrl.hostname in selectedHosts %}checked{% endif %}>
+                                                    <span>{{ clientUrl.displayLabel }}</span>
+                                                    {% if clientUrl.hostname != clientUrl.displayLabel %}
+                                                        <span class="text-gray-400 text-xs">({{ clientUrl.hostname }})</span>
+                                                    {% endif %}
+                                                </label>
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
                                 {% elseif field.type == 'duration' %}
                                     {%- set _dval = check.config[field.name] is defined ? check.config[field.name]|default(field.default) : field.default -%}
                                     <div class="flex items-center gap-2" data-duration-field>
