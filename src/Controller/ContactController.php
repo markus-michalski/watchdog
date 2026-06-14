@@ -22,7 +22,7 @@ class ContactController extends AbstractController
     public function index(ContactRepository $repo): Response
     {
         return $this->render('contact/index.html.twig', [
-            'contacts' => $repo->findAllWithSites(),
+            'contacts' => $repo->findAllWithClients(),
         ]);
     }
 
@@ -81,7 +81,7 @@ class ContactController extends AbstractController
         $name  = trim((string) $request->request->get('name', ''));
         $email = trim((string) $request->request->get('email', ''));
 
-        $nameErrors  = $validator->validate($name,  [new Assert\NotBlank(), new Assert\Length(max: 255)]);
+        $nameErrors  = $validator->validate($name, [new Assert\NotBlank(), new Assert\Length(max: 255)]);
         $emailErrors = $validator->validate($email, [new Assert\NotBlank(), new Assert\Email()]);
 
         if (count($nameErrors) > 0) {

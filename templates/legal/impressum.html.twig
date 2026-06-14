@@ -1,0 +1,36 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Impressum – Watchdog{% endblock %}
+
+{% block body %}
+<div class="max-w-2xl mx-auto">
+    <h1 class="text-2xl font-bold text-gray-900 mb-6">Impressum</h1>
+
+    <div class="bg-yellow-50 border border-yellow-300 text-yellow-800 rounded-lg px-4 py-3 mb-6 text-sm">
+        <strong>Hinweis:</strong> Dies ist ein Beispieltext. Er stellt keinen Ersatz für einen echten Rechtstext dar
+        und muss vor dem produktiven Einsatz durch einen eigenen, rechtlich geprüften Inhalt ersetzt werden.
+    </div>
+
+    <div class="bg-white rounded-lg shadow p-6 space-y-4 text-gray-700">
+        <div>
+            <h2 class="font-semibold text-gray-900">Angaben gemäß § 5 TMG</h2>
+            <p class="mt-2">
+                Vorname Nachname<br>
+                Musterstraße 1<br>
+                12345 Musterstadt
+            </p>
+        </div>
+
+        <div>
+            <h2 class="font-semibold text-gray-900">Kontakt</h2>
+            <p class="mt-2">
+                E-Mail: <a href="mailto:mail@example.com" class="text-blue-600 hover:underline">mail@example.com</a>
+            </p>
+        </div>
+    </div>
+
+    <div class="mt-4">
+        <a href="{{ path('dashboard') }}" class="text-sm text-gray-500 hover:text-gray-700">← Zurück zum Dashboard</a>
+    </div>
+</div>
+{% endblock %}

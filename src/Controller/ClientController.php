@@ -126,8 +126,10 @@ class ClientController extends AbstractController
     #[Route('/{clientId}/urls/{urlId}/edit', name: 'url_edit')]
     public function urlEdit(
         Request $request,
-        #[MapEntity(id: 'clientId')] Client $client,
-        #[MapEntity(id: 'urlId')] ClientUrl $clientUrl,
+        #[MapEntity(id: 'clientId')]
+        Client $client,
+        #[MapEntity(id: 'urlId')]
+        ClientUrl $clientUrl,
         EntityManagerInterface $em,
     ): Response {
         if ($clientUrl->getClient() !== $client) {
@@ -154,8 +156,10 @@ class ClientController extends AbstractController
     #[Route('/{clientId}/urls/{urlId}/delete', name: 'url_delete', methods: ['POST'])]
     public function urlDelete(
         Request $request,
-        #[MapEntity(id: 'clientId')] Client $client,
-        #[MapEntity(id: 'urlId')] ClientUrl $clientUrl,
+        #[MapEntity(id: 'clientId')]
+        Client $client,
+        #[MapEntity(id: 'urlId')]
+        ClientUrl $clientUrl,
         EntityManagerInterface $em,
     ): Response {
         if ($clientUrl->getClient() !== $client) {

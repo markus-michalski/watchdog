@@ -7,12 +7,12 @@ namespace App\Tests\Integration\Controller;
 use PHPUnit\Framework\Attributes\Test;
 use Symfony\Component\HttpFoundation\Response;
 
-final class SiteControllerTest extends AbstractControllerTestCase
+final class ClientControllerTest extends AbstractControllerTestCase
 {
     #[Test]
     public function indexIsAccessible(): void
     {
-        $this->client->request('GET', '/sites');
+        $this->client->request('GET', '/clients');
 
         self::assertResponseIsSuccessful();
     }
@@ -20,16 +20,16 @@ final class SiteControllerTest extends AbstractControllerTestCase
     #[Test]
     public function newRendersForm(): void
     {
-        $crawler = $this->client->request('GET', '/sites/new');
+        $crawler = $this->client->request('GET', '/clients/new');
 
         self::assertResponseIsSuccessful();
         self::assertGreaterThan(0, $crawler->filter('form')->count());
     }
 
     #[Test]
-    public function showReturns404ForUnknownSite(): void
+    public function showReturns404ForUnknownClient(): void
     {
-        $this->client->request('GET', '/sites/999');
+        $this->client->request('GET', '/clients/999');
 
         self::assertResponseStatusCodeSame(Response::HTTP_NOT_FOUND);
     }

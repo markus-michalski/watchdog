@@ -1,0 +1,87 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Datenschutz – Watchdog{% endblock %}
+
+{% block body %}
+<div class="max-w-2xl mx-auto">
+    <h1 class="text-2xl font-bold text-gray-900 mb-6">Datenschutzerklärung</h1>
+
+    <div class="bg-yellow-50 border border-yellow-300 text-yellow-800 rounded-lg px-4 py-3 mb-6 text-sm">
+        <strong>Hinweis:</strong> Dies ist ein Beispieltext. Er stellt keinen Ersatz für eine echte Datenschutzerklärung dar
+        und muss vor dem produktiven Einsatz durch einen eigenen, rechtlich geprüften Inhalt ersetzt werden.
+    </div>
+
+    <div class="bg-white rounded-lg shadow p-6 space-y-6 text-gray-700">
+
+        <div>
+            <h2 class="font-semibold text-gray-900">Verantwortlicher</h2>
+            <p class="mt-2">
+                Vorname Nachname<br>
+                E-Mail: <a href="mailto:mail@example.com" class="text-blue-600 hover:underline">mail@example.com</a>
+            </p>
+        </div>
+
+        <div>
+            <h2 class="font-semibold text-gray-900">Welche Daten werden verarbeitet?</h2>
+            <p class="mt-2">
+                Watchdog ist ein zugangsbeschränktes internes Monitoring-Tool. Es werden folgende Daten verarbeitet:
+            </p>
+            <ul class="mt-2 list-disc list-inside space-y-1 text-sm">
+                <li>Zugangsdaten zur Authentifizierung (Benutzername, Passwort-Hash – gespeichert in der Serverkonfiguration, nicht in einer Datenbank)</li>
+                <li>Überwachte URLs und zugehörige Konfigurationen</li>
+                <li>Ergebnisse der Verfügbarkeitsprüfungen (Status, Zeitstempel, HTTP-Antwortcodes)</li>
+                <li>Kontaktdaten (Name, E-Mail-Adresse) für Benachrichtigungen bei Ausfällen</li>
+                <li>Server-Logs mit IP-Adressen der zugreifenden Browser (technisch bedingt)</li>
+            </ul>
+        </div>
+
+        <div>
+            <h2 class="font-semibold text-gray-900">Zweck der Verarbeitung</h2>
+            <p class="mt-2 text-sm">
+                Die Daten werden ausschließlich zum Betrieb des Monitoring-Systems verwendet.
+                Kontaktdaten werden genutzt, um bei erkannten Ausfällen automatisierte Benachrichtigungen zu versenden.
+                Es findet keine Weitergabe an Dritte statt.
+            </p>
+        </div>
+
+        <div>
+            <h2 class="font-semibold text-gray-900">Rechtsgrundlage</h2>
+            <p class="mt-2 text-sm">
+                Die Verarbeitung erfolgt auf Grundlage von Art. 6 Abs. 1 lit. b DSGVO
+                (Vertragserfüllung / vorvertragliche Maßnahmen) sowie Art. 6 Abs. 1 lit. f DSGVO
+                (berechtigtes Interesse am Betrieb der eigenen IT-Infrastruktur).
+            </p>
+        </div>
+
+        <div>
+            <h2 class="font-semibold text-gray-900">Speicherdauer</h2>
+            <p class="mt-2 text-sm">
+                Check-Ergebnisse werden für einen begrenzten Zeitraum gespeichert und danach automatisch gelöscht.
+                Server-Logs werden nach spätestens 30 Tagen gelöscht.
+            </p>
+        </div>
+
+        <div>
+            <h2 class="font-semibold text-gray-900">Cookies und Tracking</h2>
+            <p class="mt-2 text-sm">
+                Es werden ausschließlich technisch notwendige Session-Cookies verwendet. Es findet kein Tracking,
+                keine Analyse und keine Weitergabe an Dritte statt.
+            </p>
+        </div>
+
+        <div>
+            <h2 class="font-semibold text-gray-900">Deine Rechte</h2>
+            <p class="mt-2 text-sm">
+                Du hast gemäß DSGVO das Recht auf Auskunft, Berichtigung, Löschung, Einschränkung der Verarbeitung
+                sowie das Recht auf Datenübertragbarkeit. Anfragen richte an:
+                <a href="mailto:mail@example.com" class="text-blue-600 hover:underline">mail@example.com</a>
+            </p>
+        </div>
+
+    </div>
+
+    <div class="mt-4">
+        <a href="{{ path('dashboard') }}" class="text-sm text-gray-500 hover:text-gray-700">← Zurück zum Dashboard</a>
+    </div>
+</div>
+{% endblock %}

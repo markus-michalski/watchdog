@@ -22,7 +22,7 @@
                 <tr>
                     <th class="px-4 py-3 text-left">Name</th>
                     <th class="px-4 py-3 text-left">Email</th>
-                    <th class="px-4 py-3 text-left">Sites</th>
+                    <th class="px-4 py-3 text-left">Clients</th>
                     <th class="px-4 py-3 text-right">Actions</th>
                 </tr>
             </thead>
@@ -32,11 +32,11 @@
                     <td class="px-4 py-3 font-medium text-gray-800">{{ contact.name }}</td>
                     <td class="px-4 py-3 text-gray-600">{{ contact.email }}</td>
                     <td class="px-4 py-3 text-gray-500">
-                        {% if contact.sites is empty %}
+                        {% if contact.clients is empty %}
                             <span class="text-gray-300 italic text-xs">none</span>
                         {% else %}
-                            {% for site in contact.sites %}
-                                <a href="{{ path('site_show', {id: site.id}) }}" class="text-blue-600 hover:underline text-xs">{{ site.name }}</a>{% if not loop.last %}, {% endif %}
+                            {% for client in contact.clients %}
+                                <a href="{{ path('client_show', {id: client.id}) }}" class="text-blue-600 hover:underline text-xs">{{ client.name }}</a>{% if not loop.last %}, {% endif %}
                             {% endfor %}
                         {% endif %}
                     </td>

@@ -10,9 +10,9 @@ use Symfony\Component\HttpFoundation\Response;
 final class SiteCheckControllerTest extends AbstractControllerTestCase
 {
     #[Test]
-    public function newReturns404ForUnknownSite(): void
+    public function newReturns404ForUnknownClient(): void
     {
-        $this->client->request('GET', '/sites/999/checks/new');
+        $this->client->request('GET', '/clients/999/checks/new');
 
         self::assertResponseStatusCodeSame(Response::HTTP_NOT_FOUND);
     }
