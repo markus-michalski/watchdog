@@ -92,21 +92,68 @@
     <div class="flex flex-wrap items-center gap-2 mb-3">
         <input type="search" id="check-search" placeholder="Filter by label…"
                class="border border-gray-300 rounded px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300 w-48">
-        <div class="flex gap-1.5" id="status-filters">
-            <button data-status-filter="all"     class="check-filter-btn active px-2.5 py-1 rounded text-xs font-medium border border-gray-300 bg-gray-100 text-gray-700">All</button>
-            <button data-status-filter="ok"      class="check-filter-btn px-2.5 py-1 rounded text-xs font-medium border border-green-200 text-green-700 hover:bg-green-50">OK</button>
-            <button data-status-filter="warn"    class="check-filter-btn px-2.5 py-1 rounded text-xs font-medium border border-orange-200 text-orange-700 hover:bg-orange-50">WARN</button>
-            <button data-status-filter="fail"    class="check-filter-btn px-2.5 py-1 rounded text-xs font-medium border border-red-200 text-red-700 hover:bg-red-50">FAIL</button>
-            <button data-status-filter="unknown" class="check-filter-btn px-2.5 py-1 rounded text-xs font-medium border border-yellow-200 text-yellow-700 hover:bg-yellow-50">UNKNOWN</button>
-            <button data-status-filter="pending" class="check-filter-btn px-2.5 py-1 rounded text-xs font-medium border border-gray-200 text-gray-500 hover:bg-gray-50">PENDING</button>
+
+        {# Status multi-select dropdown #}
+        <div class="relative" data-dd-wrap="status">
+            <button type="button" data-dd-btn="status"
+                    class="flex items-center gap-1.5 border border-gray-300 rounded px-3 py-1.5 text-xs font-medium bg-white text-gray-700 hover:bg-gray-50 select-none">
+                <span data-dd-label="status">Status: All</span>
+                <svg class="w-3 h-3 text-gray-400 shrink-0 transition-transform duration-150" data-dd-chevron="status"
+                     fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                </svg>
+            </button>
+            <div class="hidden absolute left-0 top-full mt-1 z-20 bg-white border border-gray-200 rounded-lg shadow-lg py-1 min-w-[170px]"
+                 data-dd-panel="status">
+                <label class="flex items-center gap-2.5 px-3 py-1.5 hover:bg-gray-50 cursor-pointer text-xs text-gray-700">
+                    <input type="checkbox" value="ok" data-status-cb class="rounded border-gray-300 accent-blue-600 cursor-pointer">
+                    <span class="w-2 h-2 rounded-full bg-green-400 shrink-0"></span> OK
+                </label>
+                <label class="flex items-center gap-2.5 px-3 py-1.5 hover:bg-gray-50 cursor-pointer text-xs text-gray-700">
+                    <input type="checkbox" value="warn" data-status-cb class="rounded border-gray-300 accent-blue-600 cursor-pointer">
+                    <span class="w-2 h-2 rounded-full bg-orange-400 shrink-0"></span> WARN
+                </label>
+                <label class="flex items-center gap-2.5 px-3 py-1.5 hover:bg-gray-50 cursor-pointer text-xs text-gray-700">
+                    <input type="checkbox" value="fail" data-status-cb class="rounded border-gray-300 accent-blue-600 cursor-pointer">
+                    <span class="w-2 h-2 rounded-full bg-red-400 shrink-0"></span> FAIL
+                </label>
+                <label class="flex items-center gap-2.5 px-3 py-1.5 hover:bg-gray-50 cursor-pointer text-xs text-gray-700">
+                    <input type="checkbox" value="unknown" data-status-cb class="rounded border-gray-300 accent-blue-600 cursor-pointer">
+                    <span class="w-2 h-2 rounded-full bg-yellow-400 shrink-0"></span> UNKNOWN
+                </label>
+                <label class="flex items-center gap-2.5 px-3 py-1.5 hover:bg-gray-50 cursor-pointer text-xs text-gray-700">
+                    <input type="checkbox" value="pending" data-status-cb class="rounded border-gray-300 accent-blue-600 cursor-pointer">
+                    <span class="w-2 h-2 rounded-full bg-gray-300 shrink-0"></span> PENDING
+                </label>
+                <div class="border-t border-gray-100 mt-1 pt-1 px-3 pb-1">
+                    <button type="button" data-dd-clear="status" class="text-xs text-gray-400 hover:text-gray-600">Clear</button>
+                </div>
+            </div>
         </div>
-        {% if typeLabels|length > 1 %}
-        <span class="text-gray-300 text-sm select-none">|</span>
-        <div class="flex flex-wrap gap-1.5" id="type-filters">
-            <button data-type-filter="all" class="check-filter-btn active px-2.5 py-1 rounded text-xs font-medium border border-gray-300 bg-gray-100 text-gray-700">All</button>
-            {% for type, label in typeLabels %}
-                <button data-type-filter="{{ type }}" class="check-filter-btn px-2.5 py-1 rounded text-xs font-medium border border-gray-200 text-gray-600 hover:bg-gray-50">{{ label }}</button>
-            {% endfor %}
+
+        {# Type multi-select dropdown — only when more than 1 type present #}
+        {% if typeLabels is defined and typeLabels|length > 1 %}
+        <div class="relative" data-dd-wrap="type">
+            <button type="button" data-dd-btn="type"
+                    class="flex items-center gap-1.5 border border-gray-300 rounded px-3 py-1.5 text-xs font-medium bg-white text-gray-700 hover:bg-gray-50 select-none">
+                <span data-dd-label="type">Type: All</span>
+                <svg class="w-3 h-3 text-gray-400 shrink-0 transition-transform duration-150" data-dd-chevron="type"
+                     fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                </svg>
+            </button>
+            <div class="hidden absolute left-0 top-full mt-1 z-20 bg-white border border-gray-200 rounded-lg shadow-lg py-1 min-w-[180px]"
+                 data-dd-panel="type">
+                {% for type, label in typeLabels %}
+                <label class="flex items-center gap-2.5 px-3 py-1.5 hover:bg-gray-50 cursor-pointer text-xs text-gray-700">
+                    <input type="checkbox" value="{{ type }}" data-type-cb class="rounded border-gray-300 accent-blue-600 cursor-pointer">
+                    {{ label }}
+                </label>
+                {% endfor %}
+                <div class="border-t border-gray-100 mt-1 pt-1 px-3 pb-1">
+                    <button type="button" data-dd-clear="type" class="text-xs text-gray-400 hover:text-gray-600">Clear</button>
+                </div>
+            </div>
         </div>
         {% endif %}
     </div>
@@ -197,20 +244,19 @@
 
 <script>
 (function () {
-    const rows = document.querySelectorAll('.check-row');
-    const empty = document.getElementById('check-empty');
-    const statusBtns = document.querySelectorAll('#status-filters [data-status-filter]');
-    const typeBtns   = document.querySelectorAll('#type-filters [data-type-filter]');
-    const search     = document.getElementById('check-search');
-    let activeStatus = 'all';
-    let activeType   = 'all';
+    const rows   = document.querySelectorAll('.check-row');
+    const empty  = document.getElementById('check-empty');
+    const search = document.getElementById('check-search');
+
+    const activeStatuses = new Set();
+    const activeTypes    = new Set();
 
     function applyFilters() {
         const q = search ? search.value.toLowerCase().trim() : '';
         let visible = 0;
         rows.forEach(row => {
-            const statusMatch = activeStatus === 'all' || row.dataset.status === activeStatus;
-            const typeMatch   = activeType   === 'all' || row.dataset.type   === activeType;
+            const statusMatch = activeStatuses.size === 0 || activeStatuses.has(row.dataset.status);
+            const typeMatch   = activeTypes.size === 0    || activeTypes.has(row.dataset.type);
             const labelMatch  = !q || row.dataset.label.includes(q);
             const show = statusMatch && typeMatch && labelMatch;
             row.style.display = show ? '' : 'none';
@@ -221,30 +267,80 @@
 
     if (search) search.addEventListener('input', applyFilters);
 
-    function activateBtn(btn, allBtns, activeKey) {
-        allBtns.forEach(b => b.classList.remove(
-            'active', 'bg-gray-100', 'bg-green-100', 'bg-orange-100', 'bg-red-100', 'bg-yellow-100'
-        ));
-        btn.classList.add('active');
-        const val = btn.dataset[activeKey === 'status' ? 'statusFilter' : 'typeFilter'];
-        const statusColors = { ok: 'bg-green-100', warn: 'bg-orange-100', fail: 'bg-red-100', unknown: 'bg-yellow-100' };
-        btn.classList.add(statusColors[val] || 'bg-gray-100');
+    function buildDropdown(key, cbAttr, activeSet, prefix, nameFn) {
+        const btn      = document.querySelector(`[data-dd-btn="${key}"]`);
+        const panel    = document.querySelector(`[data-dd-panel="${key}"]`);
+        const labelEl  = document.querySelector(`[data-dd-label="${key}"]`);
+        const chevron  = document.querySelector(`[data-dd-chevron="${key}"]`);
+        const cbs      = document.querySelectorAll(`[${cbAttr}]`);
+        const clearBtn = document.querySelector(`[data-dd-clear="${key}"]`);
+        if (!btn) return;
+
+        function updateLabel() {
+            const isFiltered = activeSet.size > 0;
+            btn.classList.toggle('border-blue-400', isFiltered);
+            btn.classList.toggle('text-blue-700',   isFiltered);
+            btn.classList.toggle('border-gray-300', !isFiltered);
+            btn.classList.toggle('text-gray-700',   !isFiltered);
+            if (activeSet.size === 0)      labelEl.textContent = `${prefix}: All`;
+            else if (activeSet.size === 1) labelEl.textContent = `${prefix}: ${nameFn([...activeSet][0])}`;
+            else                           labelEl.textContent = `${prefix}: ${activeSet.size} selected`;
+        }
+
+        function openPanel() {
+            document.querySelectorAll('[data-dd-panel]').forEach(p => {
+                if (p === panel) return;
+                p.classList.add('hidden');
+                const c = document.querySelector(`[data-dd-chevron="${p.dataset.ddPanel}"]`);
+                if (c) c.style.transform = '';
+            });
+            panel.classList.remove('hidden');
+            chevron.style.transform = 'rotate(180deg)';
+        }
+
+        function closePanel() {
+            panel.classList.add('hidden');
+            chevron.style.transform = '';
+        }
+
+        btn.addEventListener('click', e => {
+            e.stopPropagation();
+            panel.classList.contains('hidden') ? openPanel() : closePanel();
+        });
+
+        cbs.forEach(cb => cb.addEventListener('change', () => {
+            cb.checked ? activeSet.add(cb.value) : activeSet.delete(cb.value);
+            updateLabel();
+            applyFilters();
+        }));
+
+        if (clearBtn) clearBtn.addEventListener('click', () => {
+            activeSet.clear();
+            cbs.forEach(cb => cb.checked = false);
+            updateLabel();
+            applyFilters();
+        });
     }
 
-    statusBtns.forEach(btn => {
-        btn.addEventListener('click', () => {
-            activeStatus = btn.dataset.statusFilter;
-            activateBtn(btn, statusBtns, 'status');
-            applyFilters();
-        });
+    const STATUS_NAMES = { ok: 'OK', warn: 'WARN', fail: 'FAIL', unknown: 'UNKNOWN', pending: 'PENDING' };
+
+    function typeName(val) {
+        const cb = document.querySelector(`[data-type-cb][value="${val}"]`);
+        return cb ? cb.closest('label').textContent.trim() : val;
+    }
+
+    buildDropdown('status', 'data-status-cb', activeStatuses, 'Status', v => STATUS_NAMES[v] ?? v);
+    buildDropdown('type',   'data-type-cb',   activeTypes,    'Type',   typeName);
+
+    document.addEventListener('click', () => {
+        document.querySelectorAll('[data-dd-panel]').forEach(p => p.classList.add('hidden'));
+        document.querySelectorAll('[data-dd-chevron]').forEach(c => c.style.transform = '');
     });
 
-    typeBtns.forEach(btn => {
-        btn.addEventListener('click', () => {
-            activeType = btn.dataset.typeFilter;
-            activateBtn(btn, typeBtns, 'type');
-            applyFilters();
-        });
+    document.addEventListener('keydown', e => {
+        if (e.key !== 'Escape') return;
+        document.querySelectorAll('[data-dd-panel]').forEach(p => p.classList.add('hidden'));
+        document.querySelectorAll('[data-dd-chevron]').forEach(c => c.style.transform = '');
     });
 })();
 </script>
