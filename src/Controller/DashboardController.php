@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Controller;
 
+use App\Check\CheckRegistry;
 use App\Repository\CheckResultRepository;
 use App\Repository\ClientRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -16,17 +17,24 @@ class DashboardController extends AbstractController
     public function index(
         ClientRepository $clientRepository,
         CheckResultRepository $checkResultRepository,
+        CheckRegistry $checkRegistry,
     ): Response {
         $clients = $clientRepository->findAllWithChecks();
 
         $latestResults = [];
         $clientStatuses = [];
+        $checkTargets = []; // checkId => ?string
 
         foreach ($clients as $client) {
             $worst = null;
             foreach ($client->getChecks() as $check) {
                 $result = $checkResultRepository->findLatestForCheck($check);
                 $latestResults[$check->getId()] = $result;
+
+                $type = $check->getType();
+                if ($checkRegistry->has($type)) {
+                    $checkTargets[$check->getId()] = $checkRegistry->get($type)->resolveEmailTarget($check->getConfig());
+                }
 
                 if (null === $result || !$check->isActive()) {
                     continue;
@@ -43,6 +51,7 @@ class DashboardController extends AbstractController
             'clients' => $clients,
             'latestResults' => $latestResults,
             'clientStatuses' => $clientStatuses,
+            'checkTargets' => $checkTargets,
         ]);
     }
 }

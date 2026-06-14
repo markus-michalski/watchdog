@@ -29,7 +29,7 @@
         </div>
     </div>
 
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-4" id="dashboard-grid">
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 items-start" id="dashboard-grid">
         {% for client in clients %}
             {% set clientStatus = clientStatuses[client.id] %}
             {% if clientStatus is null %}
@@ -128,16 +128,9 @@
                                         <a href="{{ path('client_show', {id: client.id}) }}"
                                            class="flex-1 text-gray-700 hover:text-blue-600 truncate flex items-center gap-1.5">
                                             {{ check.label }}
-                                            {% if check.type == 'http' and check.config.client_url_id is defined %}
-                                                {% for url in client.urls %}
-                                                    {% if url.id == check.config.client_url_id %}
-                                                        <span class="text-xs font-normal text-blue-600 bg-blue-50 border border-blue-200 rounded px-1.5 py-0 shrink-0">{{ url.displayLabel }}</span>
-                                                    {% endif %}
-                                                {% endfor %}
-                                            {% elseif check.type == 'docker' and check.config.container_name is defined %}
-                                                <span class="text-xs font-normal text-indigo-600 bg-indigo-50 border border-indigo-200 rounded px-1.5 py-0 font-mono shrink-0">{{ check.config.container_name }}</span>
-                                            {% elseif check.type == 'file_age' and check.config.path is defined %}
-                                                <span class="text-xs font-normal text-amber-600 bg-amber-50 border border-amber-200 rounded px-1.5 py-0 font-mono shrink-0">{{ check.config.path }}</span>
+                                            {% set _dashTarget = checkTargets[check.id] ?? null %}
+                                            {% if _dashTarget is not null %}
+                                                <span class="text-xs font-normal text-gray-500 bg-gray-50 border border-gray-200 rounded px-1.5 py-0 font-mono shrink-0">{{ _dashTarget }}</span>
                                             {% endif %}
                                         </a>
 
