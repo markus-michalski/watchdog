@@ -22,12 +22,15 @@ use Symfony\Contracts\Cache\CacheInterface;
 #[Route('/clients/{clientId}/checks', name: 'check_')]
 class SiteCheckController extends AbstractController
 {
-    public function __construct(private readonly CacheInterface $cache) {}
+    public function __construct(private readonly CacheInterface $cache)
+    {
+    }
 
     #[Route('/new', name: 'new')]
     public function new(
         Request $request,
-        #[MapEntity(id: 'clientId')] Client $client,
+        #[MapEntity(id: 'clientId')]
+        Client $client,
         EntityManagerInterface $em,
         CheckRegistry $registry,
     ): Response {
@@ -60,8 +63,10 @@ class SiteCheckController extends AbstractController
     #[Route('/{checkId}/edit', name: 'edit')]
     public function edit(
         Request $request,
-        #[MapEntity(id: 'clientId')] Client $client,
-        #[MapEntity(id: 'checkId')] SiteCheck $check,
+        #[MapEntity(id: 'clientId')]
+        Client $client,
+        #[MapEntity(id: 'checkId')]
+        SiteCheck $check,
         EntityManagerInterface $em,
         CheckRegistry $registry,
     ): Response {
@@ -122,8 +127,10 @@ class SiteCheckController extends AbstractController
     #[Route('/{checkId}/delete', name: 'delete', methods: ['POST'])]
     public function delete(
         Request $request,
-        #[MapEntity(id: 'clientId')] Client $client,
-        #[MapEntity(id: 'checkId')] SiteCheck $check,
+        #[MapEntity(id: 'clientId')]
+        Client $client,
+        #[MapEntity(id: 'checkId')]
+        SiteCheck $check,
         EntityManagerInterface $em,
     ): Response {
         if ($this->isCsrfTokenValid('delete_check'.$check->getId(), (string) $request->request->get('_token', ''))) {
@@ -139,8 +146,10 @@ class SiteCheckController extends AbstractController
     #[Route('/{checkId}/run', name: 'run', methods: ['POST'])]
     public function run(
         Request $request,
-        #[MapEntity(id: 'clientId')] Client $client,
-        #[MapEntity(id: 'checkId')] SiteCheck $check,
+        #[MapEntity(id: 'clientId')]
+        Client $client,
+        #[MapEntity(id: 'checkId')]
+        SiteCheck $check,
         MessageBusInterface $bus,
     ): Response {
         if ($this->isCsrfTokenValid('run_check'.$check->getId(), (string) $request->request->get('_token', ''))) {
@@ -154,8 +163,10 @@ class SiteCheckController extends AbstractController
     #[Route('/{checkId}/history', name: 'history')]
     public function history(
         Request $request,
-        #[MapEntity(id: 'clientId')] Client $client,
-        #[MapEntity(id: 'checkId')] SiteCheck $check,
+        #[MapEntity(id: 'clientId')]
+        Client $client,
+        #[MapEntity(id: 'checkId')]
+        SiteCheck $check,
         CheckResultRepository $checkResultRepository,
     ): Response {
         $limit = in_array($request->query->getInt('limit', 50), [10, 25, 50, 100], true)

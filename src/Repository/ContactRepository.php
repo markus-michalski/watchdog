@@ -19,12 +19,12 @@ class ContactRepository extends ServiceEntityRepository
     }
 
     /** @return array<int, Contact> */
-    public function findAllWithSites(): array
+    public function findAllWithClients(): array
     {
         /** @var array<int, Contact> $results */
         $results = $this->createQueryBuilder('c')
-            ->leftJoin('c.sites', 's')
-            ->addSelect('s')
+            ->leftJoin('c.clients', 'cl')
+            ->addSelect('cl')
             ->orderBy('c.name', 'ASC')
             ->getQuery()
             ->getResult();

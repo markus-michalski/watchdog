@@ -39,9 +39,15 @@ final class DurationExtension extends AbstractExtension
         $mins  = $rem % 60;
 
         $parts = [];
-        if ($days > 0)  $parts[] = "{$days}d";
-        if ($hours > 0) $parts[] = "{$hours}h";
-        if ($mins > 0)  $parts[] = "{$mins}min";
+        if ($days > 0) {
+            $parts[] = "{$days}d";
+        }
+        if ($hours > 0) {
+            $parts[] = "{$hours}h";
+        }
+        if ($mins > 0) {
+            $parts[] = "{$mins}min";
+        }
 
         return implode(' ', $parts) ?: '0 min';
     }
