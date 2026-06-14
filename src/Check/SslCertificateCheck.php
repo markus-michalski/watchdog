@@ -146,14 +146,15 @@ final class SslCertificateCheck implements CheckInterface
         $allowSelfSigned = (bool) ($config['allow_self_signed'] ?? false);
 
         $worstStatus = CheckStatus::Ok;
-        $messages = [];
+        /** @var list<array{status: CheckStatus, message: string, days?: int}> */
+        $hostResults = [];
 
         foreach ($hosts as $host) {
             $expiryOrError = $this->certExpiryReader->read($host, $port, $timeout, $allowSelfSigned);
 
             if (is_string($expiryOrError)) {
                 $worstStatus = $this->worseStatus($worstStatus, CheckStatus::Fail);
-                $messages[] = $expiryOrError;
+                $hostResults[] = ['status' => CheckStatus::Fail, 'message' => $expiryOrError];
 
                 continue;
             }
@@ -162,22 +163,62 @@ final class SslCertificateCheck implements CheckInterface
 
             if ($daysRemaining <= 0) {
                 $worstStatus = $this->worseStatus($worstStatus, CheckStatus::Fail);
-                $messages[] = sprintf('%s: expired', $host);
+                $hostResults[] = ['status' => CheckStatus::Fail, 'message' => sprintf('%s: expired', $host)];
             } elseif ($daysRemaining <= $failDays) {
                 $worstStatus = $this->worseStatus($worstStatus, CheckStatus::Fail);
-                $messages[] = sprintf('%s: expires in %d day(s)', $host, $daysRemaining);
+                $hostResults[] = ['status' => CheckStatus::Fail, 'message' => sprintf('%s: expires in %d day(s)', $host, $daysRemaining), 'days' => $daysRemaining];
             } elseif ($daysRemaining <= $warnDays) {
                 $worstStatus = $this->worseStatus($worstStatus, CheckStatus::Warn);
-                $messages[] = sprintf('%s: expires in %d day(s)', $host, $daysRemaining);
+                $hostResults[] = ['status' => CheckStatus::Warn, 'message' => sprintf('%s: expires in %d day(s)', $host, $daysRemaining), 'days' => $daysRemaining];
             } else {
-                $messages[] = sprintf('%s: valid for %d day(s)', $host, $daysRemaining);
+                $hostResults[] = ['status' => CheckStatus::Ok, 'message' => sprintf('%s: valid for %d day(s)', $host, $daysRemaining), 'days' => $daysRemaining];
             }
         }
 
         $checkResult->setStatus($worstStatus);
-        $checkResult->setMessage(implode('; ', $messages));
+        $checkResult->setMessage($this->buildSummaryMessage($hostResults));
 
         return $checkResult;
+    }
+
+    /**
+     * Single host → full message. Multiple hosts → compact: problem hosts listed,
+     * OK hosts counted. All OK → "N hosts — all OK (min. Xd)".
+     *
+     * @param list<array{status: CheckStatus, message: string, days?: int}> $hostResults
+     */
+    private function buildSummaryMessage(array $hostResults): string
+    {
+        if (1 === count($hostResults)) {
+            return $hostResults[0]['message'];
+        }
+
+        $problemMessages = [];
+        $okDays = [];
+
+        foreach ($hostResults as $r) {
+            if (CheckStatus::Ok === $r['status']) {
+                if (isset($r['days'])) {
+                    $okDays[] = $r['days'];
+                }
+            } else {
+                $problemMessages[] = $r['message'];
+            }
+        }
+
+        if ([] === $problemMessages) {
+            $minDays = $okDays ? min($okDays) : 0;
+
+            return sprintf('%d hosts — all OK (min. %dd)', count($hostResults), $minDays);
+        }
+
+        $summary = implode('; ', $problemMessages);
+        $okCount = count($okDays);
+        if ($okCount > 0) {
+            $summary .= sprintf(' (%d OK)', $okCount);
+        }
+
+        return $summary;
     }
 
     private function worseStatus(CheckStatus $current, CheckStatus $new): CheckStatus

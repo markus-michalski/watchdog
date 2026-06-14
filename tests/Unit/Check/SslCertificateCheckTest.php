@@ -257,7 +257,7 @@ final class SslCertificateCheckTest extends TestCase
     }
 
     #[Test]
-    public function testRunMessageContainsResultForEachHost(): void
+    public function testRunMultiHostMessageDetailsProblemHostsAndSummarizesOk(): void
     {
         $goodExpiry = time() + (60 * 86400);
         $warnExpiry = time() + (7 * 86400);
@@ -276,8 +276,25 @@ final class SslCertificateCheckTest extends TestCase
         $result = (new SslCertificateCheck($reader))->run($check);
         $message = (string) $result->getMessage();
 
-        self::assertStringContainsString('alpha.example.com', $message);
+        // Warn host is named; OK host is only counted
         self::assertStringContainsString('beta.example.com', $message);
+        self::assertStringContainsString('1 OK', $message);
+        self::assertStringNotContainsString('alpha.example.com', $message);
+    }
+
+    #[Test]
+    public function testRunMultiHostAllOkProducesCompactSummary(): void
+    {
+        $expiry = time() + (36 * 86400);
+        $check = $this->createSiteCheck(hosts: ['a.example.com', 'b.example.com', 'c.example.com']);
+
+        $result = $this->makeCheck(readerResult: $expiry)->run($check);
+        $message = (string) $result->getMessage();
+
+        self::assertSame(CheckStatus::Ok, $result->getStatus());
+        self::assertStringContainsString('3 hosts', $message);
+        self::assertStringContainsString('all OK', $message);
+        self::assertStringContainsString('min. 36d', $message);
     }
 
     #[Test]
