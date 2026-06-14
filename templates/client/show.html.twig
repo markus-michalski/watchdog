@@ -100,13 +100,15 @@
             <button data-status-filter="unknown" class="check-filter-btn px-2.5 py-1 rounded text-xs font-medium border border-yellow-200 text-yellow-700 hover:bg-yellow-50">UNKNOWN</button>
             <button data-status-filter="pending" class="check-filter-btn px-2.5 py-1 rounded text-xs font-medium border border-gray-200 text-gray-500 hover:bg-gray-50">PENDING</button>
         </div>
+        {% if typeLabels|length > 1 %}
         <span class="text-gray-300 text-sm select-none">|</span>
-        <div class="flex gap-1.5" id="type-filters">
-            <button data-type-filter="all"      class="check-filter-btn active px-2.5 py-1 rounded text-xs font-medium border border-gray-300 bg-gray-100 text-gray-700">All</button>
-            <button data-type-filter="http"     class="check-filter-btn px-2.5 py-1 rounded text-xs font-medium border border-blue-200 text-blue-700 hover:bg-blue-50">HTTP</button>
-            <button data-type-filter="docker"   class="check-filter-btn px-2.5 py-1 rounded text-xs font-medium border border-indigo-200 text-indigo-700 hover:bg-indigo-50">Docker</button>
-            <button data-type-filter="file_age" class="check-filter-btn px-2.5 py-1 rounded text-xs font-medium border border-amber-200 text-amber-700 hover:bg-amber-50">File Age</button>
+        <div class="flex flex-wrap gap-1.5" id="type-filters">
+            <button data-type-filter="all" class="check-filter-btn active px-2.5 py-1 rounded text-xs font-medium border border-gray-300 bg-gray-100 text-gray-700">All</button>
+            {% for type, label in typeLabels %}
+                <button data-type-filter="{{ type }}" class="check-filter-btn px-2.5 py-1 rounded text-xs font-medium border border-gray-200 text-gray-600 hover:bg-gray-50">{{ label }}</button>
+            {% endfor %}
         </div>
+        {% endif %}
     </div>
     {% endif %}
 
@@ -119,12 +121,9 @@
             {% for check in client.checks|sort((a, b) => a.label <=> b.label) %}
                 {% set result = latestResults[check.id] ?? null %}
                 {% set _searchText = check.label|lower %}
-                {% if check.type == 'docker' and check.config.container_name is defined %}
-                    {% set _searchText = _searchText ~ ' ' ~ check.config.container_name|lower %}
-                {% elseif check.type == 'http' %}
-                    {% for url in client.urls %}{% if url.id == check.config.client_url_id %}{% set _searchText = _searchText ~ ' ' ~ (url.label ?? url.url)|lower %}{% endif %}{% endfor %}
-                {% elseif check.type == 'file_age' and check.config.path is defined %}
-                    {% set _searchText = _searchText ~ ' ' ~ check.config.path|lower %}
+                {% set _target = checkTargets[check.id] ?? null %}
+                {% if _target is not null %}
+                    {% set _searchText = _searchText ~ ' ' ~ _target|lower %}
                 {% endif %}
                 <div class="bg-white rounded-lg shadow p-4 flex items-center gap-4 check-row"
                      data-label="{{ _searchText }}"
@@ -133,16 +132,8 @@
                     <div class="flex-1 min-w-0">
                         <p class="font-medium text-gray-800 flex items-center gap-2 flex-wrap">
                             {{ check.label }}
-                            {% if check.type == 'http' and check.config.client_url_id is defined %}
-                                {% for url in client.urls %}
-                                    {% if url.id == check.config.client_url_id %}
-                                        <span class="text-xs font-normal text-blue-600 bg-blue-50 border border-blue-200 rounded px-2 py-0.5">{{ url.displayLabel }}</span>
-                                    {% endif %}
-                                {% endfor %}
-                            {% elseif check.type == 'docker' and check.config.container_name is defined %}
-                                <span class="text-xs font-normal text-indigo-600 bg-indigo-50 border border-indigo-200 rounded px-2 py-0.5 font-mono">{{ check.config.container_name }}</span>
-                            {% elseif check.type == 'file_age' and check.config.path is defined %}
-                                <span class="text-xs font-normal text-amber-600 bg-amber-50 border border-amber-200 rounded px-2 py-0.5 font-mono">{{ check.config.path }}</span>
+                            {% if _target is not null %}
+                                <span class="text-xs font-normal text-gray-500 bg-gray-50 border border-gray-200 rounded px-2 py-0.5 font-mono">{{ _target }}</span>
                             {% endif %}
                         </p>
                         <p class="text-xs text-gray-400 mt-0.5">
@@ -232,17 +223,12 @@
 
     function activateBtn(btn, allBtns, activeKey) {
         allBtns.forEach(b => b.classList.remove(
-            'active', 'bg-gray-100', 'bg-green-100', 'bg-orange-100',
-            'bg-red-100', 'bg-yellow-100', 'bg-blue-100', 'bg-indigo-100', 'bg-amber-100'
+            'active', 'bg-gray-100', 'bg-green-100', 'bg-orange-100', 'bg-red-100', 'bg-yellow-100'
         ));
         btn.classList.add('active');
         const val = btn.dataset[activeKey === 'status' ? 'statusFilter' : 'typeFilter'];
-        const colorMap = {
-            ok: 'bg-green-100', warn: 'bg-orange-100', fail: 'bg-red-100',
-            unknown: 'bg-yellow-100', http: 'bg-blue-100', docker: 'bg-indigo-100',
-            file_age: 'bg-amber-100'
-        };
-        btn.classList.add(colorMap[val] || 'bg-gray-100');
+        const statusColors = { ok: 'bg-green-100', warn: 'bg-orange-100', fail: 'bg-red-100', unknown: 'bg-yellow-100' };
+        btn.classList.add(statusColors[val] || 'bg-gray-100');
     }
 
     statusBtns.forEach(btn => {

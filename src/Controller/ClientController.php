@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Controller;
 
+use App\Check\CheckRegistry;
 use App\Entity\Client;
 use App\Entity\ClientUrl;
 use App\Form\ClientType;
@@ -51,19 +52,33 @@ class ClientController extends AbstractController
     }
 
     #[Route('/{id}', name: 'show')]
-    public function show(Client $client, CheckResultRepository $checkResultRepository): Response
+    public function show(Client $client, CheckResultRepository $checkResultRepository, CheckRegistry $checkRegistry): Response
     {
         $latestResults = [];
+        $typeLabels = [];  // type => label, only types present in this client's checks
+        $checkTargets = []; // checkId => ?string
+
         foreach ($client->getChecks() as $check) {
             $result = $checkResultRepository->findLatestForCheck($check);
             if (null !== $result) {
                 $latestResults[$check->getId()] = $result;
             }
+
+            $type = $check->getType();
+            if ($checkRegistry->has($type)) {
+                $impl = $checkRegistry->get($type);
+                $typeLabels[$type] = $impl->getLabel();
+                $checkTargets[$check->getId()] = $impl->resolveEmailTarget($check->getConfig());
+            }
         }
+
+        asort($typeLabels);
 
         return $this->render('client/show.html.twig', [
             'client' => $client,
             'latestResults' => $latestResults,
+            'typeLabels' => $typeLabels,
+            'checkTargets' => $checkTargets,
         ]);
     }
 
