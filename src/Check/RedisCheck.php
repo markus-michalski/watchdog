@@ -16,6 +16,8 @@ final class RedisCheck implements CheckInterface
     {
     }
 
+    public function supportsAgentRunner(): bool { return true; }
+
     public function getType(): string
     {
         return 'redis';

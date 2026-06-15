@@ -12,6 +12,8 @@ use Symfony\Component\DependencyInjection\Attribute\AutoconfigureTag;
 #[AutoconfigureTag('watchdog.check')]
 final class FileAgeCheck implements CheckInterface
 {
+    public function supportsAgentRunner(): bool { return true; }
+
     public function getType(): string
     {
         return 'file_age';

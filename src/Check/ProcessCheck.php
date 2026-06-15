@@ -16,6 +16,8 @@ final class ProcessCheck implements CheckInterface
     {
     }
 
+    public function supportsAgentRunner(): bool { return true; }
+
     public function getType(): string
     {
         return 'process';

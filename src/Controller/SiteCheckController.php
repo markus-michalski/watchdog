@@ -57,6 +57,7 @@ class SiteCheckController extends AbstractController
             'title' => 'Add Check',
             'schemas' => $registry->getAllSchemas(),
             'clientUrls' => $client->getUrls(),
+            'agentIncompatibleTypes' => $registry->getAgentIncompatibleTypes(),
         ]);
     }
 
@@ -89,6 +90,7 @@ class SiteCheckController extends AbstractController
             'title' => 'Edit Check',
             'schemas' => $registry->getAllSchemas(),
             'clientUrls' => $client->getUrls(),
+            'agentIncompatibleTypes' => $registry->getAgentIncompatibleTypes(),
         ]);
     }
 

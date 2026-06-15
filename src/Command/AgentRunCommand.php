@@ -73,9 +73,14 @@ final class AgentRunCommand extends Command
         $this->installSignalHandlers($running);
 
         $checks = [];
-        /** @var array<int, \DateTimeImmutable> $lastRunAt indexed by check id */
+        /** @var array<int, int> $lastRunAt unix timestamps indexed by check id */
         $lastRunAt = [];
+        /** @var array<int, string> $lastRunDate 'Y-m-d' indexed by check id, for run_at_time checks */
+        $lastRunDate = [];
         $lastConfigRefresh = 0;
+        $consecutiveConfigFailures = 0;
+        /** How many consecutive config failures before we stop running stale checks */
+        $maxConsecutiveConfigFailures = 5;
 
         while ($running) {
             $now = time();
@@ -86,11 +91,30 @@ final class AgentRunCommand extends Command
                     $config = $client->fetchConfig();
                     $checks = $config['checks'];
                     $lastConfigRefresh = $now;
+                    $consecutiveConfigFailures = 0;
                     $this->logger->info('Config refreshed', ['check_count' => count($checks)]);
                     $io->writeln(sprintf('[%s] Config refreshed — %d checks', date('H:i:s'), count($checks)));
                 } catch (\Throwable $e) {
-                    $this->logger->error('Config fetch failed', ['error' => $e->getMessage()]);
-                    $io->error(sprintf('Config fetch failed: %s — retrying in %ds', $e->getMessage(), $tickInterval));
+                    ++$consecutiveConfigFailures;
+                    $this->logger->error('Config fetch failed', [
+                        'error' => $e->getMessage(),
+                        'consecutive_failures' => $consecutiveConfigFailures,
+                    ]);
+                    $io->error(sprintf(
+                        'Config fetch failed (%d/%d): %s — retrying in %ds',
+                        $consecutiveConfigFailures,
+                        $maxConsecutiveConfigFailures,
+                        $e->getMessage(),
+                        $tickInterval,
+                    ));
+
+                    // Stop running stale checks once the token appears revoked or the dashboard is unreachable for too long
+                    if ($consecutiveConfigFailures >= $maxConsecutiveConfigFailures) {
+                        $this->logger->error('Too many consecutive config failures — clearing check list to avoid running with stale config');
+                        $io->error('Clearing check list after too many failures. Will resume once dashboard is reachable again.');
+                        $checks = [];
+                        $consecutiveConfigFailures = 0;
+                    }
                 }
             }
 
@@ -98,12 +122,27 @@ final class AgentRunCommand extends Command
             $results = [];
             foreach ($checks as $checkData) {
                 $checkId = (int) $checkData['id'];
-                $intervalSeconds = (int) $checkData['check_interval_minutes'] * 60;
-                $last = $lastRunAt[$checkId] ?? null;
-                $elapsed = $last !== null ? $now - $last->getTimestamp() : PHP_INT_MAX;
+                $runAtTime = is_string($checkData['run_at_time'] ?? null) && $checkData['run_at_time'] !== ''
+                    ? $checkData['run_at_time']
+                    : null;
 
-                if ($elapsed < $intervalSeconds - 5) {
-                    continue;
+                if ($runAtTime !== null) {
+                    // Daily check: run once at the specified time, not again until next day
+                    $today = date('Y-m-d');
+                    if (($lastRunDate[$checkId] ?? null) === $today) {
+                        continue;
+                    }
+                    if (date('H:i') < $runAtTime) {
+                        continue;
+                    }
+                } else {
+                    $intervalSeconds = (int) $checkData['check_interval_minutes'] * 60;
+                    $last = $lastRunAt[$checkId] ?? null;
+                    $elapsed = $last !== null ? $now - $last : PHP_INT_MAX;
+
+                    if ($elapsed < $intervalSeconds - 5) {
+                        continue;
+                    }
                 }
 
                 try {
@@ -113,7 +152,10 @@ final class AgentRunCommand extends Command
                         $checkData['config'],
                     );
                     $results[] = $result;
-                    $lastRunAt[$checkId] = new \DateTimeImmutable();
+                    $lastRunAt[$checkId] = $now;
+                    if ($runAtTime !== null) {
+                        $lastRunDate[$checkId] = date('Y-m-d');
+                    }
 
                     $this->logger->debug('Check executed', [
                         'check_id' => $checkId,
@@ -147,9 +189,7 @@ final class AgentRunCommand extends Command
                 }
             }
 
-            if ($running) {
-                sleep($tickInterval);
-            }
+            sleep($tickInterval);
         }
 
         $io->writeln('Agent stopped gracefully.');

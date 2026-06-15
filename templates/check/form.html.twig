@@ -214,19 +214,46 @@
         });
     }
 
-    // Show/hide agent dropdown based on runner selection
+    // Show/hide agent dropdown based on runner selection, warn on incompatible types
     const runnerSelect = document.querySelector('[data-runner-select]');
     const agentWrapper = document.getElementById('agent-field-wrapper');
+    const agentIncompatibleTypes = {{ agentIncompatibleTypes|json_encode|raw }};
+
+    let agentTypeWarning = null;
+    function ensureAgentTypeWarning() {
+        if (!agentTypeWarning) {
+            agentTypeWarning = document.createElement('p');
+            agentTypeWarning.className = 'text-xs text-amber-600 bg-amber-50 border border-amber-200 rounded px-2 py-1 mt-1';
+            agentTypeWarning.textContent = 'Warning: this check type requires dashboard-side URL resolution and cannot run on an agent. Switch the runner back to Dashboard or choose a local check type (e.g. disk_space, process, tcp_port, redis).';
+        }
+        return agentTypeWarning;
+    }
+
     function syncAgentField() {
         if (!runnerSelect || !agentWrapper) return;
         const isAgent = runnerSelect.value === 'agent';
         agentWrapper.classList.toggle('hidden', !isAgent);
         const agentSelect = agentWrapper.querySelector('select');
         if (agentSelect) agentSelect.required = isAgent;
+
+        const typeSelect = document.querySelector('[data-check-type]');
+        if (!typeSelect) return;
+        const warning = ensureAgentTypeWarning();
+        const showWarning = isAgent && agentIncompatibleTypes.includes(typeSelect.value);
+        if (showWarning && !warning.parentElement) {
+            agentWrapper.after(warning);
+        } else if (!showWarning && warning.parentElement) {
+            warning.remove();
+        }
     }
     if (runnerSelect) {
         syncAgentField();
         runnerSelect.addEventListener('change', syncAgentField);
+    }
+    // Also re-check warning when type changes
+    const typeSelectForWarning = document.querySelector('[data-check-type]');
+    if (typeSelectForWarning) {
+        typeSelectForWarning.addEventListener('change', syncAgentField);
     }
 
     // Disable inputs in hidden sections so duplicate field names don't overwrite submitted values

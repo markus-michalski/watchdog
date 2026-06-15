@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Controller;
 
 use App\Entity\Agent;
+use App\Enum\CheckRunner;
 use App\Form\AgentType;
 use App\Repository\AgentRepository;
 use Doctrine\ORM\EntityManagerInterface;
@@ -97,6 +98,11 @@ class AgentController extends AbstractController
     {
         if (!$this->isCsrfTokenValid('delete-agent-' . $agent->getId(), (string) $request->getPayload()->get('_token'))) {
             throw $this->createAccessDeniedException();
+        }
+
+        foreach ($agent->getChecks() as $check) {
+            $check->setAgent(null);
+            $check->setRunner(CheckRunner::Dashboard);
         }
 
         $em->remove($agent);

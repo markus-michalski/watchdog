@@ -58,8 +58,10 @@ class SiteCheckRepository extends ServiceEntityRepository
         $results = $this->createQueryBuilder('c')
             ->where('c.agent = :agent')
             ->andWhere('c.isActive = :active')
+            ->andWhere('c.runner = :runner')
             ->setParameter('agent', $agent)
             ->setParameter('active', true)
+            ->setParameter('runner', CheckRunner::Agent)
             ->getQuery()
             ->getResult();
 

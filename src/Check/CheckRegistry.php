@@ -64,4 +64,13 @@ class CheckRegistry
 
         return $schemas;
     }
+
+    /** @return list<string> type strings that require dashboard-side DB (not usable on agent) */
+    public function getAgentIncompatibleTypes(): array
+    {
+        return array_values(array_filter(
+            array_keys($this->checks),
+            fn(string $type) => !$this->checks[$type]->supportsAgentRunner(),
+        ));
+    }
 }

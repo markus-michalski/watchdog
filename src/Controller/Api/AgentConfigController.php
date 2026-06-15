@@ -4,9 +4,12 @@ declare(strict_types=1);
 
 namespace App\Controller\Api;
 
+use App\Check\CheckRegistry;
 use App\Entity\Agent;
 use App\Repository\AgentRepository;
 use App\Repository\SiteCheckRepository;
+use Doctrine\ORM\EntityManagerInterface;
+use Psr\Log\LoggerInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -18,6 +21,9 @@ final class AgentConfigController
     public function __construct(
         private readonly AgentRepository $agentRepository,
         private readonly SiteCheckRepository $siteCheckRepository,
+        private readonly CheckRegistry $checkRegistry,
+        private readonly EntityManagerInterface $em,
+        private readonly LoggerInterface $logger,
     ) {
     }
 
@@ -29,7 +35,23 @@ final class AgentConfigController
             return new JsonResponse(['error' => 'Unauthorized'], Response::HTTP_UNAUTHORIZED);
         }
 
+        $agent->markSeen();
+        $this->em->flush();
+
         $checks = $this->siteCheckRepository->findActiveByAgent($agent);
+
+        $compatible = [];
+        foreach ($checks as $check) {
+            if (!$this->checkRegistry->has($check->getType()) || !$this->checkRegistry->get($check->getType())->supportsAgentRunner()) {
+                $this->logger->warning('Skipping dashboard-only check type in agent config', [
+                    'check_id' => $check->getId(),
+                    'type' => $check->getType(),
+                    'agent' => $agent->getName(),
+                ]);
+                continue;
+            }
+            $compatible[] = $check;
+        }
 
         return new JsonResponse([
             'agent' => [
@@ -42,7 +64,7 @@ final class AgentConfigController
                 'config' => $check->getConfig(),
                 'check_interval_minutes' => $check->getCheckIntervalMinutes(),
                 'run_at_time' => $check->getRunAtTime(),
-            ], $checks),
+            ], $compatible),
         ]);
     }
 

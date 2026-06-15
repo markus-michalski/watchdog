@@ -48,7 +48,7 @@ class SiteCheck
     #[Assert\Positive(message: 'Retention must be at least 1 day.')]
     private ?int $retentionDays = null;
 
-    #[ORM\Column(enumType: CheckRunner::class)]
+    #[ORM\Column(enumType: CheckRunner::class, length: 16)]
     private CheckRunner $runner = CheckRunner::Dashboard;
 
     #[ORM\ManyToOne(inversedBy: 'checks')]

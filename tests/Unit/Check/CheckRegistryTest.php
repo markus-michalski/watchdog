@@ -141,4 +141,9 @@ final class StubCheck implements CheckInterface
     {
         return null;
     }
+
+    public function supportsAgentRunner(): bool
+    {
+        return true;
+    }
 }

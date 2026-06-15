@@ -44,4 +44,11 @@ interface CheckInterface
      * @param array<string, mixed> $config
      */
     public function resolveEmailTarget(array $config): ?string;
+
+    /**
+     * Whether this check can run on an agent (i.e. requires only local host access,
+     * no client_url DB lookup on the dashboard side).
+     * URL-based checks (http, http_content, ssl_cert) return false.
+     */
+    public function supportsAgentRunner(): bool;
 }

@@ -114,7 +114,11 @@ final class AgentResultsController
         $this->em->flush();
 
         foreach ($pending as [$check, $result]) {
-            $this->alertService->evaluate($check, $result);
+            try {
+                $this->alertService->evaluate($check, $result);
+            } catch (\Throwable) {
+                // One failing evaluation must not abort the rest or return a 500 to the agent
+            }
         }
 
         return new JsonResponse([
