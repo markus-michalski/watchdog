@@ -41,7 +41,8 @@ final class AgentRunCommand extends Command
             ->addOption('dashboard-url', null, InputOption::VALUE_REQUIRED, 'Dashboard base URL', getenv('WATCHDOG_DASHBOARD_URL') ?: '')
             ->addOption('token', null, InputOption::VALUE_REQUIRED, 'Agent bearer token', getenv('WATCHDOG_AGENT_TOKEN') ?: '')
             ->addOption('tick', null, InputOption::VALUE_REQUIRED, 'Tick interval in seconds', self::TICK_INTERVAL)
-            ->addOption('config-refresh', null, InputOption::VALUE_REQUIRED, 'Config refresh interval in seconds', self::CONFIG_REFRESH_INTERVAL);
+            ->addOption('config-refresh', null, InputOption::VALUE_REQUIRED, 'Config refresh interval in seconds', self::CONFIG_REFRESH_INTERVAL)
+            ->addOption('run-once', null, InputOption::VALUE_NONE, 'Fetch config, run all checks once, push results, then exit — useful for testing');
     }
 
     protected function execute(InputInterface $input, OutputInterface $output): int
@@ -64,6 +65,10 @@ final class AgentRunCommand extends Command
         }
 
         $client = new DashboardClient($this->http, $dashboardUrl, $token);
+
+        if ($input->getOption('run-once')) {
+            return $this->runOnce($client, $io);
+        }
 
         $io->title('Watchdog Agent');
         $io->writeln(sprintf('Dashboard: %s', $dashboardUrl));
@@ -194,6 +199,47 @@ final class AgentRunCommand extends Command
 
         $io->writeln('Agent stopped gracefully.');
         $this->logger->info('Agent stopped');
+
+        return Command::SUCCESS;
+    }
+
+    private function runOnce(DashboardClient $client, SymfonyStyle $io): int
+    {
+        $io->title('Watchdog Agent — run-once');
+
+        try {
+            $config = $client->fetchConfig();
+        } catch (\Throwable $e) {
+            $io->error(sprintf('Config fetch failed: %s', $e->getMessage()));
+            return Command::FAILURE;
+        }
+
+        $checks = $config['checks'];
+        $io->writeln(sprintf('Fetched %d check(s)', count($checks)));
+
+        $results = [];
+        foreach ($checks as $checkData) {
+            $checkId = (int) $checkData['id'];
+            try {
+                $result = $this->localCheckRunner->run($checkId, $checkData['type'], $checkData['config']);
+                $results[] = $result;
+                $io->writeln(sprintf('  check=%d type=%s status=%s', $checkId, $checkData['type'], $result['status']));
+            } catch (\Throwable $e) {
+                $io->warning(sprintf('  check=%d type=%s ERROR: %s', $checkId, $checkData['type'], $e->getMessage()));
+            }
+        }
+
+        if ([] !== $results) {
+            try {
+                $client->pushResults($results);
+                $io->success(sprintf('Pushed %d result(s).', count($results)));
+            } catch (\Throwable $e) {
+                $io->error(sprintf('Push failed: %s', $e->getMessage()));
+                return Command::FAILURE;
+            }
+        } else {
+            $io->writeln('No results to push.');
+        }
 
         return Command::SUCCESS;
     }
