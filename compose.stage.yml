@@ -87,6 +87,7 @@ services:
     container_name: watchdog-stage-agent
     env_file: .env.stage
     environment:
+      APP_ENV: prod
       WATCHDOG_DASHBOARD_URL: http://app:80
       HOST_ROOT: /host/root
       TZ: Europe/Berlin
