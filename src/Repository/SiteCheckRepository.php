@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Repository;
 
+use App\Entity\Agent;
 use App\Entity\SiteCheck;
 use App\Enum\CheckRunner;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
@@ -44,6 +45,21 @@ class SiteCheckRepository extends ServiceEntityRepository
             ->andWhere('c.runner = :runner')
             ->setParameter('active', true)
             ->setParameter('runner', CheckRunner::Dashboard)
+            ->getQuery()
+            ->getResult();
+
+        return $results;
+    }
+
+    /** @return array<int, SiteCheck> */
+    public function findActiveByAgent(Agent $agent): array
+    {
+        /** @var array<int, SiteCheck> $results */
+        $results = $this->createQueryBuilder('c')
+            ->where('c.agent = :agent')
+            ->andWhere('c.isActive = :active')
+            ->setParameter('agent', $agent)
+            ->setParameter('active', true)
             ->getQuery()
             ->getResult();
 
