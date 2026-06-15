@@ -111,6 +111,13 @@ class CheckResult
         return $this->checkedAt;
     }
 
+    public function setCheckedAt(\DateTimeImmutable $checkedAt): static
+    {
+        $this->checkedAt = $checkedAt;
+
+        return $this;
+    }
+
     public function isOk(): bool
     {
         return CheckStatus::Ok === $this->status;
