@@ -77,6 +77,7 @@ services:
     env_file: .env.live
     environment:
       WATCHDOG_DASHBOARD_URL: http://app:80
+      HOST_ROOT: /host/root
       TZ: Europe/Berlin
     pid: host
     volumes:

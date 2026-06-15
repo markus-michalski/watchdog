@@ -88,6 +88,7 @@ services:
     env_file: .env.stage
     environment:
       WATCHDOG_DASHBOARD_URL: http://app:80
+      HOST_ROOT: /host/root
       TZ: Europe/Berlin
     pid: host
     volumes:
