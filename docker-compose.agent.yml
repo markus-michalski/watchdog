@@ -1,0 +1,30 @@
+# Example docker-compose file for deploying the watchdog agent.
+# Copy this file to the monitored server and adjust environment variables.
+#
+# Usage:
+#   docker compose -f docker-compose.agent.yml up -d
+
+services:
+  watchdog-agent:
+    image: ghcr.io/markus-michalski/watchdog/agent:latest
+    # Alternatively, build locally:
+    # build:
+    #   context: .
+    #   target: agent
+    restart: unless-stopped
+    environment:
+      # URL of the watchdog dashboard (no trailing slash)
+      WATCHDOG_DASHBOARD_URL: https://watchdog.example.com
+      # Agent token — generate on the dashboard under Settings > Agents
+      WATCHDOG_AGENT_TOKEN: your-agent-token-here
+      TZ: Europe/Berlin
+    # Required for ProcessCheck to see host processes
+    # Remove if you do not use ProcessCheck
+    pid: host
+    # Required for DiskSpaceCheck to read host disk usage
+    # Mount the paths you want to monitor
+    volumes:
+      - /:/host/root:ro
+    # Required for DockerCheck / DockerExecCheck
+    # Remove if you do not use Docker checks
+    # - /var/run/docker.sock:/var/run/docker.sock:ro
