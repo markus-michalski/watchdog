@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Entity;
 
+use App\Enum\CheckRunner;
 use App\Repository\SiteCheckRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -46,6 +47,13 @@ class SiteCheck
     #[ORM\Column(nullable: true)]
     #[Assert\Positive(message: 'Retention must be at least 1 day.')]
     private ?int $retentionDays = null;
+
+    #[ORM\Column(enumType: CheckRunner::class)]
+    private CheckRunner $runner = CheckRunner::Dashboard;
+
+    #[ORM\ManyToOne(inversedBy: 'checks')]
+    #[ORM\JoinColumn(nullable: true)]
+    private ?Agent $agent = null;
 
     /** @var Collection<int, CheckResult> */
     #[ORM\OneToMany(mappedBy: 'check', targetEntity: CheckResult::class, cascade: ['remove'], orphanRemoval: true)]
@@ -178,6 +186,30 @@ class SiteCheck
     public function setRetentionDays(?int $retentionDays): static
     {
         $this->retentionDays = $retentionDays;
+
+        return $this;
+    }
+
+    public function getRunner(): CheckRunner
+    {
+        return $this->runner;
+    }
+
+    public function setRunner(CheckRunner $runner): static
+    {
+        $this->runner = $runner;
+
+        return $this;
+    }
+
+    public function getAgent(): ?Agent
+    {
+        return $this->agent;
+    }
+
+    public function setAgent(?Agent $agent): static
+    {
+        $this->agent = $agent;
 
         return $this;
     }

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Repository;
 
 use App\Entity\SiteCheck;
+use App\Enum\CheckRunner;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
@@ -24,6 +25,25 @@ class SiteCheckRepository extends ServiceEntityRepository
         /** @var array<int, SiteCheck> $results */
         $results = $this->createQueryBuilder('c')
             ->where('c.retentionDays IS NOT NULL')
+            ->getQuery()
+            ->getResult();
+
+        return $results;
+    }
+
+    /** @return array<int, SiteCheck> */
+    public function findDashboardChecks(): array
+    {
+        /** @var array<int, SiteCheck> $results */
+        $results = $this->createQueryBuilder('c')
+            ->join('c.client', 'cl')
+            ->leftJoin('cl.contacts', 'co')
+            ->addSelect('cl', 'co')
+            ->where('c.isActive = :active')
+            ->andWhere('cl.isActive = :active')
+            ->andWhere('c.runner = :runner')
+            ->setParameter('active', true)
+            ->setParameter('runner', CheckRunner::Dashboard)
             ->getQuery()
             ->getResult();
 
