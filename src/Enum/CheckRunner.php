@@ -12,7 +12,7 @@ enum CheckRunner: string
     public function label(): string
     {
         return match ($this) {
-            self::Dashboard => 'Dashboard (Blackbox)',
+            self::Dashboard => 'Dashboard (Network)',
             self::Agent => 'Agent (Local)',
         };
     }
