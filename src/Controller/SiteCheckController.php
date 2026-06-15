@@ -165,8 +165,12 @@ class SiteCheckController extends AbstractController
         MessageBusInterface $bus,
     ): Response {
         if ($this->isCsrfTokenValid('run_check'.$check->getId(), (string) $request->request->get('_token', ''))) {
-            $bus->dispatch(new RunSiteChecksMessage((int) $check->getId()));
-            $this->addFlash('success', sprintf('Check "%s" queued — result appears in a few seconds.', $check->getLabel()));
+            if ($check->getRunner() === \App\Enum\CheckRunner::Agent) {
+                $this->addFlash('error', sprintf('"%s" is assigned to an agent and cannot be triggered manually — it runs on the agent\'s own schedule.', $check->getLabel()));
+            } else {
+                $bus->dispatch(new RunSiteChecksMessage((int) $check->getId()));
+                $this->addFlash('success', sprintf('Check "%s" queued — result appears in a few seconds.', $check->getLabel()));
+            }
         }
 
         return $this->redirectToRoute('client_show', ['id' => $client->getId()]);
