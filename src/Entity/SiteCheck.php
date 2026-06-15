@@ -51,6 +51,9 @@ class SiteCheck
     #[ORM\Column(enumType: CheckRunner::class, length: 16)]
     private CheckRunner $runner = CheckRunner::Dashboard;
 
+    #[ORM\Column(options: ['default' => false])]
+    private bool $runNow = false;
+
     #[ORM\ManyToOne(inversedBy: 'checks')]
     #[ORM\JoinColumn(nullable: true)]
     private ?Agent $agent = null;
@@ -198,6 +201,18 @@ class SiteCheck
     public function setRunner(CheckRunner $runner): static
     {
         $this->runner = $runner;
+
+        return $this;
+    }
+
+    public function isRunNow(): bool
+    {
+        return $this->runNow;
+    }
+
+    public function setRunNow(bool $runNow): static
+    {
+        $this->runNow = $runNow;
 
         return $this;
     }

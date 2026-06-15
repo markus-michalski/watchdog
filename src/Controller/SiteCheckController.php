@@ -163,10 +163,13 @@ class SiteCheckController extends AbstractController
         #[MapEntity(id: 'checkId')]
         SiteCheck $check,
         MessageBusInterface $bus,
+        EntityManagerInterface $em,
     ): Response {
         if ($this->isCsrfTokenValid('run_check'.$check->getId(), (string) $request->request->get('_token', ''))) {
             if ($check->getRunner() === \App\Enum\CheckRunner::Agent) {
-                $this->addFlash('error', sprintf('"%s" is assigned to an agent and cannot be triggered manually — it runs on the agent\'s own schedule.', $check->getLabel()));
+                $check->setRunNow(true);
+                $em->flush();
+                $this->addFlash('success', sprintf('"%s" queued for the agent — result appears within 30 seconds.', $check->getLabel()));
             } else {
                 $bus->dispatch(new RunSiteChecksMessage((int) $check->getId()));
                 $this->addFlash('success', sprintf('Check "%s" queued — result appears in a few seconds.', $check->getLabel()));

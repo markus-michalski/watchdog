@@ -127,26 +127,29 @@ final class AgentRunCommand extends Command
             $results = [];
             foreach ($checks as $checkData) {
                 $checkId = (int) $checkData['id'];
+                $runNow = (bool) ($checkData['run_now'] ?? false);
                 $runAtTime = is_string($checkData['run_at_time'] ?? null) && $checkData['run_at_time'] !== ''
                     ? $checkData['run_at_time']
                     : null;
 
-                if ($runAtTime !== null) {
-                    // Daily check: run once at the specified time, not again until next day
-                    $today = date('Y-m-d');
-                    if (($lastRunDate[$checkId] ?? null) === $today) {
-                        continue;
-                    }
-                    if (date('H:i') < $runAtTime) {
-                        continue;
-                    }
-                } else {
-                    $intervalSeconds = (int) $checkData['check_interval_minutes'] * 60;
-                    $last = $lastRunAt[$checkId] ?? null;
-                    $elapsed = $last !== null ? $now - $last : PHP_INT_MAX;
+                if (!$runNow) {
+                    if ($runAtTime !== null) {
+                        // Daily check: run once at the specified time, not again until next day
+                        $today = date('Y-m-d');
+                        if (($lastRunDate[$checkId] ?? null) === $today) {
+                            continue;
+                        }
+                        if (date('H:i') < $runAtTime) {
+                            continue;
+                        }
+                    } else {
+                        $intervalSeconds = (int) $checkData['check_interval_minutes'] * 60;
+                        $last = $lastRunAt[$checkId] ?? null;
+                        $elapsed = $last !== null ? $now - $last : PHP_INT_MAX;
 
-                    if ($elapsed < $intervalSeconds - 5) {
-                        continue;
+                        if ($elapsed < $intervalSeconds - 5) {
+                            continue;
+                        }
                     }
                 }
 

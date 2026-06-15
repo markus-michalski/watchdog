@@ -53,18 +53,29 @@ final class AgentConfigController
             $compatible[] = $check;
         }
 
+        $payload = array_map(static fn ($check) => [
+            'id' => $check->getId(),
+            'type' => $check->getType(),
+            'config' => $check->getConfig(),
+            'check_interval_minutes' => $check->getCheckIntervalMinutes(),
+            'run_at_time' => $check->getRunAtTime(),
+            'run_now' => $check->isRunNow(),
+        ], $compatible);
+
+        // Clear run_now flags after delivering them — agent acknowledged receipt
+        foreach ($compatible as $check) {
+            if ($check->isRunNow()) {
+                $check->setRunNow(false);
+            }
+        }
+        $this->em->flush();
+
         return new JsonResponse([
             'agent' => [
                 'id' => $agent->getId(),
                 'name' => $agent->getName(),
             ],
-            'checks' => array_map(static fn ($check) => [
-                'id' => $check->getId(),
-                'type' => $check->getType(),
-                'config' => $check->getConfig(),
-                'check_interval_minutes' => $check->getCheckIntervalMinutes(),
-                'run_at_time' => $check->getRunAtTime(),
-            ], $compatible),
+            'checks' => $payload,
         ]);
     }
 
