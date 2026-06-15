@@ -45,7 +45,7 @@ final class ProcessCheck implements CheckInterface
                 'required' => true,
                 'default' => '',
                 'placeholder' => 'nginx',
-                'help' => 'Name or substring to match against running processes (uses pgrep -f). Requires /proc from the host to be mounted in the worker container.',
+                'help' => 'Name or substring to match against running processes (uses pgrep -f). Works out of the box on native installs. For Docker: add pid: host to the watchdog service in docker-compose.yml.',
             ],
         ];
     }
