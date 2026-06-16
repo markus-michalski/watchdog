@@ -7,7 +7,7 @@ namespace App\Agent;
 use App\Check\CheckRegistry;
 use App\Entity\SiteCheck;
 
-final class LocalCheckRunner
+final class LocalCheckRunner implements LocalCheckRunnerInterface
 {
     public function __construct(
         private readonly CheckRegistry $registry,

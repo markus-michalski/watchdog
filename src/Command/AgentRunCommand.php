@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Command;
 
 use App\Agent\DashboardClient;
-use App\Agent\LocalCheckRunner;
+use App\Agent\LocalCheckRunnerInterface;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
@@ -29,7 +29,7 @@ final class AgentRunCommand extends Command
 
     public function __construct(
         private readonly HttpClientInterface $http,
-        private readonly LocalCheckRunner $localCheckRunner,
+        private readonly LocalCheckRunnerInterface $localCheckRunner,
         private readonly LoggerInterface $logger,
     ) {
         parent::__construct();
@@ -124,67 +124,7 @@ final class AgentRunCommand extends Command
             }
 
             // Find and run due checks
-            $results = [];
-            foreach ($checks as $checkData) {
-                $checkId = (int) $checkData['id'];
-                $runNow = (bool) ($checkData['run_now'] ?? false);
-                $runAtTime = is_string($checkData['run_at_time'] ?? null) && $checkData['run_at_time'] !== ''
-                    ? $checkData['run_at_time']
-                    : null;
-
-                if (!$runNow) {
-                    if ($runAtTime !== null) {
-                        // Daily check: run once at the specified time, not again until next day
-                        $today = date('Y-m-d');
-                        if (($lastRunDate[$checkId] ?? null) === $today) {
-                            continue;
-                        }
-                        if (date('H:i') < $runAtTime) {
-                            continue;
-                        }
-                    } else {
-                        $intervalSeconds = (int) $checkData['check_interval_minutes'] * 60;
-                        $last = $lastRunAt[$checkId] ?? null;
-                        $elapsed = $last !== null ? $now - $last : PHP_INT_MAX;
-
-                        if ($elapsed < $intervalSeconds - 5) {
-                            continue;
-                        }
-                    }
-                }
-
-                try {
-                    $result = $this->localCheckRunner->run(
-                        $checkId,
-                        $checkData['type'],
-                        $checkData['config'],
-                    );
-                    $results[] = $result;
-                    $lastRunAt[$checkId] = $now;
-                    if ($runAtTime !== null) {
-                        $lastRunDate[$checkId] = date('Y-m-d');
-                    }
-
-                    $this->logger->debug('Check executed', [
-                        'check_id' => $checkId,
-                        'type' => $checkData['type'],
-                        'status' => $result['status'],
-                    ]);
-                    $io->writeln(sprintf(
-                        '[%s] check=%s type=%s status=%s',
-                        date('H:i:s'),
-                        $checkId,
-                        $checkData['type'],
-                        $result['status'],
-                    ));
-                } catch (\Throwable $e) {
-                    $this->logger->error('Check execution failed', [
-                        'check_id' => $checkId,
-                        'type' => $checkData['type'],
-                        'error' => $e->getMessage(),
-                    ]);
-                }
-            }
+            $results = $this->processTick($checks, $now, $lastRunAt, $lastRunDate, $io);
 
             // Push all results in one batch
             if ([] !== $results) {
@@ -261,5 +201,92 @@ final class AgentRunCommand extends Command
 
         pcntl_signal(\SIGTERM, $handler);
         pcntl_signal(\SIGINT, $handler);
+    }
+
+    /**
+     * Run one scheduler tick: find due checks, execute them, clear run_now flags in place.
+     *
+     * @param array<array<string, mixed>> &$checks      Live check list — run_now is mutated to false after execution
+     * @param int                          $now          Current unix timestamp
+     * @param array<int, int>             &$lastRunAt   Last run unix timestamp per check id
+     * @param array<int, string>          &$lastRunDate Last run date ('Y-m-d') per check id (run_at_time checks only)
+     * @return array<array<string, mixed>> Results ready to push
+     */
+    public function processTick(
+        array &$checks,
+        int $now,
+        array &$lastRunAt,
+        array &$lastRunDate,
+        SymfonyStyle $io,
+    ): array {
+        $results = [];
+        foreach ($checks as &$checkData) {
+            $checkId = (int) $checkData['id'];
+            $runNow = (bool) ($checkData['run_now'] ?? false);
+            $runAtTime = is_string($checkData['run_at_time'] ?? null) && $checkData['run_at_time'] !== ''
+                ? $checkData['run_at_time']
+                : null;
+
+            if (!$runNow) {
+                if ($runAtTime !== null) {
+                    // Daily check: run once at the specified time, not again until next day
+                    $today = date('Y-m-d');
+                    if (($lastRunDate[$checkId] ?? null) === $today) {
+                        continue;
+                    }
+                    if (date('H:i') < $runAtTime) {
+                        continue;
+                    }
+                } else {
+                    $intervalSeconds = (int) $checkData['check_interval_minutes'] * 60;
+                    $last = $lastRunAt[$checkId] ?? null;
+                    $elapsed = $last !== null ? $now - $last : PHP_INT_MAX;
+
+                    if ($elapsed < $intervalSeconds - 5) {
+                        continue;
+                    }
+                }
+            }
+
+            try {
+                $result = $this->localCheckRunner->run(
+                    $checkId,
+                    $checkData['type'],
+                    $checkData['config'],
+                );
+                $results[] = $result;
+                $lastRunAt[$checkId] = $now;
+                if ($runAtTime !== null) {
+                    $lastRunDate[$checkId] = date('Y-m-d');
+                }
+
+                $this->logger->debug('Check executed', [
+                    'check_id' => $checkId,
+                    'type' => $checkData['type'],
+                    'status' => $result['status'],
+                ]);
+                $io->writeln(sprintf(
+                    '[%s] check=%s type=%s status=%s',
+                    date('H:i:s'),
+                    $checkId,
+                    $checkData['type'],
+                    $result['status'],
+                ));
+            } catch (\Throwable $e) {
+                $this->logger->error('Check execution failed', [
+                    'check_id' => $checkId,
+                    'type' => $checkData['type'],
+                    'error' => $e->getMessage(),
+                ]);
+            } finally {
+                // Clear run_now so the check doesn't fire on every tick until the next config refresh
+                if ($runNow) {
+                    $checkData['run_now'] = false;
+                }
+            }
+        }
+        unset($checkData);
+
+        return $results;
     }
 }
