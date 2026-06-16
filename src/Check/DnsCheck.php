@@ -7,6 +7,7 @@ namespace App\Check;
 use App\Entity\CheckResult;
 use App\Entity\SiteCheck;
 use App\Enum\CheckStatus;
+use App\Enum\RunnerMode;
 use Symfony\Component\DependencyInjection\Attribute\AutoconfigureTag;
 
 #[AutoconfigureTag('watchdog.check')]
@@ -16,7 +17,7 @@ final class DnsCheck implements CheckInterface
     {
     }
 
-    public function supportsAgentRunner(): bool { return true; }
+    public function runnerMode(): RunnerMode { return RunnerMode::Both; }
 
     public function getType(): string
     {

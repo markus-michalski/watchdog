@@ -8,6 +8,7 @@ use App\Check\FileSizeCheck;
 use App\Entity\Client;
 use App\Entity\SiteCheck;
 use App\Enum\CheckStatus;
+use App\Enum\RunnerMode;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 
@@ -37,6 +38,12 @@ final class FileSizeCheckTest extends TestCase
     public function testGetLabelReturnsHumanReadableLabel(): void
     {
         self::assertSame('File Size', (new FileSizeCheck())->getLabel());
+    }
+
+    #[Test]
+    public function testRunnerModeReturnsAgentOnly(): void
+    {
+        self::assertSame(RunnerMode::AgentOnly, (new FileSizeCheck())->runnerMode());
     }
 
     #[Test]

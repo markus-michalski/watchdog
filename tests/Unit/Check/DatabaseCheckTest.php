@@ -9,6 +9,7 @@ use App\Check\DatabaseConnectionInterface;
 use App\Entity\Client;
 use App\Entity\SiteCheck;
 use App\Enum\CheckStatus;
+use App\Enum\RunnerMode;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 
@@ -24,6 +25,12 @@ final class DatabaseCheckTest extends TestCase
     public function testGetLabelReturnsHumanReadableLabel(): void
     {
         self::assertSame('Database', $this->makeCheck()->getLabel());
+    }
+
+    #[Test]
+    public function testRunnerModeReturnsBoth(): void
+    {
+        self::assertSame(RunnerMode::Both, $this->makeCheck()->runnerMode());
     }
 
     #[Test]

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Check;
 
+use App\Enum\RunnerMode;
 use Symfony\Component\DependencyInjection\Attribute\AutowireIterator;
 
 class CheckRegistry
@@ -65,12 +66,14 @@ class CheckRegistry
         return $schemas;
     }
 
-    /** @return list<string> type strings that require dashboard-side DB (not usable on agent) */
-    public function getAgentIncompatibleTypes(): array
+    /** @return array<string, string> type => RunnerMode backing value ('agent_only'|'dashboard_only'|'both') */
+    public function getRunnerModes(): array
     {
-        return array_values(array_filter(
-            array_keys($this->checks),
-            fn(string $type) => !$this->checks[$type]->supportsAgentRunner(),
-        ));
+        $map = [];
+        foreach ($this->checks as $type => $check) {
+            $map[$type] = $check->runnerMode()->value;
+        }
+
+        return $map;
     }
 }

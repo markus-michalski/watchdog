@@ -9,6 +9,7 @@ use App\Check\LoadAverageReaderInterface;
 use App\Entity\Client;
 use App\Entity\SiteCheck;
 use App\Enum\CheckStatus;
+use App\Enum\RunnerMode;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 
@@ -24,6 +25,12 @@ final class LoadAverageCheckTest extends TestCase
     public function testGetLabelReturnsHumanReadableLabel(): void
     {
         self::assertSame('Load Average', $this->makeCheck()->getLabel());
+    }
+
+    #[Test]
+    public function testRunnerModeReturnsAgentOnly(): void
+    {
+        self::assertSame(RunnerMode::AgentOnly, $this->makeCheck()->runnerMode());
     }
 
     #[Test]

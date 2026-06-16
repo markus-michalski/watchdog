@@ -9,6 +9,7 @@ use App\Check\DnsResolverInterface;
 use App\Entity\Client;
 use App\Entity\SiteCheck;
 use App\Enum\CheckStatus;
+use App\Enum\RunnerMode;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 
@@ -24,6 +25,12 @@ final class DnsCheckTest extends TestCase
     public function testGetLabelReturnsHumanReadableLabel(): void
     {
         self::assertSame('DNS', $this->makeCheck()->getLabel());
+    }
+
+    #[Test]
+    public function testRunnerModeReturnsBoth(): void
+    {
+        self::assertSame(RunnerMode::Both, $this->makeCheck()->runnerMode());
     }
 
     #[Test]
