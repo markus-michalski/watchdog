@@ -45,6 +45,23 @@ services:
     depends_on:
       - app
 
+  agent:
+    build:
+      context: .
+      target: agent
+    environment:
+      WATCHDOG_DASHBOARD_URL: http://app:80
+      WATCHDOG_AGENT_TOKEN: ${WATCHDOG_AGENT_TOKEN:-}
+      HOST_ROOT: /host/root
+      TZ: Europe/Berlin
+    pid: host
+    volumes:
+      - /:/host/root:ro
+      # - /var/run/docker.sock:/var/run/docker.sock:ro
+    restart: unless-stopped
+    depends_on:
+      - app
+
   mailpit:
     image: axllent/mailpit:latest
     ports:

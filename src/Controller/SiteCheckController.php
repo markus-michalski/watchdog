@@ -57,6 +57,7 @@ class SiteCheckController extends AbstractController
             'title' => 'Add Check',
             'schemas' => $registry->getAllSchemas(),
             'clientUrls' => $client->getUrls(),
+            'agentIncompatibleTypes' => $registry->getAgentIncompatibleTypes(),
         ]);
     }
 
@@ -89,6 +90,7 @@ class SiteCheckController extends AbstractController
             'title' => 'Edit Check',
             'schemas' => $registry->getAllSchemas(),
             'clientUrls' => $client->getUrls(),
+            'agentIncompatibleTypes' => $registry->getAgentIncompatibleTypes(),
         ]);
     }
 
@@ -161,10 +163,17 @@ class SiteCheckController extends AbstractController
         #[MapEntity(id: 'checkId')]
         SiteCheck $check,
         MessageBusInterface $bus,
+        EntityManagerInterface $em,
     ): Response {
         if ($this->isCsrfTokenValid('run_check'.$check->getId(), (string) $request->request->get('_token', ''))) {
-            $bus->dispatch(new RunSiteChecksMessage((int) $check->getId()));
-            $this->addFlash('success', sprintf('Check "%s" queued — result appears in a few seconds.', $check->getLabel()));
+            if ($check->getRunner() === \App\Enum\CheckRunner::Agent) {
+                $check->setRunNow(true);
+                $em->flush();
+                $this->addFlash('success', sprintf('"%s" queued for the agent — result appears within 30 seconds.', $check->getLabel()));
+            } else {
+                $bus->dispatch(new RunSiteChecksMessage((int) $check->getId()));
+                $this->addFlash('success', sprintf('Check "%s" queued — result appears in a few seconds.', $check->getLabel()));
+            }
         }
 
         return $this->redirectToRoute('client_show', ['id' => $client->getId()]);

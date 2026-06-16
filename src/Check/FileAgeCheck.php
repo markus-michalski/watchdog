@@ -12,6 +12,8 @@ use Symfony\Component\DependencyInjection\Attribute\AutoconfigureTag;
 #[AutoconfigureTag('watchdog.check')]
 final class FileAgeCheck implements CheckInterface
 {
+    public function supportsAgentRunner(): bool { return true; }
+
     public function getType(): string
     {
         return 'file_age';
@@ -93,7 +95,10 @@ final class FileAgeCheck implements CheckInterface
             return $result;
         }
 
-        if (!file_exists($path)) {
+        $hostRoot = rtrim((string) (getenv('HOST_ROOT') ?: ''), '/');
+        $resolvedPath = $hostRoot !== '' ? $hostRoot . '/' . ltrim($path, '/') : $path;
+
+        if (!file_exists($resolvedPath)) {
             $result->setStatus(CheckStatus::Fail);
             $result->setMessage(sprintf('File not found: %s', $path));
 
@@ -103,7 +108,7 @@ final class FileAgeCheck implements CheckInterface
         $maxAgeMinutes = is_numeric($config['max_age_minutes']) ? (int) $config['max_age_minutes'] : 1440;
         $warnAgeMinutes = is_numeric($config['warn_age_minutes']) ? (int) $config['warn_age_minutes'] : 0;
 
-        $mtime = filemtime($path);
+        $mtime = filemtime($resolvedPath);
         if (false === $mtime) {
             $result->setStatus(CheckStatus::Unknown);
             $result->setMessage(sprintf('Cannot read mtime of %s', $path));

@@ -14,6 +14,8 @@ final class DockerCheck implements CheckInterface
 {
     private const SOCKET_PATH = '/var/run/docker.sock';
 
+    public function supportsAgentRunner(): bool { return true; }
+
     public function getType(): string
     {
         return 'docker';

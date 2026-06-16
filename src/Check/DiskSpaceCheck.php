@@ -16,6 +16,8 @@ final class DiskSpaceCheck implements CheckInterface
     {
     }
 
+    public function supportsAgentRunner(): bool { return true; }
+
     public function getType(): string
     {
         return 'disk_space';
@@ -97,6 +99,9 @@ final class DiskSpaceCheck implements CheckInterface
             return $result;
         }
 
+        $hostRoot = rtrim((string) (getenv('HOST_ROOT') ?: ''), '/');
+        $resolvedPath = $hostRoot !== '' ? $hostRoot . '/' . ltrim($path, '/') : $path;
+
         $warnPercent = is_numeric($config['warn_percent']) ? (int) $config['warn_percent'] : 80;
         $failPercent = is_numeric($config['fail_percent']) ? (int) $config['fail_percent'] : 90;
 
@@ -107,7 +112,7 @@ final class DiskSpaceCheck implements CheckInterface
             return $result;
         }
 
-        $spaceOrError = $this->diskSpaceReader->read($path);
+        $spaceOrError = $this->diskSpaceReader->read($resolvedPath);
 
         if (null === $spaceOrError) {
             $result->setStatus(CheckStatus::Unknown);

@@ -60,6 +60,26 @@ RUN mkdir -p var/cache var/log var/data \
     && touch var/data.db \
     && chown -R www-data:www-data var/ public/assets/ /data /config /tmp
 
+# Agent stage — minimal CLI-only image for the watchdog agent
+FROM base AS agent
+
+ENV APP_ENV=prod
+
+COPY composer.json composer.lock ./
+RUN composer install --no-dev --no-scripts --no-autoloader --no-interaction
+
+COPY . .
+RUN composer dump-autoload --optimize --no-interaction \
+    && composer run-script post-install-cmd --no-interaction
+
+RUN mkdir -p var/cache var/log var/data \
+    && php bin/console cache:warmup \
+    && chown -R www-data:www-data var/
+
+USER www-data
+
+ENTRYPOINT ["php", "bin/console", "watchdog:agent:run"]
+
 # Development stage (local, code mounted via volume)
 FROM base AS dev
 

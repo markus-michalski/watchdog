@@ -58,8 +58,8 @@ stage-deploy-code: ## Sync PHP/template/config changes, recompile assets, no ima
 
 .PHONY: stage-update
 stage-update: ## Rebuild image + restart stage (normal deploy: git pull && make stage-update)
-	$(DC) build app
-	$(DC) up -d --no-deps app worker scheduler
+	$(DC) build app agent
+	$(DC) up -d --no-deps app worker scheduler agent
 	$(EXEC_APP) sh -c 'i=0; until php bin/console about > /dev/null 2>&1; do sleep 1; i=$$((i+1)); [ $$i -ge 60 ] && echo "App did not start" && exit 1; done'
 	$(DC) exec --user root app sh -c 'touch /app/var/data.db && chown www-data:www-data /app/var/data.db'
 	$(EXEC_APP) php bin/console cache:clear --no-warmup
@@ -69,7 +69,7 @@ stage-update: ## Rebuild image + restart stage (normal deploy: git pull && make 
 	$(DC) exec --user root scheduler php bin/console cache:clear --no-warmup
 	$(DC) exec --user root scheduler php bin/console cache:warmup
 	$(EXEC_APP) php bin/console doctrine:migrations:migrate --no-interaction
-	$(DC) restart worker scheduler
+	$(DC) restart worker scheduler agent
 	@echo "Stage updated → http://localhost:8087"
 
 .PHONY: stage-up
@@ -120,7 +120,7 @@ stage-clients-on: ## Activate all clients on stage
 
 .PHONY: stage-build
 stage-build: ## Rebuild stage image (no cache) — use stage-update for normal deploys
-	$(DC) build --no-cache app
+	$(DC) build --no-cache app agent
 
 ## -- Local dev (compose.yml, code mount) --------------------------------
 
@@ -186,14 +186,14 @@ live-deploy-code: ## Sync PHP/template/config changes, recompile assets, no imag
 
 .PHONY: live-update
 live-update: ## Rebuild + redeploy live without downtime, then migrate
-	$(DC_LIVE) build app
+	$(DC_LIVE) build app agent
 	$(DC_LIVE) up -d --no-deps app
 	$(EXEC_LIVE) sh -c 'i=0; until php bin/console about > /dev/null 2>&1; do sleep 1; i=$$((i+1)); [ $$i -ge 60 ] && echo "App did not start" && exit 1; done'
 	$(DC_LIVE) exec --user root app chown -R www-data:www-data /app/var/cache
 	$(EXEC_LIVE) php bin/console cache:clear --no-warmup
 	$(EXEC_LIVE) php bin/console cache:warmup
 	$(EXEC_LIVE) php bin/console doctrine:migrations:migrate --no-interaction
-	$(DC_LIVE) up -d --no-deps worker scheduler
+	$(DC_LIVE) up -d --no-deps worker scheduler agent
 	$(DC_LIVE) exec --user root worker sh -c 'i=0; until php bin/console about > /dev/null 2>&1; do sleep 1; i=$$((i+1)); [ $$i -ge 60 ] && echo "Worker did not start" && exit 1; done'
 	$(DC_LIVE) exec --user root scheduler sh -c 'i=0; until php bin/console about > /dev/null 2>&1; do sleep 1; i=$$((i+1)); [ $$i -ge 60 ] && echo "Scheduler did not start" && exit 1; done'
 	$(DC_LIVE) exec --user root worker php bin/console cache:clear --no-warmup
@@ -207,7 +207,7 @@ live-restart: live-down live-up ## Restart live containers
 
 .PHONY: live-build
 live-build: ## Rebuild live image (no cache) — use live-update for normal deploys
-	$(DC_LIVE) build --no-cache app
+	$(DC_LIVE) build --no-cache app agent
 
 .PHONY: live-logs
 live-logs: ## Tail live container logs

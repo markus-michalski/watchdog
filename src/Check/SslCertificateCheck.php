@@ -16,6 +16,8 @@ final class SslCertificateCheck implements CheckInterface
     {
     }
 
+    public function supportsAgentRunner(): bool { return false; }
+
     public function getType(): string
     {
         return 'ssl_cert';

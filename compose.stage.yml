@@ -79,6 +79,26 @@ services:
       - "127.0.0.1:8128:8025"
     restart: unless-stopped
 
+  agent:
+    build:
+      context: .
+      target: agent
+    image: watchdog-stage-agent
+    container_name: watchdog-stage-agent
+    env_file: .env.stage
+    environment:
+      APP_ENV: prod
+      WATCHDOG_DASHBOARD_URL: http://app:80
+      HOST_ROOT: /host/root
+      TZ: Europe/Berlin
+    pid: host
+    volumes:
+      - /:/host/root:ro
+      # - /var/run/docker.sock:/var/run/docker.sock:ro
+    restart: unless-stopped
+    depends_on:
+      - app
+
 volumes:
   watchdog_stage_data:
 

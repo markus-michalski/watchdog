@@ -1,0 +1,78 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Agents — Watchdog{% endblock %}
+
+{% block body %}
+<div class="flex items-center justify-between mb-4">
+    <h1 class="text-2xl font-bold text-gray-800">Agents</h1>
+    <a href="{{ path('agent_new') }}" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 text-sm">
+        + Register Agent
+    </a>
+</div>
+
+{% if agents is empty %}
+    <div class="bg-white rounded-lg shadow p-8 text-center text-gray-500">
+        No agents registered yet.<br>
+        <a href="{{ path('agent_new') }}" class="text-blue-600 hover:underline text-sm mt-2 inline-block">Register your first agent</a>
+    </div>
+{% else %}
+    <div class="bg-white rounded-lg shadow overflow-hidden">
+        <table class="w-full text-sm">
+            <thead class="bg-gray-50 text-gray-600 uppercase text-xs">
+                <tr>
+                    <th class="px-4 py-3 text-left">Name</th>
+                    <th class="px-4 py-3 text-center">Status</th>
+                    <th class="px-4 py-3 text-center">Checks</th>
+                    <th class="px-4 py-3 text-center">Last Seen</th>
+                    <th class="px-4 py-3 text-center">Registered</th>
+                    <th class="px-4 py-3 text-right">Actions</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-100">
+                {% for agent in agents %}
+                <tr class="hover:bg-gray-50">
+                    <td class="px-4 py-3 font-medium">
+                        <a href="{{ path('agent_show', {id: agent.id}) }}" class="text-blue-600 hover:underline">
+                            {{ agent.name }}
+                        </a>
+                    </td>
+                    <td class="px-4 py-3 text-center">
+                        {% if agent.isOnline() %}
+                            <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-xs bg-green-100 text-green-700">
+                                <span class="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></span>
+                                Online
+                            </span>
+                        {% elseif agent.lastSeenAt is not null %}
+                            <span class="px-2 py-0.5 rounded text-xs bg-yellow-100 text-yellow-700">Offline</span>
+                        {% else %}
+                            <span class="px-2 py-0.5 rounded text-xs bg-gray-100 text-gray-500">Never seen</span>
+                        {% endif %}
+                    </td>
+                    <td class="px-4 py-3 text-center text-gray-600">{{ agent.checks|length }}</td>
+                    <td class="px-4 py-3 text-center text-gray-500">
+                        {{ agent.lastSeenAt ? agent.lastSeenAt|date('Y-m-d H:i') : '—' }}
+                    </td>
+                    <td class="px-4 py-3 text-center text-gray-500">
+                        {{ agent.createdAt|date('Y-m-d') }}
+                    </td>
+                    <td class="px-4 py-3 text-right">
+                        <div class="flex items-center justify-end gap-1.5">
+                            <a href="{{ path('agent_show', {id: agent.id}) }}"
+                               class="border border-gray-300 text-gray-700 px-2.5 py-1 rounded text-xs hover:bg-gray-50">Show</a>
+                            <a href="{{ path('agent_edit', {id: agent.id}) }}"
+                               class="border border-blue-300 text-blue-700 px-2.5 py-1 rounded text-xs hover:bg-blue-50">Edit</a>
+                            <form action="{{ path('agent_delete', {id: agent.id}) }}" method="post" class="contents"
+                                  data-confirm-message="Delete agent &quot;{{ agent.name|e('html') }}&quot;? All associated checks will be unlinked.">
+                                <input type="hidden" name="_token" value="{{ csrf_token('delete-agent-' ~ agent.id) }}">
+                                <button type="submit"
+                                        class="border border-red-300 text-red-700 px-2.5 py-1 rounded text-xs hover:bg-red-50 cursor-pointer">Delete</button>
+                            </form>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+{% endif %}
+{% endblock %}

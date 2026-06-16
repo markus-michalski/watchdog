@@ -20,6 +20,8 @@ final class HttpContentCheck implements CheckInterface
     ) {
     }
 
+    public function supportsAgentRunner(): bool { return false; }
+
     public function getType(): string
     {
         return 'http_content';
