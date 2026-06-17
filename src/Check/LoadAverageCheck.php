@@ -45,7 +45,7 @@ final class LoadAverageCheck implements CheckInterface
             [
                 'name' => 'warn_factor',
                 'label' => 'Warn factor',
-                'type' => 'number',
+                'type' => 'float',
                 'required' => false,
                 'default' => 0.8,
                 'placeholder' => '0.8',
@@ -54,7 +54,7 @@ final class LoadAverageCheck implements CheckInterface
             [
                 'name' => 'fail_factor',
                 'label' => 'Fail factor',
-                'type' => 'number',
+                'type' => 'float',
                 'required' => false,
                 'default' => 1.5,
                 'placeholder' => '1.5',

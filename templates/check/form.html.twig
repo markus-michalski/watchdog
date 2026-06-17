@@ -141,7 +141,8 @@
                                     </div>
                                 {% else %}
                                     <input
-                                        type="{{ field.type }}"
+                                        type="{{ field.type == 'float' ? 'number' : field.type }}"
+                                        {% if field.type == 'float' %}step="any"{% endif %}
                                         name="check_config_{{ field.name }}"
                                         id="check_config_{{ type }}_{{ field.name }}"
                                         class="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
