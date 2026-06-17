@@ -6,8 +6,7 @@ ENV TZ=Europe/Berlin
 
 RUN apk add --no-cache tzdata \
     && cp /usr/share/zoneinfo/Europe/Berlin /etc/localtime \
-    && echo "Europe/Berlin" > /etc/timezone \
-    && apk del tzdata
+    && echo "Europe/Berlin" > /etc/timezone
 
 RUN install-php-extensions \
     pdo_sqlite \
