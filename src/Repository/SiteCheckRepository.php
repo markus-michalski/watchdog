@@ -56,8 +56,10 @@ class SiteCheckRepository extends ServiceEntityRepository
     {
         /** @var array<int, SiteCheck> $results */
         $results = $this->createQueryBuilder('c')
+            ->join('c.client', 'cl')
             ->where('c.agent = :agent')
             ->andWhere('c.isActive = :active')
+            ->andWhere('cl.isActive = :active')
             ->andWhere('c.runner = :runner')
             ->setParameter('agent', $agent)
             ->setParameter('active', true)
