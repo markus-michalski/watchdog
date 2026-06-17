@@ -11,6 +11,8 @@ RUN apk add --no-cache tzdata \
 
 RUN install-php-extensions \
     pdo_sqlite \
+    pdo_mysql \
+    pdo_pgsql \
     sqlite3 \
     intl \
     opcache \
