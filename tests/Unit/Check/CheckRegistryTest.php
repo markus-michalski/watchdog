@@ -9,6 +9,7 @@ use App\Check\CheckRegistry;
 use App\Entity\CheckResult;
 use App\Entity\SiteCheck;
 use App\Enum\CheckStatus;
+use App\Enum\RunnerMode;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 
@@ -74,6 +75,22 @@ final class CheckRegistryTest extends TestCase
     }
 
     #[Test]
+    public function testGetRunnerModesReturnsTypeToModeValueMap(): void
+    {
+        $registry = new CheckRegistry([
+            new StubCheck('http', 'HTTP', [], RunnerMode::DashboardOnly),
+            new StubCheck('disk_space', 'Disk', [], RunnerMode::AgentOnly),
+            new StubCheck('tcp_port', 'TCP', [], RunnerMode::Both),
+        ]);
+
+        self::assertSame([
+            'http'      => 'dashboard_only',
+            'disk_space' => 'agent_only',
+            'tcp_port'  => 'both',
+        ], $registry->getRunnerModes());
+    }
+
+    #[Test]
     public function testGetAllSchemasReturnsTypeToSchemaMap(): void
     {
         $schema = [
@@ -99,6 +116,7 @@ final class StubCheck implements CheckInterface
         private readonly string $type,
         private readonly string $label,
         private readonly array $schema = [],
+        private readonly RunnerMode $mode = RunnerMode::Both,
     ) {
     }
 
@@ -142,8 +160,8 @@ final class StubCheck implements CheckInterface
         return null;
     }
 
-    public function supportsAgentRunner(): bool
+    public function runnerMode(): RunnerMode
     {
-        return true;
+        return $this->mode;
     }
 }

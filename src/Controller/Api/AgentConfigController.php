@@ -6,6 +6,7 @@ namespace App\Controller\Api;
 
 use App\Check\CheckRegistry;
 use App\Entity\Agent;
+use App\Enum\RunnerMode;
 use App\Repository\AgentRepository;
 use App\Repository\SiteCheckRepository;
 use Doctrine\ORM\EntityManagerInterface;
@@ -42,7 +43,7 @@ final class AgentConfigController
 
         $compatible = [];
         foreach ($checks as $check) {
-            if (!$this->checkRegistry->has($check->getType()) || !$this->checkRegistry->get($check->getType())->supportsAgentRunner()) {
+            if (!$this->checkRegistry->has($check->getType()) || $this->checkRegistry->get($check->getType())->runnerMode() === RunnerMode::DashboardOnly) {
                 $this->logger->warning('Skipping dashboard-only check type in agent config', [
                     'check_id' => $check->getId(),
                     'type' => $check->getType(),

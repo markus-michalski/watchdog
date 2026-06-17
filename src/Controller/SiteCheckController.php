@@ -57,7 +57,7 @@ class SiteCheckController extends AbstractController
             'title' => 'Add Check',
             'schemas' => $registry->getAllSchemas(),
             'clientUrls' => $client->getUrls(),
-            'agentIncompatibleTypes' => $registry->getAgentIncompatibleTypes(),
+            'runnerModes' => $registry->getRunnerModes(),
         ]);
     }
 
@@ -90,7 +90,7 @@ class SiteCheckController extends AbstractController
             'title' => 'Edit Check',
             'schemas' => $registry->getAllSchemas(),
             'clientUrls' => $client->getUrls(),
-            'agentIncompatibleTypes' => $registry->getAgentIncompatibleTypes(),
+            'runnerModes' => $registry->getRunnerModes(),
         ]);
     }
 
@@ -126,6 +126,8 @@ class SiteCheckController extends AbstractController
                     'intval',
                     array_filter(array_map('trim', explode(',', (string) $raw)))
                 );
+            } elseif ('float' === $field['type']) {
+                $config[$field['name']] = (float) $raw;
             } elseif (in_array($field['type'], ['number', 'duration', 'client_url_select'], true)) {
                 $config[$field['name']] = (int) $raw;
             } else {
@@ -169,7 +171,7 @@ class SiteCheckController extends AbstractController
             if ($check->getRunner() === \App\Enum\CheckRunner::Agent) {
                 $check->setRunNow(true);
                 $em->flush();
-                $this->addFlash('success', sprintf('"%s" queued for the agent — result appears within 30 seconds.', $check->getLabel()));
+                $this->addFlash('success', sprintf('"%s" queued for the agent — result appears within ~5 minutes (the agent re-reads its config every 5 minutes).', $check->getLabel()));
             } else {
                 $bus->dispatch(new RunSiteChecksMessage((int) $check->getId()));
                 $this->addFlash('success', sprintf('Check "%s" queued — result appears in a few seconds.', $check->getLabel()));

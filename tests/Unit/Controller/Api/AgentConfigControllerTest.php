@@ -10,6 +10,7 @@ use App\Controller\Api\AgentConfigController;
 use App\Entity\Agent;
 use App\Entity\SiteCheck;
 use App\Enum\CheckRunner;
+use App\Enum\RunnerMode;
 use App\Repository\AgentRepository;
 use App\Repository\SiteCheckRepository;
 use Doctrine\ORM\EntityManagerInterface;
@@ -165,9 +166,9 @@ class AgentConfigControllerTest extends TestCase
         $this->agentRepository->method('findByToken')->willReturn($agent);
         $this->siteCheckRepository->method('findActiveByAgent')->willReturn([$agentCompatible, $dashboardOnly]);
 
-        // disk_space supports agent, http does not
+        // disk_space is agent-compatible, http is dashboard-only
         $incompatibleStub = $this->createMock(CheckInterface::class);
-        $incompatibleStub->method('supportsAgentRunner')->willReturn(false);
+        $incompatibleStub->method('runnerMode')->willReturn(RunnerMode::DashboardOnly);
         $compatibleStub = $this->buildCompatibleCheckStub();
 
         $this->checkRegistry->method('has')->willReturn(true);
@@ -226,7 +227,7 @@ class AgentConfigControllerTest extends TestCase
     private function buildCompatibleCheckStub(): CheckInterface&MockObject
     {
         $stub = $this->createMock(CheckInterface::class);
-        $stub->method('supportsAgentRunner')->willReturn(true);
+        $stub->method('runnerMode')->willReturn(RunnerMode::AgentOnly);
         return $stub;
     }
 }

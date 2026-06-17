@@ -141,7 +141,8 @@
                                     </div>
                                 {% else %}
                                     <input
-                                        type="{{ field.type }}"
+                                        type="{{ field.type == 'float' ? 'number' : field.type }}"
+                                        {% if field.type == 'float' %}step="any"{% endif %}
                                         name="check_config_{{ field.name }}"
                                         id="check_config_{{ type }}_{{ field.name }}"
                                         class="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -210,24 +211,15 @@
         showConfigForType(typeSelect.value);
         typeSelect.addEventListener('change', () => {
             showConfigForType(typeSelect.value);
+            syncRunnerForType();
             if (timeInput) { timeInput.value = ''; syncIntervalState(); }
         });
     }
 
-    // Show/hide agent dropdown based on runner selection, warn on incompatible types
+    // Runner dropdown: restrict options per check type, show/hide agent field
     const runnerSelect = document.querySelector('[data-runner-select]');
     const agentWrapper = document.getElementById('agent-field-wrapper');
-    const agentIncompatibleTypes = {{ agentIncompatibleTypes|json_encode|raw }};
-
-    let agentTypeWarning = null;
-    function ensureAgentTypeWarning() {
-        if (!agentTypeWarning) {
-            agentTypeWarning = document.createElement('p');
-            agentTypeWarning.className = 'text-xs text-amber-600 bg-amber-50 border border-amber-200 rounded px-2 py-1 mt-1';
-            agentTypeWarning.textContent = 'Warning: this check type requires dashboard-side URL resolution and cannot run on an agent. Switch the runner back to Dashboard or choose a local check type (e.g. disk_space, process, tcp_port, redis).';
-        }
-        return agentTypeWarning;
-    }
+    const runnerModes = {{ runnerModes|json_encode|raw }};
 
     function syncAgentField() {
         if (!runnerSelect || !agentWrapper) return;
@@ -235,25 +227,32 @@
         agentWrapper.classList.toggle('hidden', !isAgent);
         const agentSelect = agentWrapper.querySelector('select');
         if (agentSelect) agentSelect.required = isAgent;
+    }
 
-        const typeSelect = document.querySelector('[data-check-type]');
-        if (!typeSelect) return;
-        const warning = ensureAgentTypeWarning();
-        const showWarning = isAgent && agentIncompatibleTypes.includes(typeSelect.value);
-        if (showWarning && !warning.parentElement) {
-            agentWrapper.after(warning);
-        } else if (!showWarning && warning.parentElement) {
-            warning.remove();
+    function syncRunnerForType() {
+        if (!runnerSelect || !typeSelect) return;
+        const mode = runnerModes[typeSelect.value] ?? 'both';
+        const dashboardOpt = runnerSelect.querySelector('option[value="dashboard"]');
+        const agentOpt     = runnerSelect.querySelector('option[value="agent"]');
+
+        if (mode === 'agent_only') {
+            if (dashboardOpt) dashboardOpt.disabled = true;
+            if (agentOpt)     agentOpt.disabled     = false;
+            runnerSelect.value = 'agent';
+        } else if (mode === 'dashboard_only') {
+            if (agentOpt)     agentOpt.disabled     = true;
+            if (dashboardOpt) dashboardOpt.disabled  = false;
+            runnerSelect.value = 'dashboard';
+        } else {
+            if (dashboardOpt) dashboardOpt.disabled = false;
+            if (agentOpt)     agentOpt.disabled     = false;
         }
-    }
-    if (runnerSelect) {
         syncAgentField();
-        runnerSelect.addEventListener('change', syncAgentField);
     }
-    // Also re-check warning when type changes
-    const typeSelectForWarning = document.querySelector('[data-check-type]');
-    if (typeSelectForWarning) {
-        typeSelectForWarning.addEventListener('change', syncAgentField);
+
+    if (runnerSelect) {
+        syncRunnerForType();
+        runnerSelect.addEventListener('change', syncAgentField);
     }
 
     // Disable inputs in hidden sections so duplicate field names don't overwrite submitted values

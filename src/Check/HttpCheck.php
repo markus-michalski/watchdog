@@ -7,6 +7,7 @@ namespace App\Check;
 use App\Entity\CheckResult;
 use App\Entity\SiteCheck;
 use App\Enum\CheckStatus;
+use App\Enum\RunnerMode;
 use App\Repository\ClientUrlRepository;
 use Symfony\Component\DependencyInjection\Attribute\AutoconfigureTag;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
@@ -20,7 +21,7 @@ final class HttpCheck implements CheckInterface
     ) {
     }
 
-    public function supportsAgentRunner(): bool { return false; }
+    public function runnerMode(): RunnerMode { return RunnerMode::DashboardOnly; }
 
     public function getType(): string
     {
