@@ -51,7 +51,7 @@ final class DatabaseCheck implements CheckInterface
                 'required' => true,
                 'default' => '',
                 'placeholder' => 'mysql:host=localhost;dbname=app',
-                'help' => 'PDO Data Source Name. Examples: mysql:host=localhost;dbname=app, pgsql:host=localhost;dbname=app, sqlite:/path/to/db.sqlite.',
+                'help' => 'PDO Data Source Name. Examples: mysql:host=localhost;dbname=app, pgsql:host=localhost;dbname=app, sqlite:/path/to/db.sqlite. Runner: use Dashboard for externally reachable hosts, Agent for databases only accessible on the monitored machine. For Docker-internal databases (container names as host), use DockerExecCheck with "mysqladmin ping" instead.',
             ],
             [
                 'name' => 'username',
