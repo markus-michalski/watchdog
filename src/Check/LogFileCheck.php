@@ -11,7 +11,7 @@ use App\Enum\RunnerMode;
 use Symfony\Component\DependencyInjection\Attribute\AutoconfigureTag;
 
 #[AutoconfigureTag('watchdog.check')]
-final class CronLogCheck implements CheckInterface
+final class LogFileCheck implements CheckInterface
 {
     public function __construct(private readonly LogFileReaderInterface $reader)
     {
@@ -21,12 +21,12 @@ final class CronLogCheck implements CheckInterface
 
     public function getType(): string
     {
-        return 'cron_log';
+        return 'log_file';
     }
 
     public function getLabel(): string
     {
-        return 'Cron Log';
+        return 'Log File';
     }
 
     /** @return array<string, mixed> */

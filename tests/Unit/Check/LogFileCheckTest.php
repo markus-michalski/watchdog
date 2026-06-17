@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Tests\Unit\Check;
 
-use App\Check\CronLogCheck;
+use App\Check\LogFileCheck;
 use App\Check\LogFileReaderInterface;
 use App\Entity\Client;
 use App\Entity\SiteCheck;
@@ -13,18 +13,18 @@ use App\Enum\RunnerMode;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 
-final class CronLogCheckTest extends TestCase
+final class LogFileCheckTest extends TestCase
 {
     #[Test]
-    public function testGetTypeReturnsCronLog(): void
+    public function testGetTypeReturnsLogFile(): void
     {
-        self::assertSame('cron_log', $this->makeCheck()->getType());
+        self::assertSame('log_file', $this->makeCheck()->getType());
     }
 
     #[Test]
     public function testGetLabelReturnsHumanReadableLabel(): void
     {
-        self::assertSame('Cron Log', $this->makeCheck()->getLabel());
+        self::assertSame('Log File', $this->makeCheck()->getLabel());
     }
 
     #[Test]
@@ -96,7 +96,7 @@ final class CronLogCheckTest extends TestCase
     #[Test]
     public function testRunReturnsFailWhenFileReadFails(): void
     {
-        $result = $this->makeCheck(readerResult: 'Permission denied: /var/log/cron.log')
+        $result = $this->makeCheck(readerResult: 'Permission denied: /var/log/app.log')
             ->run($this->createSiteCheck());
 
         self::assertSame(CheckStatus::Fail, $result->getStatus());
@@ -197,11 +197,11 @@ final class CronLogCheckTest extends TestCase
         $reader = $this->createMock(LogFileReaderInterface::class);
         $reader->expects(self::once())
             ->method('read')
-            ->with('/var/log/backup.log')
+            ->with('/var/log/app.log')
             ->willReturn(['mtime' => time() - 60, 'lines' => ['SUCCESS']]);
 
-        (new CronLogCheck($reader))->run(
-            $this->createSiteCheck(logPath: '/var/log/backup.log', pattern: 'SUCCESS')
+        (new LogFileCheck($reader))->run(
+            $this->createSiteCheck(logPath: '/var/log/app.log', pattern: 'SUCCESS')
         );
     }
 
@@ -214,9 +214,9 @@ final class CronLogCheckTest extends TestCase
     #[Test]
     public function testResolveEmailTargetReturnsLogPath(): void
     {
-        $result = $this->makeCheck()->resolveEmailTarget(['log_path' => '/var/log/backup.log']);
+        $result = $this->makeCheck()->resolveEmailTarget(['log_path' => '/var/log/app.log']);
 
-        self::assertSame('/var/log/backup.log', $result);
+        self::assertSame('/var/log/app.log', $result);
     }
 
     #[Test]
@@ -236,16 +236,16 @@ final class CronLogCheckTest extends TestCase
     /**
      * @param array{mtime: int, lines: string[]}|null|string $readerResult
      */
-    private function makeCheck(array|null|string $readerResult = ['mtime' => 0, 'lines' => []]): CronLogCheck
+    private function makeCheck(array|null|string $readerResult = ['mtime' => 0, 'lines' => []]): LogFileCheck
     {
         $reader = $this->createStub(LogFileReaderInterface::class);
         $reader->method('read')->willReturn($readerResult);
 
-        return new CronLogCheck($reader);
+        return new LogFileCheck($reader);
     }
 
     private function createSiteCheck(
-        string $logPath = '/var/log/backup.log',
+        string $logPath = '/var/log/app.log',
         string $pattern = 'SUCCESS',
         int $maxAgeMinutes = 1440,
     ): SiteCheck {
@@ -254,7 +254,7 @@ final class CronLogCheckTest extends TestCase
 
         $check = new SiteCheck();
         $check->setClient($client);
-        $check->setType('cron_log');
+        $check->setType('log_file');
         $check->setConfig([
             'log_path' => $logPath,
             'pattern' => $pattern,
