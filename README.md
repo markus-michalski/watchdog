@@ -2,6 +2,8 @@
 
 Lightweight website and container monitoring. Plugin-based check system, SQLite, FrankenPHP — no external dependencies.
 
+![License: PolyForm NC 1.0.0](https://img.shields.io/badge/license-PolyForm%20NC%201.0.0-red.svg?style=for-the-badge)
+
 ## Stack
 
 - **Symfony 7.4 LTS** + PHP 8.3
@@ -207,3 +209,9 @@ Emails are caught by Mailpit and not actually delivered. Access the web UI at:
 
 - Stage server: `http://127.0.0.1:8128` (or via SSH tunnel)
 - Local dev: `http://localhost:8128`
+
+## License
+
+[PolyForm Noncommercial License 1.0.0](LICENSE.md) — source-available,
+personal and non-commercial use only. Not OSI Open Source.
+Commercial use requires explicit permission; contact the maintainer.

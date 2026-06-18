@@ -1,0 +1,85 @@
+name: Bug Report
+description: Report something that isn't working correctly
+title: "[Bug]: "
+labels: ["bug", "triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to report an issue. Fill out the sections below so this can be reproduced and fixed.
+
+  - type: dropdown
+    id: component
+    attributes:
+      label: Component
+      description: What part of Watchdog is affected?
+      options:
+        - Check Execution (HTTP / Port / Container)
+        - Scheduler / Interval Triggering
+        - Alert / Notification (Email)
+        - Check Plugin System
+        - Dashboard / UI
+        - Client Management
+        - Authentication
+        - Docker Integration
+        - CLI / Console Commands
+        - Configuration / Setup
+        - Other (specify in description)
+    validations:
+      required: true
+
+  - type: textarea
+    id: description
+    attributes:
+      label: What happened?
+      description: Clear description of the issue
+      placeholder: The HTTP check did not send an alert email when the target went down...
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+      description: What should have happened?
+      placeholder: An alert email should have been sent within the configured check interval.
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      description: How can this be reproduced?
+      placeholder: |
+        1. Add an HTTP check for a URL that returns 500
+        2. Wait for the next scheduled check run
+        3. No alert email received
+    validations:
+      required: true
+
+  - type: input
+    id: version
+    attributes:
+      label: Watchdog version
+      description: Version tag or `git rev-parse --short HEAD`
+      placeholder: v1.0.0 or abc1234
+    validations:
+      required: false
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Relevant logs or error messages
+      description: Paste any error messages from the Symfony profiler, worker container logs, or browser console
+      render: text
+    validations:
+      required: false
+
+  - type: textarea
+    id: context
+    attributes:
+      label: Additional context
+      description: Any other context, screenshots, or environment details that might help
+    validations:
+      required: false

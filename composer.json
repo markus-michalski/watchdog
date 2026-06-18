@@ -1,6 +1,6 @@
 {
     "type": "project",
-    "license": "proprietary",
+    "license": "SEE LICENSE.md",
     "minimum-stability": "stable",
     "prefer-stable": true,
     "require": {
