@@ -18,11 +18,13 @@ services:
       # Agent token — generate on the dashboard under Settings > Agents
       WATCHDOG_AGENT_TOKEN: your-agent-token-here
       TZ: Europe/Berlin
-    # Required for ProcessCheck to see host processes
-    # Remove if you do not use ProcessCheck
+    # SECURITY: pid:host gives the container visibility into ALL host processes.
+    # Required for ProcessCheck. Remove if you do not use ProcessCheck.
+    # Combined with a volume mount below, a container escape exposes the full host.
     pid: host
-    # Required for DiskSpaceCheck to read host disk usage
-    # Mount the paths you want to monitor
+    # SECURITY: This volume mount exposes the entire host filesystem read-only.
+    # Required for DiskSpaceCheck and LogFileCheck. Remove if you do not use them.
+    # Combined with pid:host, a container escape grants full host read access.
     volumes:
       - /:/host/root:ro
     # Required for DockerCheck / DockerExecCheck
