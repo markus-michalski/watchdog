@@ -66,6 +66,12 @@
         <div id="config-fields">
             {% for type, fields in schemas %}
                 <div class="config-section space-y-3" data-type="{{ type }}" style="display: none;" aria-hidden="true">
+                    {% if type == 'database' %}
+                        <div class="bg-amber-50 border border-amber-300 rounded px-3 py-2.5 text-sm text-amber-800">
+                            <strong>Security notice:</strong> DSN username and password are stored in the database without encryption.
+                            Use a <strong>dedicated read-only monitoring user</strong> with minimal privileges — never use application or admin credentials here.
+                        </div>
+                    {% endif %}
                     {% if fields is empty %}
                         <p class="text-sm text-gray-400 italic">
                             No additional configuration needed.
