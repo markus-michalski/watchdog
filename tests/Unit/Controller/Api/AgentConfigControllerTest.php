@@ -224,10 +224,110 @@ class AgentConfigControllerTest extends TestCase
         );
     }
 
+    // --- runNow endpoint tests ---
+
+    #[Test]
+    public function runNowReturns401WithoutAuth(): void
+    {
+        $request = Request::create('/api/v1/agent/run-now', 'GET');
+
+        $response = $this->controller->runNow($request);
+
+        $this->assertSame(401, $response->getStatusCode());
+    }
+
+    #[Test]
+    public function runNowReturnsEmptyChecksWhenNoneSet(): void
+    {
+        $agent = $this->buildAgent(1, 'prod-server');
+
+        $this->agentRepository->method('findByToken')->willReturn($agent);
+        $this->siteCheckRepository->method('findRunNowByAgent')->willReturn([]);
+
+        $response = $this->controller->runNow($this->buildRunNowRequest(1));
+        $data = json_decode($response->getContent(), true);
+
+        $this->assertSame(200, $response->getStatusCode());
+        $this->assertSame([], $data['checks']);
+    }
+
+    #[Test]
+    public function runNowReturnsFullCheckDataForRunNowChecks(): void
+    {
+        $agent = $this->buildAgent(1, 'prod-server');
+        $checkA = $this->buildCheck(42, 'disk_space', ['path' => '/'], 5);
+        $checkA->setRunNow(true);
+
+        $this->agentRepository->method('findByToken')->willReturn($agent);
+        $this->siteCheckRepository->method('findRunNowByAgent')->willReturn([$checkA]);
+        $this->stubRegistryAllCompatible();
+
+        $response = $this->controller->runNow($this->buildRunNowRequest(1));
+        $data = json_decode($response->getContent(), true);
+
+        $this->assertSame(200, $response->getStatusCode());
+        $this->assertCount(1, $data['checks']);
+        $this->assertSame(42, $data['checks'][0]['id']);
+        $this->assertSame('disk_space', $data['checks'][0]['type']);
+        $this->assertSame(['path' => '/'], $data['checks'][0]['config']);
+        $this->assertSame(5, $data['checks'][0]['check_interval_minutes']);
+    }
+
+    #[Test]
+    public function runNowClearsFlagsAfterDelivery(): void
+    {
+        $agent = $this->buildAgent(1, 'prod-server');
+        $check = $this->buildCheck(7, 'process', ['process_name' => 'nginx'], 5);
+        $check->setRunNow(true);
+
+        $this->agentRepository->method('findByToken')->willReturn($agent);
+        $this->siteCheckRepository->method('findRunNowByAgent')->willReturn([$check]);
+        $this->stubRegistryAllCompatible();
+        $this->em->expects($this->once())->method('flush');
+
+        $this->controller->runNow($this->buildRunNowRequest(1));
+
+        $this->assertFalse($check->isRunNow(), 'run_now flag must be cleared after delivering the check data');
+    }
+
+    #[Test]
+    public function runNowWorksForChecksOfInactiveClients(): void
+    {
+        $agent = $this->buildAgent(1, 'prod-server');
+        $check = $this->buildCheck(55, 'disk_space', ['path' => '/'], 5);
+        $check->setRunNow(true);
+
+        $this->agentRepository->method('findByToken')->willReturn($agent);
+        // Repository returns the check even though client is inactive (no cl.isActive filter)
+        $this->siteCheckRepository->method('findRunNowByAgent')->willReturn([$check]);
+        $this->stubRegistryAllCompatible();
+
+        $response = $this->controller->runNow($this->buildRunNowRequest(1));
+        $data = json_decode($response->getContent(), true);
+
+        $this->assertSame(200, $response->getStatusCode());
+        $this->assertCount(1, $data['checks']);
+        $this->assertSame(55, $data['checks'][0]['id']);
+    }
+
+    // Helpers
+
     private function buildCompatibleCheckStub(): CheckInterface&MockObject
     {
         $stub = $this->createMock(CheckInterface::class);
         $stub->method('runnerMode')->willReturn(RunnerMode::AgentOnly);
         return $stub;
+    }
+
+    private function buildRunNowRequest(int $agentId): Request
+    {
+        return Request::create(
+            '/api/v1/agent/run-now',
+            'GET',
+            [],
+            [],
+            [],
+            ['HTTP_AUTHORIZATION' => 'Bearer test-token-' . $agentId],
+        );
     }
 }

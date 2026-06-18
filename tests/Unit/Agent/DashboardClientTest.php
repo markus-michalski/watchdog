@@ -125,6 +125,72 @@ class DashboardClientTest extends TestCase
         ]);
     }
 
+    // --- fetchRunNow tests ---
+
+    #[Test]
+    public function fetchRunNowCallsCorrectEndpoint(): void
+    {
+        $response = $this->buildResponse(200, ['checks' => []]);
+
+        $this->http->expects($this->once())
+            ->method('request')
+            ->with('GET', 'https://dashboard.example.com/api/v1/agent/run-now', $this->arrayHasKey('headers'))
+            ->willReturn($response);
+
+        $this->client->fetchRunNow();
+    }
+
+    #[Test]
+    public function fetchRunNowReturnsEmptyArrayWhenNoneSet(): void
+    {
+        $response = $this->buildResponse(200, ['checks' => []]);
+        $this->http->method('request')->willReturn($response);
+
+        $this->assertSame([], $this->client->fetchRunNow());
+    }
+
+    #[Test]
+    public function fetchRunNowReturnsFullCheckData(): void
+    {
+        $checkData = [
+            ['id' => 42, 'type' => 'disk_space', 'config' => ['path' => '/'], 'check_interval_minutes' => 5, 'run_at_time' => null],
+            ['id' => 7, 'type' => 'process', 'config' => ['process_name' => 'nginx'], 'check_interval_minutes' => 1, 'run_at_time' => null],
+        ];
+        $response = $this->buildResponse(200, ['checks' => $checkData]);
+        $this->http->method('request')->willReturn($response);
+
+        $result = $this->client->fetchRunNow();
+
+        $this->assertCount(2, $result);
+        $this->assertSame(42, $result[0]['id']);
+        $this->assertSame('disk_space', $result[0]['type']);
+        $this->assertSame(['path' => '/'], $result[0]['config']);
+    }
+
+    #[Test]
+    public function fetchRunNowThrowsOn401(): void
+    {
+        $response = $this->buildResponse(401, ['error' => 'Unauthorized']);
+        $this->http->method('request')->willReturn($response);
+
+        $this->expectException(\RuntimeException::class);
+        $this->expectExceptionMessageMatches('/401/');
+
+        $this->client->fetchRunNow();
+    }
+
+    #[Test]
+    public function fetchRunNowThrowsOnNon200(): void
+    {
+        $response = $this->buildResponse(503, []);
+        $this->http->method('request')->willReturn($response);
+
+        $this->expectException(\RuntimeException::class);
+        $this->expectExceptionMessageMatches('/503/');
+
+        $this->client->fetchRunNow();
+    }
+
     // Helpers
 
     private function buildResponse(int $statusCode, array $body): ResponseInterface&MockObject

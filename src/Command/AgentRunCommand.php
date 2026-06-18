@@ -90,6 +90,21 @@ final class AgentRunCommand extends Command
         while ($running) {
             $now = time();
 
+            // Poll run-now flags on every tick — much faster than waiting for config refresh
+            /** @var list<array{id: int, type: string, config: array<string,mixed>, check_interval_minutes: int, run_at_time: string|null}> $oneShots */
+            $oneShots = [];
+            try {
+                $runNowChecks = $client->fetchRunNow();
+                if ([] !== $runNowChecks) {
+                    $oneShots = $this->applyRunNowChecks($runNowChecks, $checks);
+                    if ([] !== $oneShots) {
+                        $this->logger->info('One-shot checks received — executing directly without config refresh', ['count' => count($oneShots)]);
+                    }
+                }
+            } catch (\Throwable $e) {
+                $this->logger->warning('Run-now fetch failed', ['error' => $e->getMessage()]);
+            }
+
             // Refresh config periodically
             if ($now - $lastConfigRefresh >= $configRefreshInterval) {
                 try {
@@ -125,6 +140,28 @@ final class AgentRunCommand extends Command
 
             // Find and run due checks
             $results = $this->processTick($checks, $now, $lastRunAt, $lastRunDate, $io);
+
+            // Execute one-shot checks (e.g. inactive clients not in in-memory config)
+            foreach ($oneShots as $oneShotData) {
+                $checkId = $oneShotData['id'];
+                try {
+                    $result = $this->localCheckRunner->run($checkId, $oneShotData['type'], $oneShotData['config']);
+                    $results[] = $result;
+                    $status = is_string($result['status']) ? $result['status'] : 'unknown';
+                    $this->logger->info('One-shot check executed', [
+                        'check_id' => $checkId,
+                        'type' => $oneShotData['type'],
+                        'status' => $status,
+                    ]);
+                    $io->writeln(sprintf('[%s] one-shot check=%s type=%s status=%s', date('H:i:s'), $checkId, $oneShotData['type'], $status));
+                } catch (\Throwable $e) {
+                    $this->logger->error('One-shot check execution failed', [
+                        'check_id' => $checkId,
+                        'type' => $oneShotData['type'],
+                        'error' => $e->getMessage(),
+                    ]);
+                }
+            }
 
             // Push all results in one batch
             if ([] !== $results) {
@@ -201,6 +238,40 @@ final class AgentRunCommand extends Command
 
         pcntl_signal(\SIGTERM, $handler);
         pcntl_signal(\SIGINT, $handler);
+    }
+
+    /**
+     * Applies run-now checks from dashboard response to the in-memory config.
+     * Sets run_now = true for checks already in config (matched by ID).
+     * Returns checks unknown to this agent's config as "one-shots" for direct execution —
+     * this covers inactive clients whose checks are not in the in-memory config.
+     *
+     * @param list<array{id: int, type: string, config: array<string,mixed>, check_interval_minutes: int, run_at_time: string|null}> $runNowChecks
+     * @param array<array<string, mixed>> &$checks
+     * @return list<array{id: int, type: string, config: array<string,mixed>, check_interval_minutes: int, run_at_time: string|null}>
+     */
+    public function applyRunNowChecks(array $runNowChecks, array &$checks): array
+    {
+        $oneShots = [];
+
+        foreach ($runNowChecks as $runNowCheck) {
+            $runNowId = $runNowCheck['id'];
+            $found = false;
+            foreach ($checks as &$check) {
+                $checkId = $check['id'];
+                if (is_int($checkId) && $checkId === $runNowId) {
+                    $check['run_now'] = true;
+                    $found = true;
+                    break;
+                }
+            }
+            unset($check);
+            if (!$found) {
+                $oneShots[] = $runNowCheck;
+            }
+        }
+
+        return $oneShots;
     }
 
     /**

@@ -133,4 +133,71 @@ class AgentRunCommandProcessTickTest extends TestCase
 
         $this->command->processTick($checks, $now, $lastRunAt, $lastRunDate, $this->io);
     }
+
+    // --- applyRunNowChecks tests ---
+
+    #[Test]
+    public function applyRunNowChecksSetsRunNowFlagForKnownCheck(): void
+    {
+        $checks = [
+            ['id' => 5, 'type' => 'disk_space', 'run_now' => false, 'run_at_time' => null, 'check_interval_minutes' => 5, 'config' => []],
+            ['id' => 8, 'type' => 'http',       'run_now' => false, 'run_at_time' => null, 'check_interval_minutes' => 1, 'config' => []],
+        ];
+
+        $this->command->applyRunNowChecks(
+            [['id' => 5, 'type' => 'disk_space', 'config' => [], 'check_interval_minutes' => 5, 'run_at_time' => null]],
+            $checks,
+        );
+
+        $this->assertTrue($checks[0]['run_now'], 'run_now must be set to true for the matched check');
+        $this->assertFalse($checks[1]['run_now'], 'unmatched check must not be mutated');
+    }
+
+    #[Test]
+    public function applyRunNowChecksReturnsEmptyWhenAllChecksAreKnown(): void
+    {
+        $checks = [
+            ['id' => 3, 'type' => 'process', 'run_now' => false, 'run_at_time' => null, 'check_interval_minutes' => 5, 'config' => []],
+        ];
+
+        $oneShots = $this->command->applyRunNowChecks(
+            [['id' => 3, 'type' => 'process', 'config' => [], 'check_interval_minutes' => 5, 'run_at_time' => null]],
+            $checks,
+        );
+
+        $this->assertSame([], $oneShots);
+    }
+
+    #[Test]
+    public function applyRunNowChecksReturnsOneShotForUnknownCheck(): void
+    {
+        $checks = [
+            ['id' => 3, 'type' => 'process', 'run_now' => false, 'run_at_time' => null, 'check_interval_minutes' => 5, 'config' => []],
+        ];
+        $unknownCheck = ['id' => 999, 'type' => 'disk_space', 'config' => ['path' => '/'], 'check_interval_minutes' => 5, 'run_at_time' => null];
+
+        $oneShots = $this->command->applyRunNowChecks(
+            [
+                ['id' => 3, 'type' => 'process', 'config' => [], 'check_interval_minutes' => 5, 'run_at_time' => null],
+                $unknownCheck,
+            ],
+            $checks,
+        );
+
+        $this->assertCount(1, $oneShots, 'must return the unknown check as a one-shot');
+        $this->assertSame(999, $oneShots[0]['id']);
+    }
+
+    #[Test]
+    public function applyRunNowChecksWithEmptyInputReturnsEmptyAndMutatesNothing(): void
+    {
+        $checks = [
+            ['id' => 1, 'type' => 'http', 'run_now' => false, 'run_at_time' => null, 'check_interval_minutes' => 1, 'config' => []],
+        ];
+
+        $oneShots = $this->command->applyRunNowChecks([], $checks);
+
+        $this->assertSame([], $oneShots);
+        $this->assertFalse($checks[0]['run_now']);
+    }
 }

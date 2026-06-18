@@ -80,6 +80,46 @@ final class AgentConfigController
         ]);
     }
 
+    #[Route('/run-now', name: 'run_now', methods: ['GET'])]
+    public function runNow(Request $request): JsonResponse
+    {
+        $agent = $this->resolveAgent($request);
+        if (null === $agent) {
+            return new JsonResponse(['error' => 'Unauthorized'], Response::HTTP_UNAUTHORIZED);
+        }
+
+        // No client-active filter — Run Now works even for inactive clients
+        $checks = $this->siteCheckRepository->findRunNowByAgent($agent);
+
+        $payload = [];
+        foreach ($checks as $check) {
+            if (!$this->checkRegistry->has($check->getType()) || $this->checkRegistry->get($check->getType())->runnerMode() === RunnerMode::DashboardOnly) {
+                $this->logger->warning('Skipping dashboard-only check type in run-now', [
+                    'check_id' => $check->getId(),
+                    'type' => $check->getType(),
+                    'agent' => $agent->getName(),
+                ]);
+                $check->setRunNow(false);
+                continue;
+            }
+
+            $payload[] = [
+                'id' => $check->getId(),
+                'type' => $check->getType(),
+                'config' => $check->getConfig(),
+                'check_interval_minutes' => $check->getCheckIntervalMinutes(),
+                'run_at_time' => $check->getRunAtTime(),
+            ];
+            $check->setRunNow(false);
+        }
+
+        if ([] !== $checks) {
+            $this->em->flush();
+        }
+
+        return new JsonResponse(['checks' => $payload]);
+    }
+
     private function resolveAgent(Request $request): ?Agent
     {
         $header = $request->headers->get('Authorization', '');
