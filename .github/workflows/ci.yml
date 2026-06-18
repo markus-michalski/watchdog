@@ -55,6 +55,7 @@ jobs:
           test -f var/cache/dev/App_KernelDevDebugContainer.xml || (echo "Container XML missing after warmup!" && exit 1)
         env:
           APP_ENV: dev
+          APP_DEBUG: 1
           APP_SECRET: ci-secret-placeholder
           APP_ADMIN_USER: admin
           APP_ADMIN_PASSWORD_HASH: not-set
