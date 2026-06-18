@@ -20,6 +20,8 @@ class AgentRepository extends ServiceEntityRepository
 
     public function findByToken(string $rawToken): ?Agent
     {
-        return $this->findOneBy(['tokenHash' => hash('sha256', $rawToken)]);
+        $agent = $this->findOneBy(['tokenHash' => hash('sha256', $rawToken)]);
+
+        return ($agent?->verifyToken($rawToken)) ? $agent : null;
     }
 }

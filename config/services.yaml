@@ -13,3 +13,7 @@ services:
     App\MessageHandler\MailNotificationHandler:
         arguments:
             $mailerFrom: '%env(MAILER_FROM)%'
+
+    App\EventSubscriber\ApiRateLimiterSubscriber:
+        arguments:
+            $limiter: '@limiter.api_agent'

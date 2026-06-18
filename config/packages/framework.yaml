@@ -17,6 +17,18 @@ framework:
     #esi: true
     #fragments: true
 
+    rate_limiter:
+        api_agent:
+            policy: sliding_window
+            limit: 60
+            interval: '1 minute'
+
+    cache:
+        pools:
+            # Use filesystem instead of APCu — APCu is not shared across FrankenPHP worker processes.
+            cache.rate_limiter:
+                adapter: cache.adapter.filesystem
+
 when@test:
     framework:
         test: true
