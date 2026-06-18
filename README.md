@@ -6,7 +6,7 @@ Lightweight website and container monitoring. Plugin-based check system, SQLite,
 
 ## Stack
 
-- **Symfony 7.4 LTS** + PHP 8.3
+- **Symfony 8.1** + PHP 8.4
 - **FrankenPHP** (Caddy-based, single binary)
 - **SQLite** via Doctrine ORM — no database container
 - **Symfony Messenger** — async check execution and email alerts
@@ -57,7 +57,7 @@ DEFAULT_URI=https://stage.watchdog.yourdomain.com
 
 ```bash
 # Option A: via Docker (no local PHP needed)
-docker run --rm dunglas/frankenphp:1-php8.3-alpine php -r \
+docker run --rm dunglas/frankenphp:1-php8.4-alpine php -r \
   "echo password_hash('yourpassword', PASSWORD_BCRYPT) . PHP_EOL;"
 
 # Option B: if PHP is installed locally
