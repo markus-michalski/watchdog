@@ -43,7 +43,7 @@ final class ApiRateLimiterSubscriber implements EventSubscriberInterface
             $event->setResponse(new JsonResponse(
                 ['error' => 'Too many requests. Limit: 60 requests per minute.'],
                 Response::HTTP_TOO_MANY_REQUESTS,
-                ['Retry-After' => $limit->getRetryAfter()->getTimestamp() - time()],
+                ['Retry-After' => max(0, $limit->getRetryAfter()->getTimestamp() - time())],
             ));
         }
     }
