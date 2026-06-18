@@ -149,10 +149,12 @@ final class LogFileCheck implements CheckInterface
         $found = false;
 
         if ($isRegex) {
-            $origLimit = ini_get('pcre.backtrack_limit');
             ini_set('pcre.backtrack_limit', '100000');
-            $testResult = @preg_match($pattern, str_repeat('a', 1000));
-            ini_restore('pcre.backtrack_limit');
+            try {
+                $testResult = @preg_match($pattern, str_repeat('a', 1000));
+            } finally {
+                ini_restore('pcre.backtrack_limit');
+            }
 
             if (false === $testResult) {
                 $result->setStatus(CheckStatus::Unknown);
