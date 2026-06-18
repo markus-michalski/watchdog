@@ -49,13 +49,17 @@ jobs:
         run: vendor/bin/php-cs-fixer fix --dry-run --diff --no-interaction
 
       - name: Warm cache for PHPStan Symfony container analysis
-        run: bin/console cache:warmup --env=dev --no-debug
+        run: |
+          mkdir -p var/cache
+          bin/console cache:warmup --env=dev --no-debug
+          test -f var/cache/dev/App_KernelDevDebugContainer.xml || (echo "Container XML missing after warmup!" && exit 1)
         env:
           APP_ENV: dev
           APP_SECRET: ci-secret-placeholder
           APP_ADMIN_USER: admin
           APP_ADMIN_PASSWORD_HASH: not-set
           DATABASE_URL: sqlite:////tmp/watchdog-ci/data.db
+          MESSENGER_TRANSPORT_DSN: doctrine://default?auto_setup=0
           MAILER_DSN: null://null
           MAILER_FROM: ci@example.com
           DEFAULT_URI: http://localhost
