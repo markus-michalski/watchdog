@@ -53,12 +53,12 @@ final class DnsResolverTest extends TestCase
     public static function privateAndReservedIps(): array
     {
         return [
-            'loopback'            => ['127.0.0.1'],
-            'RFC1918 class A'     => ['10.0.0.1'],
-            'RFC1918 class B'     => ['172.16.0.1'],
+            'loopback' => ['127.0.0.1'],
+            'RFC1918 class A' => ['10.0.0.1'],
+            'RFC1918 class B' => ['172.16.0.1'],
             'RFC1918 class B top' => ['172.31.255.255'],
-            'RFC1918 class C'     => ['192.168.1.1'],
-            'link-local'          => ['169.254.0.1'],
+            'RFC1918 class C' => ['192.168.1.1'],
+            'link-local' => ['169.254.0.1'],
         ];
     }
 
