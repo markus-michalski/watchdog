@@ -24,6 +24,14 @@ final class DnsResolver implements DnsResolverInterface
     /** @return string[]|string */
     private function resolveWithDig(string $hostname, string $resolver): array|string
     {
+        if (!filter_var($resolver, FILTER_VALIDATE_IP)) {
+            return sprintf('Invalid resolver "%s": must be a valid IP address', $resolver);
+        }
+
+        if (false === filter_var($resolver, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE)) {
+            return sprintf('Resolver "%s" is a private or reserved IP address and is not allowed', $resolver);
+        }
+
         $cmd = sprintf(
             'dig +short +time=5 @%s %s A 2>&1',
             escapeshellarg($resolver),

@@ -149,10 +149,16 @@ final class LogFileCheck implements CheckInterface
         $found = false;
 
         if ($isRegex) {
-            $testResult = @preg_match($pattern, '');
+            ini_set('pcre.backtrack_limit', '100000');
+            try {
+                $testResult = @preg_match($pattern, str_repeat('a', 1000));
+            } finally {
+                ini_restore('pcre.backtrack_limit');
+            }
+
             if (false === $testResult) {
                 $result->setStatus(CheckStatus::Unknown);
-                $result->setMessage(sprintf('Invalid pattern (regex error): %s', $pattern));
+                $result->setMessage(sprintf('Invalid pattern or catastrophically slow regex: %s', $pattern));
 
                 return $result;
             }

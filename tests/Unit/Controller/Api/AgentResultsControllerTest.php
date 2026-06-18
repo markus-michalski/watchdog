@@ -223,7 +223,38 @@ class AgentResultsControllerTest extends TestCase
     }
 
     #[Test]
-    public function acceptsCheckedAtTimestamp(): void
+    public function acceptsCheckedAtTimestampWithinPlausibleWindow(): void
+    {
+        $agent = $this->buildAgent();
+        $check = $this->buildCheck($agent);
+
+        $this->agentRepository->method('findByToken')->willReturn($agent);
+        $this->siteCheckRepository->method('find')->willReturn($check);
+        $this->stubAlertState($check);
+
+        $persisted = [];
+        $this->em->method('persist')->willReturnCallback(function ($entity) use (&$persisted) {
+            $persisted[] = $entity;
+        });
+
+        $recentTimestamp = (new \DateTimeImmutable())->modify('-2 minutes')->format(\DateTimeInterface::ATOM);
+        $payload = json_encode(['results' => [
+            ['site_check_id' => 1, 'status' => 'fail', 'checked_at' => $recentTimestamp],
+        ]]);
+        $request = $this->buildRequest($agent->getId(), $payload);
+
+        $this->controller->results($request);
+
+        $results = array_filter($persisted, fn ($e) => $e instanceof CheckResult);
+        $result = array_values($results)[0] ?? null;
+
+        $this->assertNotNull($result);
+        $expected = (new \DateTimeImmutable($recentTimestamp))->format('Y-m-d H:i:s');
+        $this->assertSame($expected, $result->getCheckedAt()->format('Y-m-d H:i:s'));
+    }
+
+    #[Test]
+    public function rejectsCheckedAtTimestampOutsidePlausibleWindow(): void
     {
         $agent = $this->buildAgent();
         $check = $this->buildCheck($agent);
@@ -242,13 +273,18 @@ class AgentResultsControllerTest extends TestCase
         ]]);
         $request = $this->buildRequest($agent->getId(), $payload);
 
+        $before = new \DateTimeImmutable();
         $this->controller->results($request);
+        $after = new \DateTimeImmutable();
 
         $results = array_filter($persisted, fn ($e) => $e instanceof CheckResult);
         $result = array_values($results)[0] ?? null;
 
         $this->assertNotNull($result);
-        $this->assertSame('2026-06-15 14:00:00', $result->getCheckedAt()->format('Y-m-d H:i:s'));
+        // Out-of-range timestamp → falls back to server time (not the provided value)
+        $this->assertNotSame('2026-06-15 14:00:00', $result->getCheckedAt()->format('Y-m-d H:i:s'));
+        $this->assertGreaterThanOrEqual($before, $result->getCheckedAt());
+        $this->assertLessThanOrEqual($after, $result->getCheckedAt());
     }
 
     #[Test]
