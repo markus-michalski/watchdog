@@ -6,7 +6,7 @@ namespace App\Check;
 
 final class DiskSpaceReader implements DiskSpaceReaderInterface
 {
-    public function read(string $path): array|null|string
+    public function read(string $path): array|string|null
     {
         if (!is_dir($path)) {
             return null;

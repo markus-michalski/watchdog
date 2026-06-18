@@ -346,7 +346,7 @@ final class SslCertificateCheckTest extends TestCase
     }
 
     /**
-     * @param list<string>           $hosts
+     * @param list<string> $hosts
      */
     private function createSiteCheck(
         array $hosts,
@@ -376,6 +376,7 @@ final class SslCertificateCheckTest extends TestCase
 
     /**
      * @param array<int, array<string, mixed>> $schema
+     *
      * @return array<string, mixed>
      */
     private function findField(array $schema, string $name): array

@@ -2,9 +2,11 @@
 
 Lightweight website and container monitoring. Plugin-based check system, SQLite, FrankenPHP — no external dependencies.
 
+![License: PolyForm NC 1.0.0](https://img.shields.io/badge/license-PolyForm%20NC%201.0.0-red.svg?style=for-the-badge)
+
 ## Stack
 
-- **Symfony 7.4 LTS** + PHP 8.3
+- **Symfony 8.1** + PHP 8.4
 - **FrankenPHP** (Caddy-based, single binary)
 - **SQLite** via Doctrine ORM — no database container
 - **Symfony Messenger** — async check execution and email alerts
@@ -55,7 +57,7 @@ DEFAULT_URI=https://stage.watchdog.yourdomain.com
 
 ```bash
 # Option A: via Docker (no local PHP needed)
-docker run --rm dunglas/frankenphp:1-php8.3-alpine php -r \
+docker run --rm dunglas/frankenphp:1-php8.4-alpine php -r \
   "echo password_hash('yourpassword', PASSWORD_BCRYPT) . PHP_EOL;"
 
 # Option B: if PHP is installed locally
@@ -207,3 +209,9 @@ Emails are caught by Mailpit and not actually delivered. Access the web UI at:
 
 - Stage server: `http://127.0.0.1:8128` (or via SSH tunnel)
 - Local dev: `http://localhost:8128`
+
+## License
+
+[PolyForm Noncommercial License 1.0.0](LICENSE.md) — source-available,
+personal and non-commercial use only. Not OSI Open Source.
+Commercial use requires explicit permission; contact the maintainer.

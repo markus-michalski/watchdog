@@ -17,7 +17,10 @@ final class DnsCheck implements CheckInterface
     {
     }
 
-    public function runnerMode(): RunnerMode { return RunnerMode::Both; }
+    public function runnerMode(): RunnerMode
+    {
+        return RunnerMode::Both;
+    }
 
     public function getType(): string
     {

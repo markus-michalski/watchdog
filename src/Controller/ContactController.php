@@ -78,10 +78,10 @@ class ContactController extends AbstractController
             return new JsonResponse(['success' => false, 'error' => 'Invalid CSRF token.'], 403);
         }
 
-        $name  = trim((string) $request->request->get('name', ''));
+        $name = trim((string) $request->request->get('name', ''));
         $email = trim((string) $request->request->get('email', ''));
 
-        $nameErrors  = $validator->validate($name, [new Assert\NotBlank(), new Assert\Length(max: 255)]);
+        $nameErrors = $validator->validate($name, [new Assert\NotBlank(), new Assert\Length(max: 255)]);
         $emailErrors = $validator->validate($email, [new Assert\NotBlank(), new Assert\Email()]);
 
         if (count($nameErrors) > 0) {

@@ -17,7 +17,10 @@ final class LogFileCheck implements CheckInterface
     {
     }
 
-    public function runnerMode(): RunnerMode { return RunnerMode::AgentOnly; }
+    public function runnerMode(): RunnerMode
+    {
+        return RunnerMode::AgentOnly;
+    }
 
     public function getType(): string
     {
@@ -111,7 +114,7 @@ final class LogFileCheck implements CheckInterface
         $maxAgeMinutes = is_numeric($config['max_age_minutes']) ? (int) $config['max_age_minutes'] : 1440;
 
         $hostRoot = rtrim((string) (getenv('HOST_ROOT') ?: ''), '/');
-        $resolvedPath = '' !== $hostRoot ? $hostRoot . '/' . ltrim($logPath, '/') : $logPath;
+        $resolvedPath = '' !== $hostRoot ? $hostRoot.'/'.ltrim($logPath, '/') : $logPath;
 
         $data = $this->reader->read($resolvedPath);
 

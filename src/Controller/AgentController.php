@@ -67,6 +67,7 @@ class AgentController extends AbstractController
         if ($form->isSubmitted() && $form->isValid()) {
             $em->flush();
             $this->addFlash('success', 'Agent updated.');
+
             return $this->redirectToRoute('agent_show', ['id' => $agent->getId()]);
         }
 
@@ -80,7 +81,7 @@ class AgentController extends AbstractController
     #[Route('/{id}/regenerate-token', name: 'regenerate_token', methods: ['POST'])]
     public function regenerateToken(Request $request, Agent $agent, EntityManagerInterface $em): Response
     {
-        if (!$this->isCsrfTokenValid('regenerate-token-' . $agent->getId(), (string) $request->getPayload()->get('_token'))) {
+        if (!$this->isCsrfTokenValid('regenerate-token-'.$agent->getId(), (string) $request->getPayload()->get('_token'))) {
             throw $this->createAccessDeniedException();
         }
 
@@ -96,7 +97,7 @@ class AgentController extends AbstractController
     #[Route('/{id}/delete', name: 'delete', methods: ['POST'])]
     public function delete(Request $request, Agent $agent, EntityManagerInterface $em): Response
     {
-        if (!$this->isCsrfTokenValid('delete-agent-' . $agent->getId(), (string) $request->getPayload()->get('_token'))) {
+        if (!$this->isCsrfTokenValid('delete-agent-'.$agent->getId(), (string) $request->getPayload()->get('_token'))) {
             throw $this->createAccessDeniedException();
         }
 

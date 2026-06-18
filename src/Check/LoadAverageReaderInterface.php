@@ -13,7 +13,7 @@ interface LoadAverageReaderInterface
      * Returns null when /proc is unavailable (non-Linux system).
      * Returns an error string on read failure.
      *
-     * @return array{0: float, 1: int}|null|string
+     * @return array{0: float, 1: int}|string|null
      */
-    public function read(): array|null|string;
+    public function read(): array|string|null;
 }

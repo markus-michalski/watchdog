@@ -17,7 +17,10 @@ final class SslCertificateCheck implements CheckInterface
     {
     }
 
-    public function runnerMode(): RunnerMode { return RunnerMode::DashboardOnly; }
+    public function runnerMode(): RunnerMode
+    {
+        return RunnerMode::DashboardOnly;
+    }
 
     public function getType(): string
     {

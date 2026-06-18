@@ -40,7 +40,7 @@ class SiteCheckType extends AbstractType
             ->add('runner', EnumType::class, [
                 'label' => 'Runner',
                 'class' => CheckRunner::class,
-                'choice_label' => fn(CheckRunner $r) => $r->label(),
+                'choice_label' => fn (CheckRunner $r) => $r->label(),
                 'attr' => ['class' => 'form-input', 'data-runner-select' => ''],
             ])
             ->add('agent', EntityType::class, [
