@@ -80,6 +80,28 @@ final class AgentConfigController
         ]);
     }
 
+    #[Route('/run-now', name: 'run_now', methods: ['GET'])]
+    public function runNow(Request $request): JsonResponse
+    {
+        $agent = $this->resolveAgent($request);
+        if (null === $agent) {
+            return new JsonResponse(['error' => 'Unauthorized'], Response::HTTP_UNAUTHORIZED);
+        }
+
+        $checks = $this->siteCheckRepository->findActiveByAgent($agent);
+
+        $ids = [];
+        foreach ($checks as $check) {
+            if ($check->isRunNow()) {
+                $ids[] = $check->getId();
+                $check->setRunNow(false);
+            }
+        }
+        $this->em->flush();
+
+        return new JsonResponse(['check_ids' => $ids]);
+    }
+
     private function resolveAgent(Request $request): ?Agent
     {
         $header = $request->headers->get('Authorization', '');

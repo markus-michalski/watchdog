@@ -90,6 +90,20 @@ final class AgentRunCommand extends Command
         while ($running) {
             $now = time();
 
+            // Poll run-now flags on every tick — much faster than waiting for config refresh
+            try {
+                $runNowIds = $client->fetchRunNow();
+                if ([] !== $runNowIds) {
+                    $needsRefresh = $this->applyRunNowIds($runNowIds, $checks);
+                    if ($needsRefresh) {
+                        $this->logger->info('Unknown run-now IDs detected — forcing immediate config refresh', ['ids' => $runNowIds]);
+                        $lastConfigRefresh = 0;
+                    }
+                }
+            } catch (\Throwable $e) {
+                $this->logger->warning('Run-now fetch failed', ['error' => $e->getMessage()]);
+            }
+
             // Refresh config periodically
             if ($now - $lastConfigRefresh >= $configRefreshInterval) {
                 try {
@@ -201,6 +215,37 @@ final class AgentRunCommand extends Command
 
         pcntl_signal(\SIGTERM, $handler);
         pcntl_signal(\SIGINT, $handler);
+    }
+
+    /**
+     * Merges run-now IDs from the dashboard into the in-memory checks array.
+     * Sets run_now = true for known IDs and returns true if any IDs were unknown
+     * (which should trigger an immediate config refresh so the agent picks up new checks).
+     *
+     * @param list<int>                   $runNowIds
+     * @param array<array<string, mixed>> &$checks
+     */
+    public function applyRunNowIds(array $runNowIds, array &$checks): bool
+    {
+        $hasUnknown = false;
+
+        foreach ($runNowIds as $id) {
+            $found = false;
+            foreach ($checks as &$check) {
+                $checkId = $check['id'];
+                if (is_int($checkId) && $checkId === $id) {
+                    $check['run_now'] = true;
+                    $found = true;
+                    break;
+                }
+            }
+            unset($check);
+            if (!$found) {
+                $hasUnknown = true;
+            }
+        }
+
+        return $hasUnknown;
     }
 
     /**

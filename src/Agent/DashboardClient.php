@@ -44,6 +44,35 @@ final class DashboardClient
     }
 
     /**
+     * Fetches IDs of checks with run_now = true for this agent.
+     * Lightweight — called on every tick (every 30s).
+     * The server clears the run_now flags after delivering the IDs.
+     *
+     * @return list<int>
+     * @throws \RuntimeException
+     */
+    public function fetchRunNow(): array
+    {
+        $response = $this->http->request('GET', $this->dashboardUrl . '/api/v1/agent/run-now', [
+            'headers' => ['Authorization' => 'Bearer ' . $this->token],
+            'timeout' => 5,
+        ]);
+
+        if ($response->getStatusCode() === 401) {
+            throw new \RuntimeException('Agent token rejected by dashboard (401). Check WATCHDOG_AGENT_TOKEN.');
+        }
+
+        if ($response->getStatusCode() !== 200) {
+            throw new \RuntimeException(sprintf('Run-now fetch failed with HTTP %d', $response->getStatusCode()));
+        }
+
+        /** @var array{check_ids: list<int>} $data */
+        $data = $response->toArray();
+
+        return $data['check_ids'];
+    }
+
+    /**
      * Pushes check results to dashboard.
      *
      * @param list<array{site_check_id: int, status: string, message: string|null, response_time_ms: int|null, checked_at: string}> $results

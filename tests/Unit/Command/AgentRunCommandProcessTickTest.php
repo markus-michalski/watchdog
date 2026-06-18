@@ -133,4 +133,57 @@ class AgentRunCommandProcessTickTest extends TestCase
 
         $this->command->processTick($checks, $now, $lastRunAt, $lastRunDate, $this->io);
     }
+
+    // --- applyRunNowIds tests ---
+
+    #[Test]
+    public function applyRunNowIdsSetsRunNowFlagForKnownId(): void
+    {
+        $checks = [
+            ['id' => 5, 'type' => 'disk_space', 'run_now' => false, 'run_at_time' => null, 'check_interval_minutes' => 5, 'config' => []],
+            ['id' => 8, 'type' => 'http',       'run_now' => false, 'run_at_time' => null, 'check_interval_minutes' => 1, 'config' => []],
+        ];
+
+        $this->command->applyRunNowIds([5], $checks);
+
+        $this->assertTrue($checks[0]['run_now'], 'run_now must be set to true for the matched check');
+        $this->assertFalse($checks[1]['run_now'], 'unmatched check must not be mutated');
+    }
+
+    #[Test]
+    public function applyRunNowIdsReturnsFalseWhenAllIdsAreKnown(): void
+    {
+        $checks = [
+            ['id' => 3, 'type' => 'process', 'run_now' => false, 'run_at_time' => null, 'check_interval_minutes' => 5, 'config' => []],
+        ];
+
+        $hasUnknown = $this->command->applyRunNowIds([3], $checks);
+
+        $this->assertFalse($hasUnknown);
+    }
+
+    #[Test]
+    public function applyRunNowIdsReturnsTrueWhenUnknownIdFound(): void
+    {
+        $checks = [
+            ['id' => 3, 'type' => 'process', 'run_now' => false, 'run_at_time' => null, 'check_interval_minutes' => 5, 'config' => []],
+        ];
+
+        $hasUnknown = $this->command->applyRunNowIds([3, 999], $checks);
+
+        $this->assertTrue($hasUnknown, 'must return true when at least one ID is not in the in-memory config');
+    }
+
+    #[Test]
+    public function applyRunNowIdsWithEmptyArrayReturnsFalseAndMutatesNothing(): void
+    {
+        $checks = [
+            ['id' => 1, 'type' => 'http', 'run_now' => false, 'run_at_time' => null, 'check_interval_minutes' => 1, 'config' => []],
+        ];
+
+        $hasUnknown = $this->command->applyRunNowIds([], $checks);
+
+        $this->assertFalse($hasUnknown);
+        $this->assertFalse($checks[0]['run_now']);
+    }
 }

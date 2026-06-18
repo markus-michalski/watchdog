@@ -224,10 +224,88 @@ class AgentConfigControllerTest extends TestCase
         );
     }
 
+    // --- runNow endpoint tests ---
+
+    #[Test]
+    public function runNowReturns401WithoutAuth(): void
+    {
+        $request = Request::create('/api/v1/agent/run-now', 'GET');
+
+        $response = $this->controller->runNow($request);
+
+        $this->assertSame(401, $response->getStatusCode());
+    }
+
+    #[Test]
+    public function runNowReturnsEmptyCheckIdsWhenNoneSet(): void
+    {
+        $agent = $this->buildAgent(1, 'prod-server');
+        $check = $this->buildCheck(42, 'disk_space', ['path' => '/'], 5);
+        // run_now defaults to false
+
+        $this->agentRepository->method('findByToken')->willReturn($agent);
+        $this->siteCheckRepository->method('findActiveByAgent')->willReturn([$check]);
+
+        $response = $this->controller->runNow($this->buildRunNowRequest(1));
+        $data = json_decode($response->getContent(), true);
+
+        $this->assertSame(200, $response->getStatusCode());
+        $this->assertSame([], $data['check_ids']);
+    }
+
+    #[Test]
+    public function runNowReturnsIdsOfChecksWithRunNowTrue(): void
+    {
+        $agent = $this->buildAgent(1, 'prod-server');
+        $checkA = $this->buildCheck(42, 'disk_space', ['path' => '/'], 5);
+        $checkA->setRunNow(true);
+        $checkB = $this->buildCheck(99, 'http', ['url' => 'https://example.com'], 1);
+        // checkB run_now = false
+
+        $this->agentRepository->method('findByToken')->willReturn($agent);
+        $this->siteCheckRepository->method('findActiveByAgent')->willReturn([$checkA, $checkB]);
+
+        $response = $this->controller->runNow($this->buildRunNowRequest(1));
+        $data = json_decode($response->getContent(), true);
+
+        $this->assertSame(200, $response->getStatusCode());
+        $this->assertSame([42], $data['check_ids']);
+    }
+
+    #[Test]
+    public function runNowClearsFlagsAfterDelivery(): void
+    {
+        $agent = $this->buildAgent(1, 'prod-server');
+        $check = $this->buildCheck(7, 'process', ['process_name' => 'nginx'], 5);
+        $check->setRunNow(true);
+
+        $this->agentRepository->method('findByToken')->willReturn($agent);
+        $this->siteCheckRepository->method('findActiveByAgent')->willReturn([$check]);
+        $this->em->expects($this->once())->method('flush');
+
+        $this->controller->runNow($this->buildRunNowRequest(1));
+
+        $this->assertFalse($check->isRunNow(), 'run_now flag must be cleared after delivering the ID');
+    }
+
+    // Helpers
+
     private function buildCompatibleCheckStub(): CheckInterface&MockObject
     {
         $stub = $this->createMock(CheckInterface::class);
         $stub->method('runnerMode')->willReturn(RunnerMode::AgentOnly);
         return $stub;
+    }
+
+    private function buildRunNowRequest(int $agentId): Request
+    {
+        return Request::create(
+            '/api/v1/agent/run-now',
+            'GET',
+            [],
+            [],
+            [],
+            ['HTTP_AUTHORIZATION' => 'Bearer test-token-' . $agentId],
+        );
     }
 }

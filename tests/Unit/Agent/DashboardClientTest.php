@@ -125,6 +125,63 @@ class DashboardClientTest extends TestCase
         ]);
     }
 
+    // --- fetchRunNow tests ---
+
+    #[Test]
+    public function fetchRunNowCallsCorrectEndpoint(): void
+    {
+        $response = $this->buildResponse(200, ['check_ids' => []]);
+
+        $this->http->expects($this->once())
+            ->method('request')
+            ->with('GET', 'https://dashboard.example.com/api/v1/agent/run-now', $this->arrayHasKey('headers'))
+            ->willReturn($response);
+
+        $this->client->fetchRunNow();
+    }
+
+    #[Test]
+    public function fetchRunNowReturnsEmptyArrayWhenNoneSet(): void
+    {
+        $response = $this->buildResponse(200, ['check_ids' => []]);
+        $this->http->method('request')->willReturn($response);
+
+        $this->assertSame([], $this->client->fetchRunNow());
+    }
+
+    #[Test]
+    public function fetchRunNowReturnsCheckIds(): void
+    {
+        $response = $this->buildResponse(200, ['check_ids' => [42, 7]]);
+        $this->http->method('request')->willReturn($response);
+
+        $this->assertSame([42, 7], $this->client->fetchRunNow());
+    }
+
+    #[Test]
+    public function fetchRunNowThrowsOn401(): void
+    {
+        $response = $this->buildResponse(401, ['error' => 'Unauthorized']);
+        $this->http->method('request')->willReturn($response);
+
+        $this->expectException(\RuntimeException::class);
+        $this->expectExceptionMessageMatches('/401/');
+
+        $this->client->fetchRunNow();
+    }
+
+    #[Test]
+    public function fetchRunNowThrowsOnNon200(): void
+    {
+        $response = $this->buildResponse(503, []);
+        $this->http->method('request')->willReturn($response);
+
+        $this->expectException(\RuntimeException::class);
+        $this->expectExceptionMessageMatches('/503/');
+
+        $this->client->fetchRunNow();
+    }
+
     // Helpers
 
     private function buildResponse(int $statusCode, array $body): ResponseInterface&MockObject
