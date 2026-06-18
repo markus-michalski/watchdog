@@ -22,6 +22,7 @@ Lightweight website and container monitoring. Plugin-based check system, agent-b
 ```bash
 git clone https://github.com/markus-michalski/watchdog.git watchdog
 cd watchdog
+git checkout $(git tag --sort=-version:refname | head -1)
 cp .env.example .env.local
 ```
 
@@ -46,6 +47,7 @@ App: `http://localhost:8087` · Mailpit: `http://localhost:8128`
 ```bash
 git clone https://github.com/markus-michalski/watchdog.git /opt/watchdog
 cd /opt/watchdog
+git checkout $(git tag --sort=-version:refname | head -1)
 ```
 
 **Stage:**
@@ -103,6 +105,18 @@ In the dashboard, go to **Settings → Agents**, create an agent, copy the token
 ```bash
 docker compose -f compose.stage.yml up -d agent
 ```
+
+## Updating
+
+```bash
+cd /opt/watchdog
+git fetch --tags
+git checkout $(git tag --sort=-version:refname | head -1)
+make stage-build
+make stage-up
+```
+
+`make stage-up` runs pending database migrations automatically.
 
 ## Make Commands
 
