@@ -88,12 +88,28 @@ final class AgentConfigController
             return new JsonResponse(['error' => 'Unauthorized'], Response::HTTP_UNAUTHORIZED);
         }
 
-        // Use dedicated method — no client-active filter, Run Now works even for inactive clients
+        // No client-active filter — Run Now works even for inactive clients
         $checks = $this->siteCheckRepository->findRunNowByAgent($agent);
 
-        $ids = [];
+        $payload = [];
         foreach ($checks as $check) {
-            $ids[] = $check->getId();
+            if (!$this->checkRegistry->has($check->getType()) || $this->checkRegistry->get($check->getType())->runnerMode() === RunnerMode::DashboardOnly) {
+                $this->logger->warning('Skipping dashboard-only check type in run-now', [
+                    'check_id' => $check->getId(),
+                    'type' => $check->getType(),
+                    'agent' => $agent->getName(),
+                ]);
+                $check->setRunNow(false);
+                continue;
+            }
+
+            $payload[] = [
+                'id' => $check->getId(),
+                'type' => $check->getType(),
+                'config' => $check->getConfig(),
+                'check_interval_minutes' => $check->getCheckIntervalMinutes(),
+                'run_at_time' => $check->getRunAtTime(),
+            ];
             $check->setRunNow(false);
         }
 
@@ -101,7 +117,7 @@ final class AgentConfigController
             $this->em->flush();
         }
 
-        return new JsonResponse(['check_ids' => $ids]);
+        return new JsonResponse(['checks' => $payload]);
     }
 
     private function resolveAgent(Request $request): ?Agent

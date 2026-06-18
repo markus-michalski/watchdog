@@ -130,7 +130,7 @@ class DashboardClientTest extends TestCase
     #[Test]
     public function fetchRunNowCallsCorrectEndpoint(): void
     {
-        $response = $this->buildResponse(200, ['check_ids' => []]);
+        $response = $this->buildResponse(200, ['checks' => []]);
 
         $this->http->expects($this->once())
             ->method('request')
@@ -143,19 +143,28 @@ class DashboardClientTest extends TestCase
     #[Test]
     public function fetchRunNowReturnsEmptyArrayWhenNoneSet(): void
     {
-        $response = $this->buildResponse(200, ['check_ids' => []]);
+        $response = $this->buildResponse(200, ['checks' => []]);
         $this->http->method('request')->willReturn($response);
 
         $this->assertSame([], $this->client->fetchRunNow());
     }
 
     #[Test]
-    public function fetchRunNowReturnsCheckIds(): void
+    public function fetchRunNowReturnsFullCheckData(): void
     {
-        $response = $this->buildResponse(200, ['check_ids' => [42, 7]]);
+        $checkData = [
+            ['id' => 42, 'type' => 'disk_space', 'config' => ['path' => '/'], 'check_interval_minutes' => 5, 'run_at_time' => null],
+            ['id' => 7, 'type' => 'process', 'config' => ['process_name' => 'nginx'], 'check_interval_minutes' => 1, 'run_at_time' => null],
+        ];
+        $response = $this->buildResponse(200, ['checks' => $checkData]);
         $this->http->method('request')->willReturn($response);
 
-        $this->assertSame([42, 7], $this->client->fetchRunNow());
+        $result = $this->client->fetchRunNow();
+
+        $this->assertCount(2, $result);
+        $this->assertSame(42, $result[0]['id']);
+        $this->assertSame('disk_space', $result[0]['type']);
+        $this->assertSame(['path' => '/'], $result[0]['config']);
     }
 
     #[Test]

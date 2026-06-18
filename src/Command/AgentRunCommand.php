@@ -91,13 +91,14 @@ final class AgentRunCommand extends Command
             $now = time();
 
             // Poll run-now flags on every tick — much faster than waiting for config refresh
+            /** @var list<array{id: int, type: string, config: array<string,mixed>, check_interval_minutes: int, run_at_time: string|null}> $oneShots */
+            $oneShots = [];
             try {
-                $runNowIds = $client->fetchRunNow();
-                if ([] !== $runNowIds) {
-                    $needsRefresh = $this->applyRunNowIds($runNowIds, $checks);
-                    if ($needsRefresh) {
-                        $this->logger->info('Unknown run-now IDs detected — forcing immediate config refresh', ['ids' => $runNowIds]);
-                        $lastConfigRefresh = 0;
+                $runNowChecks = $client->fetchRunNow();
+                if ([] !== $runNowChecks) {
+                    $oneShots = $this->applyRunNowChecks($runNowChecks, $checks);
+                    if ([] !== $oneShots) {
+                        $this->logger->info('One-shot checks received — executing directly without config refresh', ['count' => count($oneShots)]);
                     }
                 }
             } catch (\Throwable $e) {
@@ -139,6 +140,28 @@ final class AgentRunCommand extends Command
 
             // Find and run due checks
             $results = $this->processTick($checks, $now, $lastRunAt, $lastRunDate, $io);
+
+            // Execute one-shot checks (e.g. inactive clients not in in-memory config)
+            foreach ($oneShots as $oneShotData) {
+                $checkId = $oneShotData['id'];
+                try {
+                    $result = $this->localCheckRunner->run($checkId, $oneShotData['type'], $oneShotData['config']);
+                    $results[] = $result;
+                    $status = is_string($result['status']) ? $result['status'] : 'unknown';
+                    $this->logger->info('One-shot check executed', [
+                        'check_id' => $checkId,
+                        'type' => $oneShotData['type'],
+                        'status' => $status,
+                    ]);
+                    $io->writeln(sprintf('[%s] one-shot check=%s type=%s status=%s', date('H:i:s'), $checkId, $oneShotData['type'], $status));
+                } catch (\Throwable $e) {
+                    $this->logger->error('One-shot check execution failed', [
+                        'check_id' => $checkId,
+                        'type' => $oneShotData['type'],
+                        'error' => $e->getMessage(),
+                    ]);
+                }
+            }
 
             // Push all results in one batch
             if ([] !== $results) {
@@ -218,22 +241,25 @@ final class AgentRunCommand extends Command
     }
 
     /**
-     * Merges run-now IDs from the dashboard into the in-memory checks array.
-     * Sets run_now = true for known IDs and returns true if any IDs were unknown
-     * (which should trigger an immediate config refresh so the agent picks up new checks).
+     * Applies run-now checks from dashboard response to the in-memory config.
+     * Sets run_now = true for checks already in config (matched by ID).
+     * Returns checks unknown to this agent's config as "one-shots" for direct execution —
+     * this covers inactive clients whose checks are not in the in-memory config.
      *
-     * @param list<int>                   $runNowIds
+     * @param list<array{id: int, type: string, config: array<string,mixed>, check_interval_minutes: int, run_at_time: string|null}> $runNowChecks
      * @param array<array<string, mixed>> &$checks
+     * @return list<array{id: int, type: string, config: array<string,mixed>, check_interval_minutes: int, run_at_time: string|null}>
      */
-    public function applyRunNowIds(array $runNowIds, array &$checks): bool
+    public function applyRunNowChecks(array $runNowChecks, array &$checks): array
     {
-        $hasUnknown = false;
+        $oneShots = [];
 
-        foreach ($runNowIds as $id) {
+        foreach ($runNowChecks as $runNowCheck) {
+            $runNowId = $runNowCheck['id'];
             $found = false;
             foreach ($checks as &$check) {
                 $checkId = $check['id'];
-                if (is_int($checkId) && $checkId === $id) {
+                if (is_int($checkId) && $checkId === $runNowId) {
                     $check['run_now'] = true;
                     $found = true;
                     break;
@@ -241,11 +267,11 @@ final class AgentRunCommand extends Command
             }
             unset($check);
             if (!$found) {
-                $hasUnknown = true;
+                $oneShots[] = $runNowCheck;
             }
         }
 
-        return $hasUnknown;
+        return $oneShots;
     }
 
     /**

@@ -44,11 +44,12 @@ final class DashboardClient
     }
 
     /**
-     * Fetches IDs of checks with run_now = true for this agent.
-     * Lightweight — called on every tick (every 30s).
-     * The server clears the run_now flags after delivering the IDs.
+     * Fetches full check data for checks with run_now = true for this agent.
+     * Called on every tick (every 30s). Server clears run_now flags on delivery.
+     * Returns full check config so the agent can run checks as one-shots even
+     * when they are not in the in-memory config (e.g. checks of inactive clients).
      *
-     * @return list<int>
+     * @return list<array{id: int, type: string, config: array<string,mixed>, check_interval_minutes: int, run_at_time: string|null}>
      * @throws \RuntimeException
      */
     public function fetchRunNow(): array
@@ -66,10 +67,10 @@ final class DashboardClient
             throw new \RuntimeException(sprintf('Run-now fetch failed with HTTP %d', $response->getStatusCode()));
         }
 
-        /** @var array{check_ids: list<int>} $data */
+        /** @var array{checks: list<array{id: int, type: string, config: array<string,mixed>, check_interval_minutes: int, run_at_time: string|null}>} $data */
         $data = $response->toArray();
 
-        return $data['check_ids'];
+        return $data['checks'];
     }
 
     /**
