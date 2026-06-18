@@ -1,6 +1,6 @@
 {
     "type": "project",
-    "license": "SEE LICENSE.md",
+    "license": "PolyForm-Noncommercial-1.0.0",
     "minimum-stability": "stable",
     "prefer-stable": true,
     "require": {
