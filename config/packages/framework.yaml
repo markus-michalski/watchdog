@@ -2,7 +2,9 @@
 framework:
     secret: '%env(APP_SECRET)%'
 
-    # Trust X-Forwarded-Proto from reverse proxy — FrankenPHP/Caddy doesn't have SetEnvIf
+    # Trust X-Forwarded-Proto from reverse proxy — FrankenPHP/Caddy doesn't have SetEnvIf.
+    # NEVER set TRUSTED_PROXIES=* in production — it allows clients to spoof their IP via X-Forwarded-For,
+    # bypassing rate limiting and corrupting access logs. Use the actual proxy IP instead.
     trusted_proxies: '%env(default::TRUSTED_PROXIES)%'
     trusted_headers:
         - x-forwarded-for
