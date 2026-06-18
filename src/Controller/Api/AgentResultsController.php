@@ -102,7 +102,11 @@ final class AgentResultsController
                 $dtStr = str_replace('Z', '+00:00', $item['checked_at']);
                 $dt = \DateTimeImmutable::createFromFormat(\DateTimeInterface::ATOM, $dtStr);
                 if (false !== $dt) {
-                    $result->setCheckedAt($dt);
+                    $now = new \DateTimeImmutable();
+                    if ($dt >= $now->modify('-5 minutes') && $dt <= $now->modify('+1 minute')) {
+                        $result->setCheckedAt($dt);
+                    }
+                    // Out-of-range timestamps fall back to server time (setCheckedAt not called)
                 }
             }
 
