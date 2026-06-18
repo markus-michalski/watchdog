@@ -51,6 +51,7 @@ class CheckResultRepository extends ServiceEntityRepository
 
     /**
      * @param array{status?: string|null, from?: \DateTimeImmutable|null, to?: \DateTimeImmutable|null, http_code?: int|null} $filters
+     *
      * @return array<int, CheckResult>
      */
     public function findFilteredForCheck(SiteCheck $check, array $filters, int $page = 1, int $perPage = 50): array
@@ -115,6 +116,7 @@ class CheckResultRepository extends ServiceEntityRepository
      * Single query instead of N individual lookups.
      *
      * @param array<int, SiteCheck> $checks
+     *
      * @return array<int, \DateTimeImmutable>
      */
     public function findLatestTimestampsByChecks(array $checks): array

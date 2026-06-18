@@ -168,7 +168,7 @@ class SiteCheckController extends AbstractController
         EntityManagerInterface $em,
     ): Response {
         if ($this->isCsrfTokenValid('run_check'.$check->getId(), (string) $request->request->get('_token', ''))) {
-            if ($check->getRunner() === \App\Enum\CheckRunner::Agent) {
+            if (\App\Enum\CheckRunner::Agent === $check->getRunner()) {
                 $check->setRunNow(true);
                 $em->flush();
                 $this->addFlash('success', sprintf('"%s" queued for the agent — result appears within ~30 seconds.', $check->getLabel()));
@@ -195,48 +195,48 @@ class SiteCheckController extends AbstractController
             : 50;
         $page = max(1, $request->query->getInt('page', 1));
 
-        $rawStatus   = $request->query->get('status', '');
-        $rawFrom     = $request->query->get('from', '');
-        $rawTo       = $request->query->get('to', '');
+        $rawStatus = $request->query->get('status', '');
+        $rawFrom = $request->query->get('from', '');
+        $rawTo = $request->query->get('to', '');
         $rawHttpCode = $request->query->get('http_code', '');
 
         $filters = [
-            'status'    => $rawStatus !== '' ? $rawStatus : null,
-            'from'      => null,
-            'to'        => null,
-            'http_code' => $rawHttpCode !== '' ? (int) $rawHttpCode : null,
+            'status' => '' !== $rawStatus ? $rawStatus : null,
+            'from' => null,
+            'to' => null,
+            'http_code' => '' !== $rawHttpCode ? (int) $rawHttpCode : null,
         ];
 
-        if ($rawFrom !== '') {
+        if ('' !== $rawFrom) {
             try {
-                $filters['from'] = new \DateTimeImmutable($rawFrom . ' 00:00:00');
+                $filters['from'] = new \DateTimeImmutable($rawFrom.' 00:00:00');
             } catch (\Exception) {
             }
         }
 
-        if ($rawTo !== '') {
+        if ('' !== $rawTo) {
             try {
-                $filters['to'] = new \DateTimeImmutable($rawTo . ' 00:00:00');
+                $filters['to'] = new \DateTimeImmutable($rawTo.' 00:00:00');
             } catch (\Exception) {
             }
         }
 
         $total = $checkResultRepository->countFilteredForCheck($check, $filters);
         $pages = max(1, (int) ceil($total / $limit));
-        $page  = min($page, $pages);
+        $page = min($page, $pages);
 
         return $this->render('check/history.html.twig', [
-            'client'  => $client,
-            'check'   => $check,
+            'client' => $client,
+            'check' => $check,
             'results' => $checkResultRepository->findFilteredForCheck($check, $filters, $page, $limit),
-            'total'   => $total,
-            'page'    => $page,
-            'limit'   => $limit,
-            'pages'   => $pages,
+            'total' => $total,
+            'page' => $page,
+            'limit' => $limit,
+            'pages' => $pages,
             'filters' => [
-                'status'    => $rawStatus,
-                'from'      => $rawFrom,
-                'to'        => $rawTo,
+                'status' => $rawStatus,
+                'from' => $rawFrom,
+                'to' => $rawTo,
                 'http_code' => $rawHttpCode,
             ],
         ]);

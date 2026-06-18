@@ -13,7 +13,7 @@ interface LogFileReaderInterface
      * Returns null when the file does not exist.
      * Returns an error string on read failure (permission denied, etc.).
      *
-     * @return array{mtime: int, lines: string[]}|null|string
+     * @return array{mtime: int, lines: string[]}|string|null
      */
-    public function read(string $path): array|null|string;
+    public function read(string $path): array|string|null;
 }

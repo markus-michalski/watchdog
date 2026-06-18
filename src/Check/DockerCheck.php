@@ -15,7 +15,10 @@ final class DockerCheck implements CheckInterface
 {
     private const SOCKET_PATH = '/var/run/docker.sock';
 
-    public function runnerMode(): RunnerMode { return RunnerMode::Both; }
+    public function runnerMode(): RunnerMode
+    {
+        return RunnerMode::Both;
+    }
 
     public function getType(): string
     {
@@ -173,7 +176,7 @@ final class DockerCheck implements CheckInterface
             throw new \RuntimeException('Invalid JSON response from Docker API');
         }
 
-        /** @var array<string, mixed> $data */
+        /* @var array<string, mixed> $data */
         return $data;
     }
 }

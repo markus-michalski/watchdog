@@ -187,9 +187,9 @@ final class LoadAverageCheckTest extends TestCase
     // --- helpers ---
 
     /**
-     * @param array{0: float, 1: int}|null|string $readerResult
+     * @param array{0: float, 1: int}|string|null $readerResult
      */
-    private function makeCheck(array|null|string $readerResult = [1.0, 4]): LoadAverageCheck
+    private function makeCheck(array|string|null $readerResult = [1.0, 4]): LoadAverageCheck
     {
         $reader = $this->createStub(LoadAverageReaderInterface::class);
         $reader->method('read')->willReturn($readerResult);

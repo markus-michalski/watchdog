@@ -234,9 +234,9 @@ final class LogFileCheckTest extends TestCase
     // --- helpers ---
 
     /**
-     * @param array{mtime: int, lines: string[]}|null|string $readerResult
+     * @param array{mtime: int, lines: string[]}|string|null $readerResult
      */
-    private function makeCheck(array|null|string $readerResult = ['mtime' => 0, 'lines' => []]): LogFileCheck
+    private function makeCheck(array|string|null $readerResult = ['mtime' => 0, 'lines' => []]): LogFileCheck
     {
         $reader = $this->createStub(LogFileReaderInterface::class);
         $reader->method('read')->willReturn($readerResult);

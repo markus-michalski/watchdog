@@ -53,9 +53,9 @@ final class DispatchDueChecksHandler
 
     private function isDue(SiteCheck $check, \DateTimeImmutable $now, ?\DateTimeImmutable $lastRun): bool
     {
-        if ($check->getRunAtTime() !== null) {
+        if (null !== $check->getRunAtTime()) {
             try {
-                $scheduledToday = new \DateTimeImmutable('today ' . $check->getRunAtTime());
+                $scheduledToday = new \DateTimeImmutable('today '.$check->getRunAtTime());
             } catch (\Exception $e) {
                 $this->logger->error('Invalid run_at_time value, skipping check', [
                     'check_id' => $check->getId(),
@@ -69,10 +69,10 @@ final class DispatchDueChecksHandler
                 return false;
             }
 
-            return $lastRun === null || $lastRun < $scheduledToday;
+            return null === $lastRun || $lastRun < $scheduledToday;
         }
 
-        if ($lastRun === null) {
+        if (null === $lastRun) {
             return true;
         }
 

@@ -145,7 +145,7 @@ class SiteCheck
 
     public function setRunAtTime(?string $runAtTime): static
     {
-        if ($runAtTime !== null && $runAtTime !== '') {
+        if (null !== $runAtTime && '' !== $runAtTime) {
             // <input type="time"> may submit HH:MM:SS — strip seconds, keep HH:MM
             $this->runAtTime = substr($runAtTime, 0, 5);
         } else {
@@ -232,11 +232,11 @@ class SiteCheck
     public function getLabel(): string
     {
         return match ($this->type) {
-            'http'     => 'HTTP Reachability',
-            'docker'   => 'Docker Container Health',
+            'http' => 'HTTP Reachability',
+            'docker' => 'Docker Container Health',
             'docker_exec' => 'Docker Exec',
-            'file_age'    => 'File Age',
-            default       => ucfirst($this->type),
+            'file_age' => 'File Age',
+            default => ucfirst($this->type),
         };
     }
 }

@@ -6,7 +6,7 @@ namespace App\Check;
 
 final class LogFileReader implements LogFileReaderInterface
 {
-    public function read(string $path): array|null|string
+    public function read(string $path): array|string|null
     {
         if (!file_exists($path)) {
             return null;

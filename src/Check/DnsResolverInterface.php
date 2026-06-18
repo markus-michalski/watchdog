@@ -13,6 +13,7 @@ interface DnsResolverInterface
      * Returns an error string on failure (DNS error, network timeout, invalid hostname).
      *
      * @param string|null $resolver Custom resolver IP/host (e.g. "8.8.8.8"), or null for system default.
+     *
      * @return string[]|string
      */
     public function resolve(string $hostname, ?string $resolver): array|string;

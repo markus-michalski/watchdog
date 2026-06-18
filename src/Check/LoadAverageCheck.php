@@ -17,7 +17,10 @@ final class LoadAverageCheck implements CheckInterface
     {
     }
 
-    public function runnerMode(): RunnerMode { return RunnerMode::AgentOnly; }
+    public function runnerMode(): RunnerMode
+    {
+        return RunnerMode::AgentOnly;
+    }
 
     public function getType(): string
     {

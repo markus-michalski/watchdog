@@ -33,10 +33,10 @@ final class DurationExtension extends AbstractExtension
             return '0 min';
         }
 
-        $days  = intdiv($minutes, 1440);
-        $rem   = $minutes % 1440;
+        $days = intdiv($minutes, 1440);
+        $rem = $minutes % 1440;
         $hours = intdiv($rem, 60);
-        $mins  = $rem % 60;
+        $mins = $rem % 60;
 
         $parts = [];
         if ($days > 0) {

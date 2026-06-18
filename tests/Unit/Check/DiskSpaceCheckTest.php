@@ -260,9 +260,9 @@ final class DiskSpaceCheckTest extends TestCase
     // --- helpers ---
 
     /**
-     * @param array{0: int, 1: int}|null|string $readerResult
+     * @param array{0: int, 1: int}|string|null $readerResult
      */
-    private function makeCheck(array|null|string $readerResult = [100 * self::GB, 50 * self::GB]): DiskSpaceCheck
+    private function makeCheck(array|string|null $readerResult = [100 * self::GB, 50 * self::GB]): DiskSpaceCheck
     {
         $reader = $this->createStub(DiskSpaceReaderInterface::class);
         $reader->method('read')->willReturn($readerResult);
@@ -292,6 +292,7 @@ final class DiskSpaceCheckTest extends TestCase
 
     /**
      * @param array<int, array<string, mixed>> $schema
+     *
      * @return array<string, mixed>
      */
     private function findField(array $schema, string $name): array

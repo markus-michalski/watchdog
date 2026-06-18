@@ -8,6 +8,7 @@ interface LocalCheckRunnerInterface
 {
     /**
      * @param array<string, mixed> $config
+     *
      * @return array<string, mixed>
      */
     public function run(int $checkId, string $type, array $config): array;

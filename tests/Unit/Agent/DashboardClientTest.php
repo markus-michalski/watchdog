@@ -115,8 +115,8 @@ class DashboardClientTest extends TestCase
         $this->http->expects($this->once())
             ->method('request')
             ->with('POST', $this->anything(), $this->callback(function ($opts) {
-                return isset($opts['headers']['Authorization']) &&
-                    str_starts_with($opts['headers']['Authorization'], 'Bearer ');
+                return isset($opts['headers']['Authorization'])
+                    && str_starts_with($opts['headers']['Authorization'], 'Bearer ');
             }))
             ->willReturn($response);
 
@@ -198,6 +198,7 @@ class DashboardClientTest extends TestCase
         $response = $this->createMock(ResponseInterface::class);
         $response->method('getStatusCode')->willReturn($statusCode);
         $response->method('toArray')->willReturn($body);
+
         return $response;
     }
 }

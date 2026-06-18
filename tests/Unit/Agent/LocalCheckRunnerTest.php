@@ -93,6 +93,7 @@ class LocalCheckRunnerTest extends TestCase
         $check = $this->createMock(CheckInterface::class);
         $check->method('run')->willReturnCallback(function (SiteCheck $proxy) use (&$capturedProxy, $checkResult) {
             $capturedProxy = $proxy;
+
             return $checkResult;
         });
 

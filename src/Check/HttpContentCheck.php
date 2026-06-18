@@ -21,7 +21,10 @@ final class HttpContentCheck implements CheckInterface
     ) {
     }
 
-    public function runnerMode(): RunnerMode { return RunnerMode::DashboardOnly; }
+    public function runnerMode(): RunnerMode
+    {
+        return RunnerMode::DashboardOnly;
+    }
 
     public function getType(): string
     {

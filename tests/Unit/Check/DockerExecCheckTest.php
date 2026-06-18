@@ -151,6 +151,7 @@ final class DockerExecCheckTest extends TestCase
 
     /**
      * @param array<int, array<string, mixed>> $schema
+     *
      * @return array<string, mixed>
      */
     private function findField(array $schema, string $name): array

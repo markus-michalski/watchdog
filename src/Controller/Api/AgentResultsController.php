@@ -73,13 +73,13 @@ final class AgentResultsController
             }
 
             $check = $this->siteCheckRepository->find($checkId);
-            if (null === $check || $check->getRunner() !== CheckRunner::Agent || $check->getAgent()?->getId() !== $agent->getId()) {
+            if (null === $check || CheckRunner::Agent !== $check->getRunner() || $check->getAgent()?->getId() !== $agent->getId()) {
                 $skipped[] = ['site_check_id' => $checkId, 'reason' => 'not found or not assigned to this agent'];
                 continue;
             }
 
             $statusValue = is_string($item['status'] ?? null) ? $item['status'] : null;
-            $status = $statusValue !== null ? CheckStatus::tryFrom($statusValue) : null;
+            $status = null !== $statusValue ? CheckStatus::tryFrom($statusValue) : null;
             if (null === $status) {
                 $skipped[] = ['site_check_id' => $checkId, 'reason' => 'invalid status'];
                 continue;
@@ -101,7 +101,7 @@ final class AgentResultsController
                 // Normalize Z → +00:00 since ATOM format does not accept Z
                 $dtStr = str_replace('Z', '+00:00', $item['checked_at']);
                 $dt = \DateTimeImmutable::createFromFormat(\DateTimeInterface::ATOM, $dtStr);
-                if ($dt !== false) {
+                if (false !== $dt) {
                     $result->setCheckedAt($dt);
                 }
             }

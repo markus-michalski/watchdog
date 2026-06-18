@@ -15,7 +15,10 @@ final class DockerExecCheck implements CheckInterface
 {
     private const SOCKET_PATH = '/var/run/docker.sock';
 
-    public function runnerMode(): RunnerMode { return RunnerMode::Both; }
+    public function runnerMode(): RunnerMode
+    {
+        return RunnerMode::Both;
+    }
 
     public function getType(): string
     {
@@ -176,7 +179,7 @@ final class DockerExecCheck implements CheckInterface
         // Poll until Running=false or deadline is reached.
         $deadline = microtime(true) + $timeout;
 
-        do {
+        while (true) {
             $data = $this->getDockerApi('/exec/'.urlencode($execId).'/json', $timeout);
             $running = (bool) ($data['Running'] ?? false);
 
@@ -191,7 +194,7 @@ final class DockerExecCheck implements CheckInterface
             }
 
             usleep(100_000); // 100ms poll interval
-        } while (true);
+        }
     }
 
     /** @return array<string, mixed> */
@@ -216,7 +219,7 @@ final class DockerExecCheck implements CheckInterface
             throw new \RuntimeException('Invalid JSON response from Docker API');
         }
 
-        /** @var array<string, mixed> $data */
+        /* @var array<string, mixed> $data */
         return $data;
     }
 
@@ -251,7 +254,7 @@ final class DockerExecCheck implements CheckInterface
             throw new \RuntimeException('Invalid JSON response from Docker API');
         }
 
-        /** @var array<string, mixed> $data */
+        /* @var array<string, mixed> $data */
         return $data;
     }
 

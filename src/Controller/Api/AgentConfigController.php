@@ -43,7 +43,7 @@ final class AgentConfigController
 
         $compatible = [];
         foreach ($checks as $check) {
-            if (!$this->checkRegistry->has($check->getType()) || $this->checkRegistry->get($check->getType())->runnerMode() === RunnerMode::DashboardOnly) {
+            if (!$this->checkRegistry->has($check->getType()) || RunnerMode::DashboardOnly === $this->checkRegistry->get($check->getType())->runnerMode()) {
                 $this->logger->warning('Skipping dashboard-only check type in agent config', [
                     'check_id' => $check->getId(),
                     'type' => $check->getType(),
@@ -93,7 +93,7 @@ final class AgentConfigController
 
         $payload = [];
         foreach ($checks as $check) {
-            if (!$this->checkRegistry->has($check->getType()) || $this->checkRegistry->get($check->getType())->runnerMode() === RunnerMode::DashboardOnly) {
+            if (!$this->checkRegistry->has($check->getType()) || RunnerMode::DashboardOnly === $this->checkRegistry->get($check->getType())->runnerMode()) {
                 $this->logger->warning('Skipping dashboard-only check type in run-now', [
                     'check_id' => $check->getId(),
                     'type' => $check->getType(),

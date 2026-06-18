@@ -6,7 +6,7 @@ namespace App\Check;
 
 final class LoadAverageReader implements LoadAverageReaderInterface
 {
-    public function read(): array|null|string
+    public function read(): array|string|null
     {
         if (!is_readable('/proc/loadavg')) {
             return null;

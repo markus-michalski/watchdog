@@ -50,7 +50,7 @@ interface CheckInterface
      * Which runner(s) this check type is compatible with.
      * AgentOnly  = requires direct host access (filesystem, /proc, Docker socket)
      * DashboardOnly = requires URL from the client record (http, ssl_cert)
-     * Both = network-level check that works from any host (tcp, redis, db, dns)
+     * Both = network-level check that works from any host (tcp, redis, db, dns).
      */
     public function runnerMode(): RunnerMode;
 }

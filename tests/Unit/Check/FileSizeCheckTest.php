@@ -89,7 +89,7 @@ final class FileSizeCheckTest extends TestCase
     #[Test]
     public function testRunReturnsFailWhenFileDoesNotExist(): void
     {
-        $nonExistent = sys_get_temp_dir() . '/watchdog_nonexistent_' . uniqid();
+        $nonExistent = sys_get_temp_dir().'/watchdog_nonexistent_'.uniqid();
         $result = (new FileSizeCheck())->run($this->createSiteCheck(path: $nonExistent));
 
         self::assertSame(CheckStatus::Fail, $result->getStatus());

@@ -92,6 +92,7 @@ final class MailNotificationHandler
 
     /**
      * @param array<string, mixed> $config
+     *
      * @return array{label: string, value: string}|null
      */
     private function resolveCheckTarget(string $type, array $config): ?array

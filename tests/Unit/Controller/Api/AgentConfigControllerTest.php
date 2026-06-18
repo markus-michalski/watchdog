@@ -173,7 +173,7 @@ class AgentConfigControllerTest extends TestCase
 
         $this->checkRegistry->method('has')->willReturn(true);
         $this->checkRegistry->method('get')->willReturnCallback(
-            static fn(string $type) => $type === 'http' ? $incompatibleStub : $compatibleStub,
+            static fn (string $type) => 'http' === $type ? $incompatibleStub : $compatibleStub,
         );
 
         $response = $this->controller->config($this->buildRequest(1));
@@ -190,6 +190,7 @@ class AgentConfigControllerTest extends TestCase
         $agent = new Agent();
         (new \ReflectionProperty(Agent::class, 'id'))->setValue($agent, $id);
         (new \ReflectionProperty(Agent::class, 'name'))->setValue($agent, $name);
+
         return $agent;
     }
 
@@ -205,10 +206,11 @@ class AgentConfigControllerTest extends TestCase
         $check->setType($type);
         $check->setConfig($config);
         $check->setCheckIntervalMinutes($intervalMinutes);
-        if ($runAtTime !== null) {
+        if (null !== $runAtTime) {
             $check->setRunAtTime($runAtTime);
         }
         $check->setRunner(CheckRunner::Agent);
+
         return $check;
     }
 
@@ -220,7 +222,7 @@ class AgentConfigControllerTest extends TestCase
             [],
             [],
             [],
-            ['HTTP_AUTHORIZATION' => 'Bearer test-token-' . $agentId],
+            ['HTTP_AUTHORIZATION' => 'Bearer test-token-'.$agentId],
         );
     }
 
@@ -316,6 +318,7 @@ class AgentConfigControllerTest extends TestCase
     {
         $stub = $this->createMock(CheckInterface::class);
         $stub->method('runnerMode')->willReturn(RunnerMode::AgentOnly);
+
         return $stub;
     }
 
@@ -327,7 +330,7 @@ class AgentConfigControllerTest extends TestCase
             [],
             [],
             [],
-            ['HTTP_AUTHORIZATION' => 'Bearer test-token-' . $agentId],
+            ['HTTP_AUTHORIZATION' => 'Bearer test-token-'.$agentId],
         );
     }
 }

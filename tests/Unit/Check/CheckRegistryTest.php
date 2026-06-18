@@ -84,9 +84,9 @@ final class CheckRegistryTest extends TestCase
         ]);
 
         self::assertSame([
-            'http'      => 'dashboard_only',
+            'http' => 'dashboard_only',
             'disk_space' => 'agent_only',
-            'tcp_port'  => 'both',
+            'tcp_port' => 'both',
         ], $registry->getRunnerModes());
     }
 

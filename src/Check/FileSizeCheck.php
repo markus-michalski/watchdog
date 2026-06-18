@@ -13,7 +13,10 @@ use Symfony\Component\DependencyInjection\Attribute\AutoconfigureTag;
 #[AutoconfigureTag('watchdog.check')]
 final class FileSizeCheck implements CheckInterface
 {
-    public function runnerMode(): RunnerMode { return RunnerMode::AgentOnly; }
+    public function runnerMode(): RunnerMode
+    {
+        return RunnerMode::AgentOnly;
+    }
 
     public function getType(): string
     {
@@ -107,7 +110,7 @@ final class FileSizeCheck implements CheckInterface
         }
 
         $hostRoot = rtrim((string) (getenv('HOST_ROOT') ?: ''), '/');
-        $resolvedPath = '' !== $hostRoot ? $hostRoot . '/' . ltrim($path, '/') : $path;
+        $resolvedPath = '' !== $hostRoot ? $hostRoot.'/'.ltrim($path, '/') : $path;
 
         if (!file_exists($resolvedPath)) {
             $result->setStatus(CheckStatus::Fail);

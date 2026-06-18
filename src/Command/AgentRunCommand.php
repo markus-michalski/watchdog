@@ -56,11 +56,13 @@ final class AgentRunCommand extends Command
 
         if ('' === $dashboardUrl) {
             $io->error('Dashboard URL is required. Set --dashboard-url or WATCHDOG_DASHBOARD_URL env var.');
+
             return Command::FAILURE;
         }
 
         if ('' === $token) {
             $io->error('Agent token is required. Set --token or WATCHDOG_AGENT_TOKEN env var.');
+
             return Command::FAILURE;
         }
 
@@ -191,6 +193,7 @@ final class AgentRunCommand extends Command
             $config = $client->fetchConfig();
         } catch (\Throwable $e) {
             $io->error(sprintf('Config fetch failed: %s', $e->getMessage()));
+
             return Command::FAILURE;
         }
 
@@ -215,6 +218,7 @@ final class AgentRunCommand extends Command
                 $io->success(sprintf('Pushed %d result(s).', count($results)));
             } catch (\Throwable $e) {
                 $io->error(sprintf('Push failed: %s', $e->getMessage()));
+
                 return Command::FAILURE;
             }
         } else {
@@ -247,7 +251,8 @@ final class AgentRunCommand extends Command
      * this covers inactive clients whose checks are not in the in-memory config.
      *
      * @param list<array{id: int, type: string, config: array<string,mixed>, check_interval_minutes: int, run_at_time: string|null}> $runNowChecks
-     * @param array<array<string, mixed>> &$checks
+     * @param array<array<string, mixed>>                                                                                            &$checks
+     *
      * @return list<array{id: int, type: string, config: array<string,mixed>, check_interval_minutes: int, run_at_time: string|null}>
      */
     public function applyRunNowChecks(array $runNowChecks, array &$checks): array
@@ -278,9 +283,10 @@ final class AgentRunCommand extends Command
      * Run one scheduler tick: find due checks, execute them, clear run_now flags in place.
      *
      * @param array<array<string, mixed>> &$checks      Live check list — run_now is mutated to false after execution
-     * @param int                          $now          Current unix timestamp
+     * @param int                         $now          Current unix timestamp
      * @param array<int, int>             &$lastRunAt   Last run unix timestamp per check id
      * @param array<int, string>          &$lastRunDate Last run date ('Y-m-d') per check id (run_at_time checks only)
+     *
      * @return array<array<string, mixed>> Results ready to push
      */
     public function processTick(
@@ -294,12 +300,12 @@ final class AgentRunCommand extends Command
         foreach ($checks as &$checkData) {
             $checkId = (int) $checkData['id'];
             $runNow = (bool) ($checkData['run_now'] ?? false);
-            $runAtTime = is_string($checkData['run_at_time'] ?? null) && $checkData['run_at_time'] !== ''
+            $runAtTime = is_string($checkData['run_at_time'] ?? null) && '' !== $checkData['run_at_time']
                 ? $checkData['run_at_time']
                 : null;
 
             if (!$runNow) {
-                if ($runAtTime !== null) {
+                if (null !== $runAtTime) {
                     // Daily check: run once at the specified time, not again until next day
                     $today = date('Y-m-d');
                     if (($lastRunDate[$checkId] ?? null) === $today) {
@@ -311,7 +317,7 @@ final class AgentRunCommand extends Command
                 } else {
                     $intervalSeconds = (int) $checkData['check_interval_minutes'] * 60;
                     $last = $lastRunAt[$checkId] ?? null;
-                    $elapsed = $last !== null ? $now - $last : PHP_INT_MAX;
+                    $elapsed = null !== $last ? $now - $last : PHP_INT_MAX;
 
                     if ($elapsed < $intervalSeconds - 5) {
                         continue;
@@ -327,7 +333,7 @@ final class AgentRunCommand extends Command
                 );
                 $results[] = $result;
                 $lastRunAt[$checkId] = $now;
-                if ($runAtTime !== null) {
+                if (null !== $runAtTime) {
                     $lastRunDate[$checkId] = date('Y-m-d');
                 }
 

@@ -27,7 +27,7 @@ final class CleanupOldResultsHandler
 
         foreach ($checks as $check) {
             $days = $check->getRetentionDays();
-            if ($days === null) {
+            if (null === $days) {
                 continue;
             }
 

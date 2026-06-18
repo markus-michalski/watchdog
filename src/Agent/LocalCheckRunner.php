@@ -18,6 +18,7 @@ final class LocalCheckRunner implements LocalCheckRunnerInterface
      * Runs a single check and returns a result payload ready for the dashboard API.
      *
      * @param array<string, mixed> $config
+     *
      * @return array{site_check_id: int, status: string, message: string|null, response_time_ms: int|null, checked_at: string}
      */
     public function run(int $checkId, string $type, array $config): array

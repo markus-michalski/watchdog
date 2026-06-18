@@ -14,6 +14,7 @@ use Symfony\Component\Form\FormBuilderInterface;
  * Compound form type that maps a total-minutes integer to three d/h/min inputs.
  *
  * @extends AbstractType<int>
+ *
  * @implements DataTransformerInterface<int, array{days: int, hours: int, minutes: int}>
  */
 final class DurationMinutesType extends AbstractType implements DataTransformerInterface
@@ -22,26 +23,26 @@ final class DurationMinutesType extends AbstractType implements DataTransformerI
     {
         $builder
             ->add('days', IntegerType::class, [
-                'label'    => false,
+                'label' => false,
                 'required' => false,
-                'attr'     => ['min' => 0, 'placeholder' => '0'],
+                'attr' => ['min' => 0, 'placeholder' => '0'],
             ])
             ->add('hours', IntegerType::class, [
-                'label'    => false,
+                'label' => false,
                 'required' => false,
-                'attr'     => ['min' => 0, 'max' => 23, 'placeholder' => '0'],
+                'attr' => ['min' => 0, 'max' => 23, 'placeholder' => '0'],
             ])
             ->add('minutes', IntegerType::class, [
-                'label'    => false,
+                'label' => false,
                 'required' => false,
-                'attr'     => ['min' => 0, 'max' => 59, 'placeholder' => '0'],
+                'attr' => ['min' => 0, 'max' => 59, 'placeholder' => '0'],
             ]);
 
         $builder->addModelTransformer($this);
     }
 
     /**
-     * int minutes → ['days', 'hours', 'minutes']
+     * int minutes → ['days', 'hours', 'minutes'].
      *
      * @return array{days: int, hours: int, minutes: int}
      */
@@ -49,9 +50,9 @@ final class DurationMinutesType extends AbstractType implements DataTransformerI
     {
         $total = is_int($value) ? $value : 0;
 
-        $days    = intdiv($total, 1440);
-        $rem     = $total % 1440;
-        $hours   = intdiv($rem, 60);
+        $days = intdiv($total, 1440);
+        $rem = $total % 1440;
+        $hours = intdiv($rem, 60);
         $minutes = $rem % 60;
 
         return ['days' => $days, 'hours' => $hours, 'minutes' => $minutes];
@@ -65,8 +66,8 @@ final class DurationMinutesType extends AbstractType implements DataTransformerI
         }
 
         /** @var array<string, mixed> $value */
-        $days    = is_int($value['days'] ?? null) ? $value['days'] : 0;
-        $hours   = is_int($value['hours'] ?? null) ? $value['hours'] : 0;
+        $days = is_int($value['days'] ?? null) ? $value['days'] : 0;
+        $hours = is_int($value['hours'] ?? null) ? $value['hours'] : 0;
         $minutes = is_int($value['minutes'] ?? null) ? $value['minutes'] : 0;
 
         if ($hours > 23) {
@@ -79,12 +80,7 @@ final class DurationMinutesType extends AbstractType implements DataTransformerI
         $total = $days * 1440 + $hours * 60 + $minutes;
 
         if ($total < 1) {
-            throw new TransformationFailedException(
-                'Total interval must be at least 1 minute.',
-                0,
-                null,
-                'The interval must be at least 1 minute.'
-            );
+            throw new TransformationFailedException('Total interval must be at least 1 minute.', 0, null, 'The interval must be at least 1 minute.');
         }
 
         return $total;

@@ -395,7 +395,7 @@ class AgentResultsControllerTest extends TestCase
 
         $this->agentRepository->method('findByToken')->willReturn($agent);
         $this->siteCheckRepository->method('find')->willReturnCallback(
-            fn (int $id) => $id === 1 ? $check : null
+            fn (int $id) => 1 === $id ? $check : null
         );
         $this->stubAlertState($check);
 
@@ -419,6 +419,7 @@ class AgentResultsControllerTest extends TestCase
         $agent = new Agent();
         $r = new \ReflectionProperty(Agent::class, 'id');
         $r->setValue($agent, $id);
+
         return $agent;
     }
 
@@ -426,7 +427,8 @@ class AgentResultsControllerTest extends TestCase
     {
         $check = new SiteCheck();
         $check->setRunner($runner);
-        $check->setAgent($runner === CheckRunner::Agent ? $agent : null);
+        $check->setAgent(CheckRunner::Agent === $runner ? $agent : null);
+
         return $check;
     }
 
@@ -444,7 +446,7 @@ class AgentResultsControllerTest extends TestCase
             [],
             [],
             [],
-            ['HTTP_AUTHORIZATION' => 'Bearer test-token-' . $agentId],
+            ['HTTP_AUTHORIZATION' => 'Bearer test-token-'.$agentId],
             $body,
         );
     }
