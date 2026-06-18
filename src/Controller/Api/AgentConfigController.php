@@ -88,16 +88,18 @@ final class AgentConfigController
             return new JsonResponse(['error' => 'Unauthorized'], Response::HTTP_UNAUTHORIZED);
         }
 
-        $checks = $this->siteCheckRepository->findActiveByAgent($agent);
+        // Use dedicated method — no client-active filter, Run Now works even for inactive clients
+        $checks = $this->siteCheckRepository->findRunNowByAgent($agent);
 
         $ids = [];
         foreach ($checks as $check) {
-            if ($check->isRunNow()) {
-                $ids[] = $check->getId();
-                $check->setRunNow(false);
-            }
+            $ids[] = $check->getId();
+            $check->setRunNow(false);
         }
-        $this->em->flush();
+
+        if ([] !== $checks) {
+            $this->em->flush();
+        }
 
         return new JsonResponse(['check_ids' => $ids]);
     }

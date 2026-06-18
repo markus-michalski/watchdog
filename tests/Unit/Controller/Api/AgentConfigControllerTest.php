@@ -240,11 +240,9 @@ class AgentConfigControllerTest extends TestCase
     public function runNowReturnsEmptyCheckIdsWhenNoneSet(): void
     {
         $agent = $this->buildAgent(1, 'prod-server');
-        $check = $this->buildCheck(42, 'disk_space', ['path' => '/'], 5);
-        // run_now defaults to false
 
         $this->agentRepository->method('findByToken')->willReturn($agent);
-        $this->siteCheckRepository->method('findActiveByAgent')->willReturn([$check]);
+        $this->siteCheckRepository->method('findRunNowByAgent')->willReturn([]);
 
         $response = $this->controller->runNow($this->buildRunNowRequest(1));
         $data = json_decode($response->getContent(), true);
@@ -259,11 +257,10 @@ class AgentConfigControllerTest extends TestCase
         $agent = $this->buildAgent(1, 'prod-server');
         $checkA = $this->buildCheck(42, 'disk_space', ['path' => '/'], 5);
         $checkA->setRunNow(true);
-        $checkB = $this->buildCheck(99, 'http', ['url' => 'https://example.com'], 1);
-        // checkB run_now = false
 
         $this->agentRepository->method('findByToken')->willReturn($agent);
-        $this->siteCheckRepository->method('findActiveByAgent')->willReturn([$checkA, $checkB]);
+        // repository returns only run_now=true checks (SQL-filtered)
+        $this->siteCheckRepository->method('findRunNowByAgent')->willReturn([$checkA]);
 
         $response = $this->controller->runNow($this->buildRunNowRequest(1));
         $data = json_decode($response->getContent(), true);
@@ -280,12 +277,30 @@ class AgentConfigControllerTest extends TestCase
         $check->setRunNow(true);
 
         $this->agentRepository->method('findByToken')->willReturn($agent);
-        $this->siteCheckRepository->method('findActiveByAgent')->willReturn([$check]);
+        $this->siteCheckRepository->method('findRunNowByAgent')->willReturn([$check]);
         $this->em->expects($this->once())->method('flush');
 
         $this->controller->runNow($this->buildRunNowRequest(1));
 
         $this->assertFalse($check->isRunNow(), 'run_now flag must be cleared after delivering the ID');
+    }
+
+    #[Test]
+    public function runNowWorksForChecksOfInactiveClients(): void
+    {
+        $agent = $this->buildAgent(1, 'prod-server');
+        $check = $this->buildCheck(55, 'disk_space', ['path' => '/'], 5);
+        $check->setRunNow(true);
+
+        $this->agentRepository->method('findByToken')->willReturn($agent);
+        // Repository returns the check even though client is inactive (no cl.isActive filter)
+        $this->siteCheckRepository->method('findRunNowByAgent')->willReturn([$check]);
+
+        $response = $this->controller->runNow($this->buildRunNowRequest(1));
+        $data = json_decode($response->getContent(), true);
+
+        $this->assertSame(200, $response->getStatusCode());
+        $this->assertSame([55], $data['check_ids']);
     }
 
     // Helpers

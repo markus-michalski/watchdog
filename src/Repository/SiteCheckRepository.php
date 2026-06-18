@@ -70,6 +70,30 @@ class SiteCheckRepository extends ServiceEntityRepository
         return $results;
     }
 
+    /**
+     * Finds checks with run_now=true for an agent, regardless of client active status.
+     * Used by the run-now endpoint — manual dispatch must work even for inactive clients.
+     *
+     * @return array<int, SiteCheck>
+     */
+    public function findRunNowByAgent(Agent $agent): array
+    {
+        /** @var array<int, SiteCheck> $results */
+        $results = $this->createQueryBuilder('c')
+            ->where('c.agent = :agent')
+            ->andWhere('c.isActive = :active')
+            ->andWhere('c.runner = :runner')
+            ->andWhere('c.runNow = :runNow')
+            ->setParameter('agent', $agent)
+            ->setParameter('active', true)
+            ->setParameter('runner', CheckRunner::Agent)
+            ->setParameter('runNow', true)
+            ->getQuery()
+            ->getResult();
+
+        return $results;
+    }
+
     /** @return array<int, SiteCheck> */
     public function findAllActiveWithClients(): array
     {
