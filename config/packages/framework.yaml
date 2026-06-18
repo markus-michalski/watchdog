@@ -17,6 +17,12 @@ framework:
     #esi: true
     #fragments: true
 
+    rate_limiter:
+        api_agent:
+            policy: sliding_window
+            limit: 60
+            interval: '1 minute'
+
 when@test:
     framework:
         test: true
