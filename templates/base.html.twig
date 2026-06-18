@@ -41,10 +41,14 @@
         </main>
 
         <footer class="bg-gray-900 text-gray-400 text-sm py-4">
-            <div class="max-w-7xl mx-auto px-4 flex gap-6 justify-center">
-                <a href="{{ path('legal_impressum') }}" class="hover:text-white">Impressum</a>
-                <a href="{{ path('legal_datenschutz') }}" class="hover:text-white">Datenschutz</a>
-                <a href="https://github.com/markus-michalski/watchdog" class="hover:text-white" target="_blank" rel="noopener">Realized with watchdog</a>
+            <div class="max-w-7xl mx-auto px-4 relative flex items-center justify-center">
+                <a href="https://github.com/markus-michalski/watchdog"
+                   class="absolute left-4 text-xs text-gray-600 hover:text-gray-400 transition-colors"
+                   target="_blank" rel="noopener">Realized with watchdog</a>
+                <div class="flex gap-6">
+                    <a href="{{ path('legal_impressum') }}" class="hover:text-white">Impressum</a>
+                    <a href="{{ path('legal_datenschutz') }}" class="hover:text-white">Datenschutz</a>
+                </div>
             </div>
         </footer>
 
