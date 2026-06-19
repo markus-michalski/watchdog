@@ -266,6 +266,9 @@ final class AgentRunCommand extends Command
                 $checkId = $check['id'];
                 if (is_int($checkId) && $checkId === $runNowId) {
                     $check['run_now'] = true;
+                    $check['config'] = $runNowCheck['config'];
+                    $check['check_interval_minutes'] = $runNowCheck['check_interval_minutes'];
+                    $check['run_at_time'] = $runNowCheck['run_at_time'];
                     $found = true;
                     break;
                 }
