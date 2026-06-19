@@ -116,7 +116,7 @@
                                 {{ client.checks|length }} check{{ client.checks|length != 1 ? 's' : '' }}
                             </button>
                             <div class="hidden mt-2 space-y-2" data-checks-panel>
-                                {% for check in client.checks|sort((a, b) => a.label <=> b.label) %}
+                                {% for check in client.checks|sort((a, b) => (a.type|check_label) <=> (b.type|check_label)) %}
                                     {% set result = latestResults[check.id] ?? null %}
                                     <div class="flex items-center gap-3 text-sm">
                                         {% if result %}
