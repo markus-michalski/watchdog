@@ -25,6 +25,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Security
 - Nothing yet
 
+## [1.0.1] - 2026-06-19
+
+### Changed
+- delegate UI labels to CheckRegistry via Twig filter (#86)
+- limit agent image build on PRs to Dockerfile changes only
+- pin clone to latest tag and add update instructions
+
+### Fixed
+- replace missed check.label with check_label filter
+- show effective warn threshold in load average OK message (#85)
+- refresh full check definition on run-now, not just config (#84)
+
 ## [1.0.0] - 2026-06-18
 
 ### Added
@@ -52,5 +64,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Replaced weak `APP_SECRET` placeholder with generation instructions (#77)
 - Security warnings in `docker-compose.agent.yml` for `pid: host` and full filesystem mount (#78)
 
-[Unreleased]: https://github.com/markus-michalski/watchdog/compare/v1.0.0...HEAD
+[Unreleased]: https://github.com/markus-michalski/watchdog/compare/v1.0.1...HEAD
 [1.0.0]: https://github.com/markus-michalski/watchdog/releases/tag/v1.0.0
+[1.0.1]: https://github.com/markus-michalski/watchdog/releases/tag/v1.0.1
