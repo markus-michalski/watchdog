@@ -228,5 +228,4 @@ class SiteCheck
 
         return $this;
     }
-
 }
