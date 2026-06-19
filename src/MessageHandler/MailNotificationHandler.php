@@ -60,9 +60,12 @@ final class MailNotificationHandler
         $checkTarget = $this->resolveCheckTarget($check->getType(), $check->getConfig());
 
         $targetSuffix = $checkTarget ? ' ('.$checkTarget['value'].')' : '';
+        $checkLabel = $this->checkRegistry->has($check->getType())
+            ? $this->checkRegistry->get($check->getType())->getLabel()
+            : ucwords(str_replace('_', ' ', $check->getType()));
         $subject = match ($message->action) {
-            'failure' => sprintf('[WATCHDOG] %s: %s - %s%s', $result->getStatus()->label(), $client->getName(), $check->getLabel(), $targetSuffix),
-            'recovery' => sprintf('[WATCHDOG] RECOVERED: %s - %s%s', $client->getName(), $check->getLabel(), $targetSuffix),
+            'failure' => sprintf('[WATCHDOG] %s: %s - %s%s', $result->getStatus()->label(), $client->getName(), $checkLabel, $targetSuffix),
+            'recovery' => sprintf('[WATCHDOG] RECOVERED: %s - %s%s', $client->getName(), $checkLabel, $targetSuffix),
             default => sprintf('[WATCHDOG] Alert: %s', $client->getName()),
         };
 

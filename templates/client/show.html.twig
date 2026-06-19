@@ -165,9 +165,9 @@
         </div>
     {% else %}
         <div class="grid gap-3" id="check-list">
-            {% for check in client.checks|sort((a, b) => a.label <=> b.label) %}
+            {% for check in client.checks|sort((a, b) => (a.type|check_label) <=> (b.type|check_label)) %}
                 {% set result = latestResults[check.id] ?? null %}
-                {% set _searchText = check.label|lower %}
+                {% set _searchText = check.type|check_label|lower %}
                 {% set _target = checkTargets[check.id] ?? null %}
                 {% if _target is not null %}
                     {% set _searchText = _searchText ~ ' ' ~ _target|lower %}
@@ -178,7 +178,7 @@
                      data-type="{{ check.type }}">
                     <div class="flex-1 min-w-0">
                         <p class="font-medium text-gray-800 flex items-center gap-2 flex-wrap">
-                            {{ check.label }}
+                            {{ check.type|check_label }}
                             {% if _target is not null %}
                                 <span class="text-xs font-normal text-gray-500 bg-gray-50 border border-gray-200 rounded px-2 py-0.5 font-mono">{{ _target }}</span>
                             {% endif %}

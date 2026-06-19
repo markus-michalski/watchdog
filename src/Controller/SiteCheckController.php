@@ -45,7 +45,7 @@ class SiteCheckController extends AbstractController
             $em->persist($check);
             $em->flush();
             $this->cache->delete('watchdog_schedule');
-            $this->addFlash('success', sprintf('Check "%s" added.', $check->getLabel()));
+            $this->addFlash('success', sprintf('Check "%s" added.', $registry->get($check->getType())->getLabel()));
 
             return $this->redirectToRoute('client_show', ['id' => $client->getId()]);
         }
@@ -166,15 +166,17 @@ class SiteCheckController extends AbstractController
         SiteCheck $check,
         MessageBusInterface $bus,
         EntityManagerInterface $em,
+        CheckRegistry $registry,
     ): Response {
         if ($this->isCsrfTokenValid('run_check'.$check->getId(), (string) $request->request->get('_token', ''))) {
+            $label = $registry->has($check->getType()) ? $registry->get($check->getType())->getLabel() : $check->getType();
             if (\App\Enum\CheckRunner::Agent === $check->getRunner()) {
                 $check->setRunNow(true);
                 $em->flush();
-                $this->addFlash('success', sprintf('"%s" queued for the agent — result appears within ~30 seconds.', $check->getLabel()));
+                $this->addFlash('success', sprintf('"%s" queued for the agent — result appears within ~30 seconds.', $label));
             } else {
                 $bus->dispatch(new RunSiteChecksMessage((int) $check->getId()));
-                $this->addFlash('success', sprintf('Check "%s" queued — result appears in a few seconds.', $check->getLabel()));
+                $this->addFlash('success', sprintf('Check "%s" queued — result appears in a few seconds.', $label));
             }
         }
 
