@@ -200,4 +200,29 @@ class AgentRunCommandProcessTickTest extends TestCase
         $this->assertSame([], $oneShots);
         $this->assertFalse($checks[0]['run_now']);
     }
+
+    #[Test]
+    public function applyRunNowChecksUpdatesAllFieldsFromFreshRunNowData(): void
+    {
+        $checks = [
+            [
+                'id' => 5,
+                'type' => 'disk_space',
+                'run_now' => false,
+                'run_at_time' => null,
+                'check_interval_minutes' => 5,
+                'config' => ['path' => '/old'],
+            ],
+        ];
+
+        $this->command->applyRunNowChecks(
+            [['id' => 5, 'type' => 'disk_space', 'config' => ['path' => '/new'], 'check_interval_minutes' => 60, 'run_at_time' => '03:00']],
+            $checks,
+        );
+
+        $this->assertTrue($checks[0]['run_now']);
+        $this->assertSame(['path' => '/new'], $checks[0]['config'], 'config must be updated from fresh run-now response');
+        $this->assertSame(60, $checks[0]['check_interval_minutes'], 'check_interval_minutes must be updated from fresh run-now response');
+        $this->assertSame('03:00', $checks[0]['run_at_time'], 'run_at_time must be updated from fresh run-now response');
+    }
 }
