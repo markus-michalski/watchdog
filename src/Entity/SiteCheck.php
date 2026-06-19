@@ -228,15 +228,4 @@ class SiteCheck
 
         return $this;
     }
-
-    public function getLabel(): string
-    {
-        return match ($this->type) {
-            'http' => 'HTTP Reachability',
-            'docker' => 'Docker Container Health',
-            'docker_exec' => 'Docker Exec',
-            'file_age' => 'File Age',
-            default => ucfirst($this->type),
-        };
-    }
 }
