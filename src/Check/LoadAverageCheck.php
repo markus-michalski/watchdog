@@ -142,7 +142,12 @@ final class LoadAverageCheck implements CheckInterface
         }
 
         $result->setStatus(CheckStatus::Ok);
-        $result->setMessage(sprintf('Load: %.2f (%d CPUs)', $load, $cpus));
+        $result->setMessage(sprintf(
+            'Load: %.2f (%d CPUs, warn threshold: %.2f)',
+            $load,
+            $cpus,
+            $warnThreshold,
+        ));
 
         return $result;
     }
