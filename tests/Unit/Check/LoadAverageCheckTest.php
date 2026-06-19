@@ -173,6 +173,18 @@ final class LoadAverageCheckTest extends TestCase
     }
 
     #[Test]
+    public function testRunOkMessageContainsWarnThreshold(): void
+    {
+        // Reproduces: warn_factor=0.5, 8 CPUs → threshold=4.0, load=0.58 → OK
+        // User must see the effective threshold in the message to understand why it's OK
+        $result = $this->makeCheck(readerResult: [0.58, 8])
+            ->run($this->createSiteCheck(warnFactor: 0.5, failFactor: 1.5));
+
+        self::assertSame(CheckStatus::Ok, $result->getStatus());
+        self::assertStringContainsString('4.00', (string) $result->getMessage());
+    }
+
+    #[Test]
     public function testGetEmailTargetLabelReturnsNull(): void
     {
         self::assertNull($this->makeCheck()->getEmailTargetLabel());
