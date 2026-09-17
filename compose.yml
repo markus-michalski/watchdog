@@ -34,7 +34,7 @@ services:
     build:
       context: .
       target: dev
-    command: php bin/console scheduler:run checks --no-interaction
+    command: php bin/console messenger:consume scheduler_checks --time-limit=3600 --memory-limit=128M --no-interaction -vv
     volumes:
       - .:/app
       - watchdog_data:/app/var
