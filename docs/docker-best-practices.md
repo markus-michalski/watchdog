@@ -81,7 +81,7 @@ services:
   scheduler:
     image: watchdog-stage      # nur tag, kein build
     pull_policy: never
-    command: php bin/console scheduler:run ...
+    command: php bin/console messenger:consume scheduler_checks ...
 ```
 
 **`pull_policy: never` ist Pflicht** — ohne ihn versucht Compose auf einem frischen Host
