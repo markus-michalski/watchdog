@@ -25,6 +25,32 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Security
 - Nothing yet
 
+## [1.1.0] - 2026-10-25
+
+### Added
+- add entry for Claude worktrees
+
+### Changed
+- bump the symfony-updates group across 1 directory with 9 updates (#114)
+- bump doctrine/orm (#111)
+- bump the composer-all group across 1 directory with 5 updates (#108)
+- bump the symfony-updates group across 1 directory with 19 updates (#109)
+- bump symfony/ux-turbo from 2.36.0 to 3.4.0 (#102)
+- bump the composer-all group across 1 directory with 2 updates (#103)
+- bump the symfony-updates group across 1 directory with 12 updates (#104)
+- bump symfony/stimulus-bundle from 2.36.0 to 3.4.0 (#101)
+- bump the symfony-updates group across 1 directory with 9 updates (#98)
+- bump the composer-all group across 1 directory with 3 updates (#95)
+- bump symfonycasts/tailwind-bundle from 0.14.0 to 1.0.0 (#94)
+- bump the composer-all group with 2 updates (#91)
+- bump the symfony-updates group across 1 directory with 5 updates (#88)
+- bump the composer-all group with 2 updates (#89)
+- bump doctrine/doctrine-migrations-bundle (#90)
+- bump the actions-all group with 2 updates (#87)
+
+### Fixed
+- correct scheduler command in dev compose file (#107)
+
 ## [1.0.1] - 2026-06-19
 
 ### Changed
@@ -64,6 +90,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Replaced weak `APP_SECRET` placeholder with generation instructions (#77)
 - Security warnings in `docker-compose.agent.yml` for `pid: host` and full filesystem mount (#78)
 
-[Unreleased]: https://github.com/markus-michalski/watchdog/compare/v1.0.1...HEAD
+[Unreleased]: https://github.com/markus-michalski/watchdog/compare/v1.1.0...HEAD
 [1.0.0]: https://github.com/markus-michalski/watchdog/releases/tag/v1.0.0
 [1.0.1]: https://github.com/markus-michalski/watchdog/releases/tag/v1.0.1
+[1.1.0]: https://github.com/markus-michalski/watchdog/releases/tag/v1.1.0
