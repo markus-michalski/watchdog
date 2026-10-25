@@ -38,4 +38,7 @@
 /.php-cs-fixer.cache
 ###< friendsofphp/php-cs-fixer ###
 
+### Claude ###
+/.claude/worktrees*
+
 # Legal texts — placeholder defaults are committed; customize locally as needed
