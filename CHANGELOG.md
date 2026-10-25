@@ -25,6 +25,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Security
 - Nothing yet
 
+## [1.1.1] - 2026-10-25
+
+### Added
+- add File Reachability check (#118)
+
+### Fixed
+- take the File Reachability URL as free text (#119)
+
 ## [1.1.0] - 2026-10-25
 
 ### Added
@@ -90,7 +98,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Replaced weak `APP_SECRET` placeholder with generation instructions (#77)
 - Security warnings in `docker-compose.agent.yml` for `pid: host` and full filesystem mount (#78)
 
-[Unreleased]: https://github.com/markus-michalski/watchdog/compare/v1.1.0...HEAD
+[Unreleased]: https://github.com/markus-michalski/watchdog/compare/v1.1.1...HEAD
 [1.0.0]: https://github.com/markus-michalski/watchdog/releases/tag/v1.0.0
 [1.0.1]: https://github.com/markus-michalski/watchdog/releases/tag/v1.0.1
 [1.1.0]: https://github.com/markus-michalski/watchdog/releases/tag/v1.1.0
+[1.1.1]: https://github.com/markus-michalski/watchdog/releases/tag/v1.1.1
