@@ -8,7 +8,6 @@ use App\Entity\CheckResult;
 use App\Entity\SiteCheck;
 use App\Enum\CheckStatus;
 use App\Enum\RunnerMode;
-use App\Repository\ClientUrlRepository;
 use Symfony\Component\DependencyInjection\Attribute\AutoconfigureTag;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
 use Symfony\Contracts\HttpClient\ResponseInterface;
@@ -19,10 +18,8 @@ final class FileReachabilityCheck implements CheckInterface
     /** HEAD answers that say nothing about the file itself (e.g. presigned URLs are signed per method). */
     private const HEAD_REJECTED_STATUS_CODES = [403, 405, 501];
 
-    public function __construct(
-        private readonly HttpClientInterface $httpClient,
-        private readonly ClientUrlRepository $clientUrlRepository,
-    ) {
+    public function __construct(private readonly HttpClientInterface $httpClient)
+    {
     }
 
     public function runnerMode(): RunnerMode
@@ -55,13 +52,13 @@ final class FileReachabilityCheck implements CheckInterface
     {
         return [
             [
-                'name' => 'client_url_id',
+                'name' => 'url',
                 'label' => 'File URL',
-                'type' => 'client_url_select',
+                'type' => 'text',
                 'required' => true,
                 'default' => '',
-                'placeholder' => '',
-                'help' => 'Select the URL of the file to monitor (e.g. an image). Add URLs in the client settings first.',
+                'placeholder' => 'https://example.com/media/logo.png',
+                'help' => 'Full URL of the file to monitor (e.g. an image), starting with http:// or https://.',
             ],
             [
                 'name' => 'min_bytes',
@@ -101,15 +98,9 @@ final class FileReachabilityCheck implements CheckInterface
     /** @param array<string, mixed> $config */
     public function resolveEmailTarget(array $config): ?string
     {
-        $raw = $config['client_url_id'] ?? null;
-        $id = is_int($raw) || is_string($raw) ? (int) $raw : null;
-        if (null === $id) {
-            return null;
-        }
+        $url = $this->readUrl($config);
 
-        $clientUrl = $this->clientUrlRepository->find($id);
-
-        return $clientUrl?->getDisplayLabel();
+        return '' !== $url ? $url : null;
     }
 
     public function run(SiteCheck $check): CheckResult
@@ -118,21 +109,18 @@ final class FileReachabilityCheck implements CheckInterface
         $result = new CheckResult();
         $result->setCheck($check);
 
-        $rawId = $config['client_url_id'] ?? null;
-        $clientUrlId = is_int($rawId) || is_string($rawId) ? (int) $rawId : null;
+        $url = $this->readUrl($config);
 
-        if (null === $clientUrlId || $clientUrlId <= 0) {
+        if ('' === $url) {
             $result->setStatus(CheckStatus::Unknown);
-            $result->setMessage('No file URL selected for this check');
+            $result->setMessage('No file URL configured for this check');
 
             return $result;
         }
 
-        $clientUrl = $this->clientUrlRepository->find($clientUrlId);
-
-        if (null === $clientUrl) {
+        if (!$this->isHttpUrl($url)) {
             $result->setStatus(CheckStatus::Unknown);
-            $result->setMessage(sprintf('URL #%d not found — was it deleted?', $clientUrlId));
+            $result->setMessage(sprintf('Invalid file URL (must start with http:// or https://): %s', $url));
 
             return $result;
         }
@@ -143,25 +131,18 @@ final class FileReachabilityCheck implements CheckInterface
             'max_redirects' => 5,
         ];
 
-        if ($clientUrl->hasBasicAuth()) {
-            $options['auth_basic'] = [
-                $clientUrl->getBasicAuthUser(),
-                $clientUrl->getBasicAuthPassword(),
-            ];
-        }
-
         $start = hrtime(true);
 
         try {
             // HEAD avoids downloading the full file — Content-Length/-Type come from the headers alone.
-            $response = $this->httpClient->request('HEAD', $clientUrl->getUrl(), $options);
+            $response = $this->httpClient->request('HEAD', $url, $options);
             $statusCode = $response->getStatusCode();
             $headers = $response->getHeaders(false);
 
             $minBytes = is_numeric($config['min_bytes']) ? (int) $config['min_bytes'] : 0;
 
             if ($this->headIsInconclusive($statusCode, $headers, $minBytes)) {
-                $response = $this->requestFirstByte($clientUrl->getUrl(), $options);
+                $response = $this->requestFirstByte($url, $options);
                 $statusCode = $response->getStatusCode();
                 $headers = $response->getHeaders(false);
                 // Only the headers are needed — abort so the body is never downloaded.
@@ -217,6 +198,21 @@ final class FileReachabilityCheck implements CheckInterface
         }
 
         return $result;
+    }
+
+    /** @param array<string, mixed> $config */
+    private function readUrl(array $config): string
+    {
+        return is_string($config['url'] ?? null) ? trim($config['url']) : '';
+    }
+
+    private function isHttpUrl(string $url): bool
+    {
+        $parts = parse_url($url);
+
+        return is_array($parts)
+            && in_array(strtolower($parts['scheme'] ?? ''), ['http', 'https'], true)
+            && '' !== ($parts['host'] ?? '');
     }
 
     /**
